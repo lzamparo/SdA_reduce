@@ -1,26 +1,24 @@
 """
 =======================================
-Clustering text documents using k-means
+Clustering cells using k-means
 =======================================
 
-This is an example showing how the scikit-learn can be used to cluster
-documents by topics using a bag-of-words approach. This example uses
-a scipy.sparse matrix to store the features instead of standard numpy arrays.
+This script (adapted from the scikit-learn k-means document clustering example)
+is an attempt to cluster data points derived from cell images by phenotype. 
 
 Two algorithms are demoed: ordinary k-means and its faster cousin minibatch
 k-means.
 
 """
 
-# Author: Peter Prettenhofer <peter.prettenhofer@gmail.com>
-#         Lars Buitinck <L.J.Buitinck@uva.nl>
+# Adapted from kmeans_document_clustering_example.py (http://scikit-learn.org/stable/auto_examples/cluster/plot_mini_batch_kmeans.html#example-cluster-plot-mini-batch-kmeans-py) 
+# Author: Lee Zamparo
+#
 # License: Simplified BSD
 
-from sklearn.datasets import fetch_20newsgroups
-from sklearn.feature_extraction.text import Vectorizer
 from sklearn import metrics
-
 from sklearn.cluster import KMeans, MiniBatchKMeans
+from tables import *
 
 import logging
 from optparse import OptionParser
@@ -39,24 +37,25 @@ op = OptionParser()
 op.add_option("--no-minibatch",
               action="store_false", dest="minibatch", default=True,
               help="Use ordinary k-means algorithm.")
+op.add_option("--h5file",
+              dest="inputfile", help="Read data input from this hdf5 file.")
 
 print __doc__
 op.print_help()
 
 (opts, args) = op.parse_args()
-if len(args) > 0:
-    op.error("this script takes no arguments.")
+if len(args) > 1:
+    op.error("This script only takes one argument, the h5 file.")
     sys.exit(1)
 
 
 ###############################################################################
-# Load some categories from the training set
-categories = [
-    'alt.atheism',
-    'talk.religion.misc',
-    'comp.graphics',
-    'sci.space',
-]
+# Load a training set from the given .h5 file
+datafile = openFile(opts.inputfile, mode = "r", title = "Data is stored here")
+
+# Draw the data set from here
+
+
 # Uncomment the following to do the analysis on all the categories
 #categories = None
 
