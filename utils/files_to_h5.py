@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 
-# Vacuum up all the object.CSV files from the given input directory, and pack them into an hdf5 file (maybe using pytables later?)
-# 
-# 
+""" 
+Vacuum up all the object.CSV files from the given input directory, and pack them into an hdf5 file.
+"""
 
 from os import listdir, chdir, getcwd
 from optparse import OptionParser

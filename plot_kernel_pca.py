@@ -3,44 +3,59 @@
 Kernel PCA
 ==========
 
-This example shows that Kernel PCA is able to find a projection of the data
-that makes data linearly separable.
+This script performs two PCA eigenvector decompositions (one regular PCA, one Kernel PCA)
+and plots the data projected onto the first two principal components, in at attempt to 
+evaluate the differences between the two algorithms on a selection from an image screen
+data set.  
+
+Adapted from the example provided by Mathieu Blondel
+
 """
 print __doc__
 
-# Authors: Mathieu Blondel
-# License: BSD
-
 import numpy as np
 import pylab as pl
+from tables import *
 
+import logging
+from optparse import OptionParser
+import sys
+
+import utils.extract_datasets
 from sklearn.decomposition import PCA, KernelPCA
 
 np.random.seed(0)
 
+# Display progress logs on stdout
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)s %(message)s')
 
-def genenerate_rings(n_samples=200):
-    x_red = np.random.random((n_samples,)) * 2 - 1
-    signs_red = np.sign(np.random.random(x_red.shape) - 0.5)
-    y_red = np.sqrt(np.abs(x_red ** 2 - 1)) * signs_red
+# parse commandline arguments
+op = OptionParser()
+op.add_option("--h5file",
+              dest="inputfile", help="Read data input from this hdf5 file.")
+op.add_option("--size",
+              dest="size", type="int", help="Extract the first size chunks of the data set and labels.")
 
-    x_blue = np.random.random((n_samples,)) * 6 - 3
-    signs_blue = np.sign(np.random.random(x_blue.shape) - 0.5)
-    y_blue = np.sqrt(np.abs(x_blue ** 2 - 9)) * signs_blue
+###############################################################################
+# Load a training set from the given .h5 file
+datafile = openFile(opts.inputfile, mode = "r", title = "Data is stored here")
 
-    return np.hstack(([x_red, y_red], [x_blue, y_blue])).T
+# Extract some of the dataset from the datafile
+X, labels = utils.extract_datasets.extract_datasets(datafile, opts.size)
 
+# Sample from the dataset
+wt_labels = np.nonzero(labels[:,0] == 0)[0]
+foci_labels = np.nonzero(labels[:,0] == 1)[0]
+ab_nuclei_labels = np.nonzero(labels[:,0] == 2)[0]
 
-def generate_clusters(n_samples=200):
-    mean1 = np.array([0, 2])
-    mean2 = np.array([2, 0])
-    cov = np.array([[2.0, 1.0], [1.0, 2.0]])
-    X_red = np.random.multivariate_normal(mean1, cov, n_samples)
-    X_blue = np.random.multivariate_normal(mean2, cov, n_samples)
-    return np.vstack((X_red, X_blue))
+wt_data = X[wt_labels,5:]
+foci_data = X[foci_labels,5:]
+ab_nuclei_data = X[ab_nuclei_labels,5:]
 
-X = genenerate_rings()
-#X = generate_clusters()
+# can just use np.random.permutation(array)[0:size,:] to sample u at random
+# from the strata.
+
 
 kpca = KernelPCA(kernel="rbf", fit_inverse_transform=True, gamma=0.5)
 X_kpca = kpca.fit_transform(X)
@@ -60,6 +75,7 @@ pl.ylabel("$x_2$")
 
 X1, X2 = np.meshgrid(np.linspace(-6, 6, 50), np.linspace(-6, 6, 50))
 X_grid = np.array([np.ravel(X1), np.ravel(X2)]).T
+
 # projection on the first principal component (in the phi space)
 Z_grid = kpca.transform(X_grid)[:, 0].reshape(X1.shape)
 pl.contour(X1, X2, Z_grid, colors='grey', linewidths=1, origin='lower')
