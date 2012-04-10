@@ -62,7 +62,7 @@ true_k = np.unique(labels[:,0]).shape[0]
 # Do the actual clustering
 
 if opts.minibatch:
-    km = MiniBatchKMeans(k=true_k, init='k-means++', n_init=1,
+    km = MiniBatchKMeans(k=true_k, init='k-means++', n_init=5,
                          init_size=1000,
                          batch_size=1000, verbose=1)
 else:
@@ -73,6 +73,7 @@ t0 = time()
 km.fit(dataset[:,2:-1])
 print "done in %0.3fs" % (time() - t0)
 print
+print "dataset size: " + str(dataset.shape[0])
 
 print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)
 print "Completeness: %0.3f" % metrics.completeness_score(labels[:,0], km.labels_)

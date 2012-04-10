@@ -8,7 +8,7 @@ and plots the data projected onto the first two principal components, in at atte
 evaluate the differences between the two algorithms on a selection from an image screen
 data set.  
 
-Adapted from the example provided by Mathieu Blondel
+Adapted from the example provided by Mathieu Blondel: http://scikit-learn.org/stable/_downloads/plot_kernel_pca.py
 
 """
 print __doc__
@@ -36,6 +36,9 @@ op.add_option("--h5file",
               dest="inputfile", help="Read data input from this hdf5 file.")
 op.add_option("--size",
               dest="size", type="int", help="Extract the first size chunks of the data set and labels.")
+op.add_option("--sample-size",
+              dest="samplesize", type="int", help="The max size of the samples")
+(opts, args) = op.parse_args()
 
 ###############################################################################
 # Load a training set from the given .h5 file
@@ -53,54 +56,56 @@ wt_data = X[wt_labels,5:]
 foci_data = X[foci_labels,5:]
 ab_nuclei_data = X[ab_nuclei_labels,5:]
 
+# Figure out the sample sizes based on the shape of the *_labels arrays and the 
+# sample size argument
+
+wt_samplesize = min(opts.samplesize,wt_data.shape[0])
+foci_samplesize = min(opts.samplesize,foci_data.shape[0])
+ab_nuclei_samplesize = min(opts.samplesize, ab_nuclei_data.shape[0]) 
+
 # can just use np.random.permutation(array)[0:size,:] to sample u at random
 # from the strata.
+wt_data_sample = np.random.permutation(wt_data)[0:wt_samplesize,:]
+foci_data_sample = np.random.permutation(foci_data)[0:foci_samplesize,:]
+ab_nuclei_sample = np.random.permutation(ab_nuclei_data)[0:ab_nuclei_samplesize,:]
 
+D = np.vstack((wt_data_sample,foci_data_sample,ab_nuclei_sample))
 
 kpca = KernelPCA(kernel="rbf", fit_inverse_transform=True, gamma=0.5)
-X_kpca = kpca.fit_transform(X)
-X_back = kpca.inverse_transform(X_kpca)
+D_kpca = kpca.fit_transform(D)
+D_back = kpca.inverse_transform(D_kpca)
 pca = PCA()
-X_pca = pca.fit_transform(X)
+D_pca = pca.fit_transform(D)
 
 # Plot results
+x_min, x_max = np.min(D_pca, 0), np.max(D_pca, 0)
+D_scaled = (D_pca - x_min) / (x_max - x_min)
 
-pl.figure()
-pl.subplot(2, 2, 1, aspect='equal')
-pl.title("Original space")
-pl.plot(X[:200, 0], X[:200, 1], "ro")
-pl.plot(X[200:, 0], X[200:, 1], "bo")
-pl.xlabel("$x_1$")
-pl.ylabel("$x_2$")
+pl.figure(figsize=(10,7),dpi=400)
+pl.subplot(1, 2, 1, aspect='equal')
 
-X1, X2 = np.meshgrid(np.linspace(-6, 6, 50), np.linspace(-6, 6, 50))
-X_grid = np.array([np.ravel(X1), np.ravel(X2)]).T
+# Establish the indices for plotting as slices of the X matrix
+# Only need the foci upper index, all others can be sliced using the dimensions already stored
+foci_upper_index = wt_samplesize + foci_samplesize
 
-# projection on the first principal component (in the phi space)
-Z_grid = kpca.transform(X_grid)[:, 0].reshape(X1.shape)
-pl.contour(X1, X2, Z_grid, colors='grey', linewidths=1, origin='lower')
-
-pl.subplot(2, 2, 2, aspect='equal')
-pl.plot(X_kpca[:200, 0], X_pca[:200, 1], "ro")
-pl.plot(X_pca[200:, 0], X_pca[200:, 1], "bo")
+pl.plot(D_scaled[:wt_samplesize, 0], D_scaled[:wt_samplesize, 1], "ro")
+pl.plot(D_scaled[wt_samplesize:foci_upper_index, 0], D_scaled[wt_samplesize:foci_upper_index, 1], "bo")
+pl.plot(D_scaled[foci_upper_index:, 0], D_scaled[foci_upper_index:, 1], "go")
 pl.title("Projection by PCA")
 pl.xlabel("1st principal component")
 pl.ylabel("2nd component")
 
-pl.subplot(2, 2, 3, aspect='equal')
-pl.plot(X_kpca[:200, 0], X_kpca[:200, 1], "ro")
-pl.plot(X_kpca[200:, 0], X_kpca[200:, 1], "bo")
+pl.subplot(1, 2, 2, aspect='equal')
+pl.plot(D_kpca[:wt_samplesize, 0], D_kpca[:wt_samplesize, 1], "ro")
+pl.plot(D_kpca[wt_samplesize:foci_upper_index, 0], D_kpca[wt_samplesize:foci_upper_index, 1], "bo")
+pl.plot(D_kpca[foci_upper_index:, 0], D_kpca[foci_upper_index:, 1], "go")
 pl.title("Projection by KPCA")
 pl.xlabel("1st principal component in space induced by $\phi$")
 pl.ylabel("2nd component")
+pl.legend( ('Wild Type', 'Foci', 'Non-round Nuclei'), loc="upper right")
 
-pl.subplot(2, 2, 4, aspect='equal')
-pl.plot(X_back[:200, 0], X_back[:200, 1], "ro")
-pl.plot(X_back[200:, 0], X_back[200:, 1], "bo")
-pl.title("Original space after inverse transform")
-pl.xlabel("$x_1$")
-pl.ylabel("$x_2$")
-
-pl.subplots_adjust(0.02, 0.10, 0.98, 0.94, 0.04, 0.35)
+pl.subplots_adjust(0.02, 0.10, 0.98, 0.94, 0.15, 0.15)
+pl.savefig("pcafig.pdf",format="pdf",dpi=200)
 
 pl.show()
+
