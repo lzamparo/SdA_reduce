@@ -15,6 +15,8 @@ print __doc__
 
 import numpy as np
 import pylab as pl
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from tables import *
 
 import logging
@@ -105,7 +107,36 @@ pl.ylabel("2nd component")
 pl.legend( ('Wild Type', 'Foci', 'Non-round Nuclei'), loc="upper right")
 
 pl.subplots_adjust(0.02, 0.10, 0.98, 0.94, 0.15, 0.15)
-pl.savefig("pcafig.pdf",format="pdf",dpi=200)
+pl.savefig("pcafig_2D.pdf",format="pdf",dpi=200)
 
-pl.show()
+#  Now generate a 3D pca figure with same data
+fig = plt.figure(figsize=plt.figaspect(0.5),dpi=400)
 
+ax = fig.add_subplot(1, 2, 1, projection='3d')
+ax.plot(D_scaled[:wt_samplesize, 0], D_scaled[:wt_samplesize, 1], D_scaled[:wt_samplesize, 2], 'o', c="r", label='Wild Type', ls='None')
+ax.plot(D_scaled[wt_samplesize:foci_upper_index, 0], D_scaled[wt_samplesize:foci_upper_index, 1], D_scaled[wt_samplesize:foci_upper_index, 2], 'o', c="b", label='Foci', ls='None')
+ax.plot(D_scaled[foci_upper_index:, 0], D_scaled[foci_upper_index:, 1], D_scaled[foci_upper_index:, 2], 'o', c="g", label='Non-round Nuclei', ls='None')
+
+ax.set_xlabel('1st principal component')
+ax.set_ylabel('2nd component')
+ax.set_zlabel('3rd component')    
+
+ax.set_title("Projection by PCA")
+ax.legend(loc = 'upper left')
+
+ax = fig.add_subplot(1, 2, 2, projection='3d')
+ax.plot(D_kpca[:wt_samplesize, 0], D_kpca[:wt_samplesize, 1], D_kpca[:wt_samplesize, 2],'o', c="r", label='Wild Type', ls='None')
+ax.plot(D_kpca[wt_samplesize:foci_upper_index, 0], D_kpca[wt_samplesize:foci_upper_index, 1], D_kpca[wt_samplesize:foci_upper_index, 2], 'o', c="b", label='Foci', ls='None')
+ax.plot(D_kpca[foci_upper_index:, 0], D_kpca[foci_upper_index:, 1], D_kpca[foci_upper_index:, 2], 'o', c="g", label='Non-round Nuclei', ls='None')
+
+ax.set_xlabel('1st principal component in space induced by $\phi$')
+ax.set_ylabel('2nd component')
+ax.set_zlabel('3rd component')    
+
+ax.set_title("Projection by KPCA")
+ax.legend(loc = 'upper left')
+
+plt.savefig("pcafig_3D.pdf",format="pdf",dpi=200)
+
+# close the data file
+datafile.close()

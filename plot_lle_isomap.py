@@ -14,13 +14,20 @@ Algorithms used: LLE and Isomap.
 print __doc__
 from time import time
 
-import numpy as np
+# matplotlib imports
 import pylab as pl
 from matplotlib import offsetbox
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.font_manager import FontProperties
+
+
+# Numpy and sklearn imports
 from sklearn import manifold, decomposition
 from sklearn import preprocessing
+import numpy as np
 
+# Data handling imports
 from tables import *
 from optparse import OptionParser
 import utils.extract_datasets
@@ -33,6 +40,8 @@ op.add_option("--size",
               dest="size", type="int", help="Extract the first size chunks of the data set and labels.")
 op.add_option("--sample-size",
               dest="samplesize", type="int", help="The max size of the samples")
+op.add_option("--dimension", 
+              dest="dimension", type="int", help="Specifies the dimension of the lower dimensional space")
 (opts, args) = op.parse_args()
 
 # 
@@ -72,7 +81,7 @@ n_neighbors = 30
 
 
 #----------------------------------------------------------------------
-# Scale and visualize the embedding vectors
+# Scale and visualize the embedding vectors in 2D
 def plot_embedding(X, tile, title=None):
     x_min, x_max = np.min(X, 0), np.max(X, 0)
     X = (X - x_min) / (x_max - x_min)
@@ -94,44 +103,67 @@ def plot_embedding(X, tile, title=None):
     pl.xticks([]), pl.yticks([])
     if title is not None:
         pl.title(title,fontsize=15)
+        
+#----------------------------------------------------------------------
+# Scale and visualize the embedding vectors in 3D plots       
+def plot_embedding_3D(X, tile, title=None):        
+    x_min, x_max = np.min(X, 0), np.max(X, 0)
+    X = (X - x_min) / (x_max - x_min)
     
-
-pl.figure(figsize=(9,8),dpi=200)
+    # Establish the indices for plotting as slices of the X matrix
+    # Only need the foci upper index, all others can be sliced using the dimensions already stored
+    foci_upper_index = wt_samplesize + foci_samplesize
+    
+    ax = fig.add_subplot(1, 2, tile, projection='3d')
+    
+    # Plot WT
+    ax.plot(X[:wt_samplesize, 0], X[:wt_samplesize, 1], X[:wt_samplesize, 2], 'o', c="r", label='Wild Type', ls='None')
+    # Plot Foci
+    ax.plot(X[wt_samplesize:foci_upper_index, 0], X[wt_samplesize:foci_upper_index, 1], X[wt_samplesize:foci_upper_index, 2], 'o', c="b", label='Foci', ls='None')
+    # Plot Nonround nuclei
+    ax.plot(X[foci_upper_index:, 0], X[foci_upper_index:, 1], X[foci_upper_index:, 2], 'o', c="g", label='Non-round Nuclei', ls='None')    
+    
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')    
+    
+    ax.legend(loc = 'upper left')
+    
+    
 
 #----------------------------------------------------------------------
 # Isomap projection of the digits dataset
 print "Computing Isomap embedding"
 t0 = time()
-D_iso = manifold.Isomap(n_neighbors, out_dim=2).fit_transform(D_scaled)
-print "Done."
-plot_embedding(D_iso, 1,
-    "Isomap projection")
-
+D_iso = manifold.Isomap(n_neighbors, n_components=3).fit_transform(D_scaled)
+print "Done in time %.2fs " % (time() - t0)
 
 #----------------------------------------------------------------------
 # Locally linear embedding of the digits dataset
 print "Computing LLE embedding"
-clf = manifold.LocallyLinearEmbedding(n_neighbors, out_dim=2,
+clf = manifold.LocallyLinearEmbedding(n_neighbors, n_components=3,
                                       method='standard')
 t0 = time()
 D_lle = clf.fit_transform(D_scaled)
-print "Done. Reconstruction error: %g" % clf.reconstruction_error_
-plot_embedding(D_lle, 2,
-    "Locally Linear Embedding")
+print "Done in time %.2fs " % (time() - t0)
+print "Reconstruction error: %g" % clf.reconstruction_error_
+
+if opts.dimension == 2:
+    pl.figure(figsize=(9,8),dpi=200)
+    plot_embedding(D_iso, 1, "Isomap projection")
+    plot_embedding(D_lle, 2,"Locally Linear Embedding")
+    pl.subplots_adjust(left=None, bottom=None, right=None, wspace=0.15, hspace=None)
+    #pl.savefig("manifold_fig.pdf",format="pdf",dpi=200, orientation='landscape', pad_inches=0)
+    pl.show()    
+else:
+    # Twice as wide as it is tall.
+    fig = plt.figure(figsize=plt.figaspect(0.5))    
+    plot_embedding_3D(D_iso, 1, "Isomap projection")
+    plot_embedding_3D(D_lle, 2, "Local Linear Embedding")
+    plt.savefig("manifold_fig_3D.pdf",format="pdf",dpi=200, orientation='landscape', pad_inches=0)
+    plt.show()
 
 
-#----------------------------------------------------------------------
-# HLLE embedding of the digits dataset
-#print "Computing Hessian LLE embedding"
-#clf = manifold.LocallyLinearEmbedding(n_neighbors, out_dim=2,
-                                      #method='hessian')
-#t0 = time()
-#D_hlle = clf.fit_transform(D_scaled)
-#print "Done. Reconstruction error: %g" % clf.reconstruction_error_
-#plot_embedding(D_hlle, 3,
-    #"Hessian Locally Linear Embedding of the digits (time %.2fs)" %
-    #(time() - t0))
 
-pl.subplots_adjust(left=None, bottom=None, right=None, wspace=0.15, hspace=None)
-pl.savefig("manifold_fig.pdf",format="pdf",dpi=200, orientation='landscape', pad_inches=0)
-#pl.show()
+# close the data file
+datafile.close()
