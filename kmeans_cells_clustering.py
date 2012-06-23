@@ -55,33 +55,50 @@ datafile = openFile(opts.inputfile, mode = "r", title = "Data is stored here")
 # Extract some of the dataset from the datafile
 dataset, labels = utils.extract_datasets.extract_datasets(datafile, opts.size)
 
+# Remove CP index features, other non-object features
+dataset = dataset[:,5:612]
+
 true_k = np.unique(labels[:,0]).shape[0]
 
+# done, close h5 files
+datafile.close()
 
 ###############################################################################
 # Do the actual clustering
 
-if opts.minibatch:
-    km = MiniBatchKMeans(k=true_k, init='k-means++', n_init=5,
-                         init_size=1000,
-                         batch_size=1000, verbose=1)
-else:
-    km = KMeans(k=true_k, init='k-means++', max_iter=100, n_init=1, verbose=1)
+k_homog = np.zeros((6,100))
+k_comp = np.zeros((6,100))
+k_vmeas = np.zeros((6,100))
 
-print "Clustering sparse data with %s" % km
-t0 = time()
-km.fit(dataset[:,2:-1])
-print "done in %0.3fs" % (time() - t0)
-print
-print "dataset size: " + str(dataset.shape[0])
+for i in range(2,7,1):
+    for j in range(0,99,1):
+        if opts.minibatch:
+            km = MiniBatchKMeans(k=i, init='k-means++', n_init=5,
+                                 init_size=1000,
+                                 batch_size=1000, verbose=1)
+        else:
+            km = KMeans(k=i, init='k-means++', max_iter=100, n_init=5, verbose=1)
+        
+        print "Clustering data with %s" % km
+        t0 = time()
+        km.fit(dataset)
+        print "done in %0.3fs" % (time() - t0)
+        print
+        
+        # Store the results
+        k_homog[i-2,j] = metrics.homogeneity_score(labels[:,0], km.labels_)
+        k_comp[i-2,j] = metrics.completeness_score(labels[:,0], km.labels_)
+        k_vmeas[i-2,j] = metrics.v_measure_score(labels[:,0], km.labels_)
+        
+        print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)
+        print "Completeness: %0.3f" % metrics.completeness_score(labels[:,0], km.labels_)
+        print "V-measure: %0.3f" % metrics.v_measure_score(labels[:,0], km.labels_)
 
-print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)
-print "Completeness: %0.3f" % metrics.completeness_score(labels[:,0], km.labels_)
-print "V-measure: %0.3f" % metrics.v_measure_score(labels[:,0], km.labels_)
-print "Adjusted Rand-Index: %.3f" % \
-    metrics.adjusted_rand_score(labels[:,0], km.labels_)
-print "Silhouette Coefficient: %0.3f" % metrics.silhouette_score(
-    dataset[:,2:-1], labels[:,0], sample_size=1000)
+# Save the tables
+homog_means = k_homog.mean(axis=1)
+comp_means = k_comp.mean(axis=1)
+vmeas_means = k_vmeas.mean(axis=1)
 
-# done, close h5 files
-datafile.close()
+np.savetxt("k_means_homog.txt",homog_means)
+np.savetxt("k_means_comp.txt",comp_means)
+np.savetxt("k_means_vmeas.txt",vmeas_means)

@@ -132,14 +132,14 @@ def plot_embedding_3D(X, tile, title=None):
     
 
 #----------------------------------------------------------------------
-# Isomap projection of the digits dataset
+# Isomap projection 
 print "Computing Isomap embedding"
 t0 = time()
 D_iso = manifold.Isomap(n_neighbors, n_components=3).fit_transform(D_scaled)
 print "Done in time %.2fs " % (time() - t0)
 
 #----------------------------------------------------------------------
-# Locally linear embedding of the digits dataset
+# Locally linear embedding 
 print "Computing LLE embedding"
 clf = manifold.LocallyLinearEmbedding(n_neighbors, n_components=3,
                                       method='standard')
