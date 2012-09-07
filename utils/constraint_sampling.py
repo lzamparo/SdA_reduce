@@ -6,6 +6,7 @@ import numpy as np
 from scipy.spatial.distance import pdist
 import warnings
 from numpy.testing import assert_equal
+from numpy.random import shuffle, randint
 
 def labels_to_constraints(X, labels, s_size=50, d_size=50, s_delta=0.1, d_delta=1.0):
     """ 
@@ -43,7 +44,7 @@ def estimate_class_sizes(labels):
         
 def draw_pairs(data):
     """ Take a vector of labels, split in half and randomly assign pairs of points to be sampled for similarity matches.
-    Return the ndarray of pairs of points."""
+    Return the ndarray of pairs of points. """
     pts = np.arange(data.shape[0])
     first_pts = pts[0:np.floor(data.shape[0]/2)]
     second_pts = pts[np.floor(data.shape[0]/2):]
@@ -57,6 +58,20 @@ def draw_pairs(data):
     sampling_list = np.hstack((first_pts,second_pts))
     return sampling_list
 
+def generate_odd_points(data, labels):
+    """ Draw two different labels, then draw two points at random from each tranche of data, return them. """
+    
+    class_alphabet = np.unique(labels)
+    assert(class_alphabet.size > 1)
+    
+    shuffle(class_alphabet)
+    pair = np.zeros((2,data.shape[1]))
+    for item, elem in enumerate(class_alphabet[0:2]):
+        data = extract_one_class(data,labels,elem)
+        pair[item,:] = data[randint(0,data.shape[0]),:]
+    return pair
+    
+    
 def sample_similar(X, labels, set_size, tolerance):
     """
     Sample points at random from each class, and build the set of similarities in a recarray.
@@ -91,13 +106,28 @@ def sample_similar(X, labels, set_size, tolerance):
         end_row = start_row + this_class_pts.shape[0]
         similar_pts[start_row:end_row,:] = this_class_pts[:]
             
-    return similar_pts        
+    return similar_pts
             
 def sample_differences(X, indicators, set_size, tolerance):
     """
     Sample points from different tranches of classes contained in 'indicators'.  Build the set of differences in a rec array
     """
-    pass
+    
+    # Examine lables, to determine (a) if it is sorted by class and (b) where those borders lie.
+    class_alphabet = np.unique(labels)
+    assert_equal(min(class_alphabet),1)
+    
+    # Calculate the percentages of each set of labels
+    proportions = estimate_class_sizes(labels)
+    num_examples = np.floor(proportions * set_size)
+    
+    # Store the similarity points as references to data rows
+    dissimilar_pts = zeros(set_size,2 * X.shape[1])
+    
+    # Sample pairs of points from different classes, then add them if they are sufficiently different
+    
+    
+    
 
 # Temporary debug testing
 if __name__ == "__main__":
