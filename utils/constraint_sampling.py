@@ -29,7 +29,7 @@ def extract_one_class(X,labels,y):
     of all instances in X that have label y
     """
 
-    return X[np.nonzero(labels[:,0] == y)[0],:]
+    return X[np.nonzero(labels[:] == y)[0],:]
 
 
 def estimate_class_sizes(labels):
@@ -38,7 +38,7 @@ def estimate_class_sizes(labels):
     n_samples = float(max(labels.shape))
     proportions = np.zeros((1,max(class_alphabet.shape)))
     for position, elem in enumerate(class_alphabet):
-        size_set = np.nonzero(labels[:,0] == elem)[0]
+        size_set = np.nonzero(labels[:] == elem)[0]
         proportions[0,position] = float(max(size_set.shape)) / n_samples
     return proportions    
         
@@ -58,18 +58,18 @@ def draw_pairs(data):
     sampling_list = np.hstack((first_pts,second_pts))
     return sampling_list
 
-def generate_odd_points(data, labels):
-    """ Draw two different labels, then draw two points at random from each tranche of data, return them. """
-    
-    class_alphabet = np.unique(labels)
-    assert(class_alphabet.size > 1)
-    
-    shuffle(class_alphabet)
-    pair = np.zeros((2,data.shape[1]))
-    for item, elem in enumerate(class_alphabet[0:2]):
-        data = extract_one_class(data,labels,elem)
-        pair[item,:] = data[randint(0,data.shape[0]),:]
-    return pair
+def generate_points(data, labels, size):
+    """ Generate one set of constraints: select two classes  """
+    label_alphabet = np.unique(labels)
+    assert(label_alphabet.size > 1)
+    for useless in xrange(size):
+        shuffle(label_alphabet)
+        first_class = extract_one_class(data,labels,label_alphabet[0])
+        second_class = extract_one_class(data,labels,label_alphabet[1])
+        first_pt = first_class[randint(0,first_class.shape[0]),:]
+        second_pt = second_class[randint(0,second_class.shape[0]),:]
+        pair = np.hstack((first_pt,second_pt))
+        for val in pair.ravel(): yield val
     
     
 def sample_similar(X, labels, set_size, tolerance):
@@ -108,7 +108,7 @@ def sample_similar(X, labels, set_size, tolerance):
             
     return similar_pts
             
-def sample_differences(X, indicators, set_size, tolerance):
+def sample_differences(X, labels, set_size, tolerance):
     """
     Sample points from different tranches of classes contained in 'indicators'.  Build the set of differences in a rec array
     """
@@ -122,27 +122,21 @@ def sample_differences(X, indicators, set_size, tolerance):
     num_examples = np.floor(proportions * set_size)
     
     # Store the similarity points as references to data rows
-    dissimilar_pts = zeros(set_size,2 * X.shape[1])
+    dissimilar_pts = zeros(1,2 * X.shape[1])
     
     # Sample pairs of points from different classes, then add them if they are sufficiently different
-    
-    
+    for point in generate_odd_points(X,labels,set_size):
+        if pdist(point)[0] > tolerance:
+            dissimilar_pts = np.append(dissimilar_pts,point.reshape(1,2 * X.shape[1]),axis=0)
+        
+    return dissimilar_pts[1:,:]
     
 
 # Temporary debug testing
 if __name__ == "__main__":
-    test_labels_big = np.array([[1],
-                                [1],
-                                [1],
-                                [2],
-                                [2],
-                                [2],
-                                [3],
-                                [3],
-                                [3],
-                                ])    
-    test_labels_small = np.array([[1],[2],[3]])
-    test_labels_uu = np.array([[1],[1],[2],[2],[2],[1],[1]])
-    one_each = estimate_class_sizes(test_labels_small)
-    mult_balanced = estimate_class_sizes(test_labels_big)
-    uu = estimate_class_sizes(test_labels_uu)
+    
+    
+    data = np.eye(9)
+    labels = np.array([0,0,0,1,1,1,2,2,2])    
+    test = np.fromiter(generate_points(data,labels,5),dtype=float).reshape(5,-1)
+    print test

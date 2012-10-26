@@ -12,24 +12,15 @@ from ..constraint_sampling import extract_one_class, estimate_class_sizes, draw_
 
 # Multiple elements for each class, balanced
 test_data_big = np.eye(9) + np.arange(81).reshape(9,9)
-test_labels_big = np.array([[1],
-                            [1],
-                            [1],
-                            [2],
-                            [2],
-                            [2],
-                            [3],
-                            [3],
-                            [3],
-                            ])
+test_labels_big = np.array([1,1,1,2,2,2,3,3,3])
 test_output_data_big_one =  test_data_big[0:3,:]
 test_output_data_big_two =  test_data_big[3:6,:]
 test_output_data_big_three =  test_data_big[6:9,:]
 
 # One element for each class, balanced
 test_data_small = np.eye(3) + np.arange(9).reshape(3,3)
-test_labels_small = np.array([[1],[2],[3]])
-test_output_labels_small = np.array([[0],[1],[2]])
+test_labels_small = np.array([1,2,3])
+test_output_labels_small = np.array([0,1,2])
 test_output_data_small_one = test_data_small[0,:]
 test_output_data_small_one.resize(1,3)
 test_output_data_small_two = test_data_small[1,:]
@@ -39,9 +30,9 @@ test_output_data_small_three.resize(1,3)
 
 # Multiple elements for each class, unordered and unbalanced
 test_data_uu = np.eye(7) + np.arange(49).reshape(7,7)
-test_labels_uu = np.array([[1],[1],[2],[2],[2],[1],[1]])
-test_output_data_uu_one = test_data_uu[[0,1,5,6],:]
-test_output_data_uu_two = test_data_uu[[2,3,4],:]
+test_labels_uu = np.array([1,1,2,2,2,1,1])
+test_output_data_uu_one = test_data_uu[np.array([0,1,5,6])]
+test_output_data_uu_two = test_data_uu[np.array([2,3,4])]
                     
 def test_extract_one_class():
     """ construct a label column vector, see if it produces a sensible matrix """
