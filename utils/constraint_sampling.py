@@ -59,7 +59,7 @@ def draw_pairs(data):
     return sampling_list
 
 def generate_points(data, labels, size):
-    """ Generate one set of constraints: select two classes  """
+    """ Generate a pair of points sampled from different classes based on labels. """
     label_alphabet = np.unique(labels)
     assert(label_alphabet.size > 1)
     for useless in xrange(size):
@@ -125,7 +125,7 @@ def sample_differences(X, labels, set_size, tolerance):
     dissimilar_pts = zeros(1,2 * X.shape[1])
     
     # Sample pairs of points from different classes, then add them if they are sufficiently different
-    for point in generate_odd_points(X,labels,set_size):
+    for point in generate_points(X,labels,set_size):
         if pdist(point)[0] > tolerance:
             dissimilar_pts = np.append(dissimilar_pts,point.reshape(1,2 * X.shape[1]),axis=0)
         
@@ -134,9 +134,7 @@ def sample_differences(X, labels, set_size, tolerance):
 
 # Temporary debug testing
 if __name__ == "__main__":
-    
-    
-    data = np.eye(9)
-    labels = np.array([0,0,0,1,1,1,2,2,2])    
-    test = np.fromiter(generate_points(data,labels,5),dtype=float).reshape(5,-1)
-    print test
+    #data = np.eye(9)
+    #labels = np.array([0,0,0,1,1,1,2,2,2])    
+    #test = np.fromiter(generate_points(data,labels,5),dtype=float).reshape(10,-1)
+    #print test

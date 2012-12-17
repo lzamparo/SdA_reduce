@@ -25,6 +25,7 @@ import sys
 
 import utils.extract_datasets
 from sklearn.decomposition import PCA, KernelPCA
+from sklearn.preprocessing import scale;
 
 np.random.seed(0)
 
@@ -72,16 +73,19 @@ foci_data_sample = np.random.permutation(foci_data)[0:foci_samplesize,:]
 ab_nuclei_sample = np.random.permutation(ab_nuclei_data)[0:ab_nuclei_samplesize,:]
 
 D = np.vstack((wt_data_sample,foci_data_sample,ab_nuclei_sample))
+D_scaler = scale(D)
 
 kpca = KernelPCA(kernel="rbf", fit_inverse_transform=True, gamma=0.5)
-D_kpca = kpca.fit_transform(D)
+D_kpca = kpca.fit_transform(D_scaler)
 D_back = kpca.inverse_transform(D_kpca)
 pca = PCA()
-D_pca = pca.fit_transform(D)
+D_pca = pca.fit_transform(D_scaler)
 
-# Plot results
+# Plot results.  Manipulate D_scaled by standardizing the PCA matrix to shrink
+# plotting axis if required.
 x_min, x_max = np.min(D_pca, 0), np.max(D_pca, 0)
-D_scaled = (D_pca - x_min) / (x_max - x_min)
+D_scaled = D_pca
+#D_scaled = (D_pca - x_min) / (x_max - x_min)
 
 pl.figure(figsize=(10,7),dpi=400)
 pl.subplot(1, 2, 1, aspect='equal')

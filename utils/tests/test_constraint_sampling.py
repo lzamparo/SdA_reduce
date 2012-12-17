@@ -6,7 +6,7 @@ from nose.tools import with_setup
 
 import sys
 sys.path.append('/home/lee/projects/screen_clustering/utils/')
-from ..constraint_sampling import extract_one_class, estimate_class_sizes, draw_pairs, sample_similar, sample_differences
+from ..constraint_sampling import extract_one_class, estimate_class_sizes, draw_pairs, generate_points, sample_similar, sample_differences
 
 """Test fixtures"""
 
@@ -84,6 +84,18 @@ def test_draw_pairs():
     small_pairs = draw_pairs(test_data_uu)
     assert_equal(small_pairs.shape, (3,2))
       
+def test_generate_points():
+    """ Since this is a randomized algorithm, just test to see that the shape
+    of the returned array of points is correct.  """
+    num_pairs = 5
+    test_data_big = np.eye(9) + np.arange(81).reshape(9,9)
+    test_labels_big = np.array([1,1,1,2,2,2,3,3,3])
+    output = np.fromiter(generate_points(test_data_big,test_labels_big,num_pairs),dtype=float).reshape(2*num_pairs,-1)
+    assert_equal(output.shape, (10,9))
+    
+    # Consider including a test of two rows, and asserting that either 
+    # [row 1, row 2] is returned, or [row 2, row 1] is returned
+
     
 def test_sample_similar():
     """ """
