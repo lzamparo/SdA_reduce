@@ -44,8 +44,8 @@ def drive_dA(learning_rate=0.1, training_epochs=15,
     
     (options, args) = parser.parse_args()    
 
-    current_dir = os.getcwd()
-    
+    current_dir = os.getcwd()    
+
     os.chdir(options.dir)
     today = datetime.today()
     day = str(today.date())
@@ -73,7 +73,7 @@ def drive_dA(learning_rate=0.1, training_epochs=15,
     rng = numpy.random.RandomState(123)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
-    da = dA(numpy_rng=rng, theano_rng=theano_rng, input=x,
+    da = AutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
             n_visible=28 * 28, n_hidden=500)
 
     cost, updates = da.get_cost_updates(corruption_level=0.,
@@ -108,16 +108,16 @@ def drive_dA(learning_rate=0.1, training_epochs=15,
     
             
     ##########
-    # Build the model, with corruption #
+    # Build the model, with corruption 
     ##########
     
     rng = numpy.random.RandomState(123)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
-    da = dA(numpy_rng=rng, theano_rng=theano_rng, input=x,
+    da = AutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
             n_visible=28 * 28, n_hidden=500)
 
-    cost, updates = da.get_cost_updates(corruption_level=options.corruption,
+    cost, updates = da.get_cost_updates(corruption_level=float(options.corruption),
                                         learning_rate=learning_rate)
 
     train_da = theano.function([index], cost, updates=updates,

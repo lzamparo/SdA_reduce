@@ -49,12 +49,12 @@ class AutoEncoder(object):
         
         # create a Theano random generator that gives symbolic random values
         if not theano_rng :
-            theano_rng = RandomStreams(rng.randint(2 ** 30))        
+            theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
         
         # Pick initial values for W, bvis, bhid based on some formula given by 
         # the Theano dudes.        
         if not W:      
-            initial_W = np.asarray(numpy_rug.uniform(
+            initial_W = np.asarray(numpy_rng.uniform(
                 low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
                 high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
                 size = (n_visible, n_hidden)), dtype = config.floatX)
