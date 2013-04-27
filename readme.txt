@@ -22,17 +22,30 @@ A todo list of the project so far:
 	- Look at the decay in the eigenvalue spectrum
 	- Does K-means clustering produce meaningful results on the data set when k is approximately equal to the number of significant eigenvalues?
 
+ (done, using different scripts.  K-means clustering does *not* produce very meaningful results on the data set, even when knowing k.)
+
+
 8) Evaluate performance of K-means clustering on the data
 	- Does K-means clustering produce meaningful results on the data set for any values of k?
 	- Does a non-linear feature transformation of the data, followed by out-of-core K-means with euclidean distance yield better results for the same data set?
+
+(done.  Different values of K other than 3 for the annotated data produce worse results.  ISOMAP and LLE followed by K-means yield slightly better results than PCA 
+followed by K-means, suggesting that a better encoding in lower dimensions would lead to better clustering by phenotype.)
 
 [Later work]
 
 Depending on the results of 1-8, this will make the case for pursuing a more advanced model.  There are several possibilities:
 
-A) One semi-supervised model.  Try the kernel learning method of Weinberger & Saul (solves an SDP based on optimizing a multi-class hinge loss function).  Originaly formulated to be used with k-nearest neighbour classification, this might be useful also for a spectral clustering (or weighted kernel K-means clustering).
+A) One semi-supervised model.  Try the kernel learning method of Weinberger & Saul (solves an SDP based on optimizing a multi-class hinge loss function).  
+Originaly formulated to be used with k-nearest neighbour classification, this might be useful also for a spectral clustering (or weighted kernel K-means clustering).
 
-B) A two stage co-training model.  The first stage would be unsupervised clustering (in some infinite mixture model / nonparametric bayesian sense), averaged over several runs.  It would be nice if the clustering was exemplar based, but this is not a deal breaker.  This would be followed by sampling from the clusters to examine the phenotypes present, followed by multi-way nearest neighbour based classification, using the clustering solution (or subsamples from the clustering solution) as labels for training.
+	Probably not going to try this, there are a lot of computational limitations to do with learning kernels.  The complexity does not scale well with the size of 
+the data sets.
 
+B) A two stage co-training model.  The first stage would be unsupervised clustering (in some infinite mixture model / nonparametric bayesian sense), 
+averaged over several runs.  It would be nice if the clustering was exemplar based, but this is not a deal breaker.  This would be followed by sampling from the clusters 
+to examine the phenotypes present, followed by multi-way nearest neighbour based classification, using the clustering solution 
+(or subsamples from the clustering solution) as labels for training.
 
+		
  

@@ -11,7 +11,7 @@ def extract_datasets(data_set_file, num_files = 3):
     labels = np.empty(labels_list[0].shape)
     
     if num_files > len(arrays_list):
-        print "Error!  Asking for more data than is available"
+        print "Error!  Asking for %d data files when only %d are available" % (num_files, len(arrays_list))
         return None
     
     empty = True
