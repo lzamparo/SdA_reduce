@@ -53,7 +53,7 @@ op.print_help()
 datafile = openFile(opts.inputfile, mode = "r", title = "Data is stored here")
 
 # Extract some of the dataset from the datafile
-dataset, labels = utils.extract_datasets.extract_datasets(datafile, opts.size)
+dataset, labels = utils.extract_datasets.extract_labeled_chunkrange(datafile, opts.size)
 
 # Remove CP index features, other non-object features
 dataset = dataset[:,5:612]
