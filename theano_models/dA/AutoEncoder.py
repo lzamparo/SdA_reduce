@@ -6,7 +6,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 class AutoEncoder(object):
         
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None):
+                 W=None, bhid=None, bvis=None, loss='xent'):
         """
             
             A de-noising AutoEncoder class from theano tutorials
@@ -41,6 +41,11 @@ class AutoEncoder(object):
                 :param bvis: Theano variable pointing to a set of biases values (for
                              visible units) that should be shared belong dA and another
                              architecture; if dA should be standalone set this to None
+                             
+                :type loss: string
+                :param loss: specify the type of loss function to use when computing the loss
+                in get_cost_updates(...).  Currently defined values are 'xent' for cross-entropy, 
+                'squared' for squared error.
             
             
                 """        
@@ -80,9 +85,14 @@ class AutoEncoder(object):
         
         self.theano_rng = theano_rng
         
+        # set the loss function to use.  
+        # 'xent' = cross entropy
+        # 'squared' = squared error
+        self.loss = loss            
+        
         if input == None:
             self.x = T.dmatrix(name='input')
-            
+                       
         else:
             self.x = input
             
@@ -124,8 +134,12 @@ class AutoEncoder(object):
         # Note: this is the Xent loss, for binary input (or bit probability) data
         # for Gaussian real-valued units, change to squared error loss:
         # L = -T.sum((self.x - z) **2, axis = 1)
-        L = -T.sum(self.x * T.log(z) + (1 - self.x) * T.log(1 - z), axis=1)
         
+        if (self.loss == 'xent'):
+            L = -T.sum(self.x * T.log(z) + (1 - self.x) * T.log(1 - z), axis=1)
+        else:
+            L = -T.sum((self.x - z) **2, axis = 1)
+            
         cost = T.mean(L)
         
         # compute the gradients of the cost of the dA w.r.t the params

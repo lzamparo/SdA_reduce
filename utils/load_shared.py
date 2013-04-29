@@ -33,6 +33,8 @@ def load_data_labeled(dataset, labels, ratios = np.array[0.8,0.1,0.1], features 
     
     '''
 
+    # Take only the first column of the labels.  The other two are image, object numbers.
+    labels_vec = labels[:,0]
     
     # train_set, valid_set, test_set format: tuple(input, target)
     # input is an numpy.ndarray of 2 dimensions (a matrix)
@@ -43,17 +45,21 @@ def load_data_labeled(dataset, labels, ratios = np.array[0.8,0.1,0.1], features 
     # Scale the data: centre, and unit-var.
     data_scaled = scale(dataset)
     
+    # if features tuple is defined, throw away unwanted columns
+    if features:
+        data_scaled = data_scaled[:,features[0]:features[1])
+    
     print '... loading data'
     
     # Calculate the indices where each split into training, test, validation set will take place
     endpts = data_scaled.shape[0] * ratios 
-    train_start, train_end = 0, endpts[0]
-    test_start, test_end = endpts[0], endpts[0] + endpts[1]
+    train_start, train_end = 0, endpts[0] -1
+    test_start, test_end = endpts[0], endpts[0] + endpts[1] -1
     valid_start, valid_end = endpts[0] + endpts[1], dataset.shape[0] -1
     
-    train_set = (data_scaled[train_start:(train_end -1),features[0]:features[1]], labels[train_start:(train_end -1)])
-    test_set = (data_scaled[test_start:(test_end - 1),features[0]:features[1]], labels[test_start:(test_end - 1)])
-    valid_set = (data_scaled[valid_start:valid_end,features[0]:features[1]], labels[valid_start:valid_end])
+    train_set = (data_scaled[train_start:train_end, : ], labels_vec[train_start:train_end])
+    test_set = (data_scaled[test_start:test_end, : ], labels_vec[test_start:test_end])
+    valid_set = (data_scaled[valid_start:valid_end, : ], labels_vec[valid_start:valid_end])
 
     print '... converting to shared vars'
 
