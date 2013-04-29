@@ -17,7 +17,7 @@ from datetime import datetime
 from optparse import OptionParser
 
 
-def drive_dA(learning_rate=0.1, training_epochs=15,
+def drive_dA(learning_rate=0.1, training_epochs=3,
              batch_size=20):
     """
         This dA is driven with foci data
@@ -96,7 +96,7 @@ def drive_dA(learning_rate=0.1, training_epochs=15,
         for batch_index in xrange(n_train_batches):
             c.append(train_da(batch_index))
 
-        print >> output_file, 'Training epoch %d, cost ' % epoch, numpy.mean(c)
+        print 'Training epoch %d, cost ' % epoch, numpy.mean(c)
 
     end_time = time.clock()
 
@@ -136,7 +136,7 @@ def drive_dA(learning_rate=0.1, training_epochs=15,
         for batch_index in xrange(n_train_batches):
             c.append(train_da(batch_index))
 
-        print >> output_file, 'Training epoch %d, cost ' % epoch, numpy.mean(c)
+        print 'Training epoch %d, cost ' % epoch, numpy.mean(c)
 
     end_time = time.clock()
 
