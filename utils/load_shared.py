@@ -14,7 +14,7 @@ def load_data_unlabeled(dataset, features = (5,612)):
     pass
     
 
-def load_data_labeled(dataset, labels, ratios = np.array[0.8,0.1,0.1], features = (5,612)):
+def load_data_labeled(dataset, labels, ratios = np.array([0.8,0.1,0.1]), features = (5,612)):
     ''' Take an unpacked dataset (from extract_datasets), scale it, and return 
     as shared theano variables.  The form of the returned data is meant to mimic the form MNIST data
     is packaged and returned in load_data from logistic_sgd, part of the theano tutorial
@@ -47,7 +47,7 @@ def load_data_labeled(dataset, labels, ratios = np.array[0.8,0.1,0.1], features 
     
     # if features tuple is defined, throw away unwanted columns
     if features:
-        data_scaled = data_scaled[:,features[0]:features[1])
+        data_scaled = data_scaled[:,features[0]:features[1]]
     
     print '... loading data'
     

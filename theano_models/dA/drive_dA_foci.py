@@ -6,8 +6,8 @@ import theano.tensor as T
 from AutoEncoder import AutoEncoder
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from utils.extract_datasets import extract_labeled_chunkrange
-from utils.load_shared import load_data_labeled
+from extract_datasets import extract_labeled_chunkrange
+from load_shared import load_data_labeled
 from tables import *
 
 import os
@@ -56,9 +56,11 @@ def drive_dA(learning_rate=0.1, training_epochs=15,
     datafiles, labels = extract_labeled_chunkrange(data_set_file, num_files = 10)
     datasets = load_data_labeled(datafiles, labels)
     train_set_x, train_set_y = datasets[0]
+    data_set_file.close()
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+    n_cols = train_set_x.get_value(borrow=True).shape[1]	
 
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch
@@ -72,7 +74,7 @@ def drive_dA(learning_rate=0.1, training_epochs=15,
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
     da = AutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
-            n_visible=train_set_x.shape[1], n_hidden=400, loss='squared')
+            n_visible=n_cols, n_hidden=400, loss='squared')
 
     cost, updates = da.get_cost_updates(corruption_level=0.,
                                         learning_rate=learning_rate)
@@ -113,7 +115,7 @@ def drive_dA(learning_rate=0.1, training_epochs=15,
     theano_rng = RandomStreams(rng.randint(2 ** 30))
  
     da = AutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
-                n_visible=train_set_x.shape[1], n_hidden=400, loss='squared')    
+                n_visible=n_cols, n_hidden=400, loss='squared')    
 
     cost, updates = da.get_cost_updates(corruption_level=float(options.corruption),
                                         learning_rate=learning_rate)
