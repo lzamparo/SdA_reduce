@@ -4,9 +4,9 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from mlp import logistic_sgd.LogisticRegression, logistic_sgd.load_data
-from mlp import mlp.HiddenLayer
-from dA import AutoEncoder.AutoEncoder
+from mlp.logistic_sgd import LogisticRegression, load_data
+from mlp.hidden_layer import HiddenLayer
+from dA.AutoEncoder import AutoEncoder
 
 class SdA(object):
     """Stacked denoising auto-encoder class (SdA)

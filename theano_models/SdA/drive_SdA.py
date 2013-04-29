@@ -44,7 +44,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 from mlp.logistic_sgd import LogisticRegression, load_data
 from mlp.hidden_layer import HiddenLayer
-from dA.dA import AutoEncoder
+from dA.AutoEncoder import AutoEncoder
 from SdA import SdA
 
 from datetime import datetime
