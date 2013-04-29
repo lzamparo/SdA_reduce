@@ -5,7 +5,7 @@
 # required
 #
 #PBS -l nodes=1:ppn=8:gpus=1,walltime=3:00:00
-#PBS -N GPUtest
+#PBS -N StackedAutoencoder
 #PBS -q arc
 
 # Load theano modules
@@ -14,4 +14,4 @@
 
 # Run the job
 cd $PBS_O_WORKDIR
-python drive_SdA.py -d "${SCRATCH}/gpu_tests/SdA_results" -c 0.10
+python drive_SdA.py -d "${SCRATCH}/gpu_tests/SdA_results" -c 0.30
