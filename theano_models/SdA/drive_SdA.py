@@ -125,7 +125,7 @@ def drive_SdA(finetune_lr=0.1, pretraining_epochs=15,
     print '... pre-training the model'
     start_time = time.clock()
     ## Pre-train layer-wise
-    corruption_levels = [.1, .2, .3]
+    corruption_levels = [float(options.corruption), float(options.corruption), float(options.corruption)]
     for i in xrange(sda.n_layers):
         # go through pretraining epochs
         for epoch in xrange(pretraining_epochs):
