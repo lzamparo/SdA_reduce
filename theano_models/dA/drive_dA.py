@@ -12,7 +12,7 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from logistic_sgd import load_data
+from mlp.logistic_sgd import load_data
 from AutoEncoder import AutoEncoder
 
 from datetime import datetime
@@ -91,7 +91,7 @@ def drive_dA(learning_rate=0.1, training_epochs=15,
 
     # go through training epochs
     for epoch in xrange(training_epochs):
-        # go through trainng set
+        # go through training set
         c = []
         for batch_index in xrange(n_train_batches):
             c.append(train_da(batch_index))
