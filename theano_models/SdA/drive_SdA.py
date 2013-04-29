@@ -163,7 +163,7 @@ def drive_SdA(finetune_lr=0.1, pretraining_epochs=15,
                                    # considered significant
     validation_frequency = min(n_train_batches, patience / 2)
                                   # go through this many
-                                  # minibatche before checking the network
+                                  # minibatches before checking the network
                                   # on the validation set; in this case we
                                   # check every epoch
 

@@ -1,6 +1,8 @@
-""" Utilities for data set extraction """
+""" Utilities for data set extraction and scaling """
 from tables import *
 import numpy as np
+
+
 
 """ Take a reference to an open hdf5 pytables file, extract the first num_files chunks, stack 
 them together and return the larger nparray.  Also extract the labels, return them. """

@@ -25,7 +25,7 @@ import sys
 
 import utils.extract_datasets
 from sklearn.decomposition import PCA, KernelPCA
-from sklearn.preprocessing import scale;
+from sklearn.preprocessing import scale
 
 np.random.seed(0)
 
