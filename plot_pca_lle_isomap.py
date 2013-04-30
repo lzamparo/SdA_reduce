@@ -44,6 +44,9 @@ op.add_option("--sample-size",
               dest="samplesize", type="int", help="The max size of the samples")
 op.add_option("--dimension",
               dest="dimension", type="int", help="Produce a plot in this number of dimensions (either 2 or 3)")
+op.add_option("--output",
+              dest="outputfile", help="Write the plot to this output file.")
+
 (opts, args) = op.parse_args()
 
 ###############################################################################
