@@ -19,9 +19,11 @@ from matplotlib.font_manager import FontProperties
 from mpl_toolkits.mplot3d import Axes3D
 
 from tables import *
-import logging
 from optparse import OptionParser
+import logging
+import time
 import sys
+
 
 import utils.extract_datasets
 from sklearn.decomposition import PCA

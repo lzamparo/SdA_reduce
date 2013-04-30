@@ -69,7 +69,7 @@ n_neighbors = 20
 dimension_list = range(opts.low, opts.high + 1, opts.step)
 for i in dimension_list:
     index = (i / opts.step) - 1     
-    clf = manifold.LocallyLinearEmbedding(n_neighbors, n_components=i,
+    clf = LocallyLinearEmbedding(n_neighbors, n_components=i,
                                           method='standard')
     X_lle = clf.fit_transform(D)
     
