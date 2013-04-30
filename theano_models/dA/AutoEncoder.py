@@ -138,7 +138,7 @@ class AutoEncoder(object):
         if (self.loss == 'xent'):
             L = -T.sum(self.x * T.log(z) + (1 - self.x) * T.log(1 - z), axis=1)
         else:
-            L = -T.sum((self.x - z) **2, axis = 1)
+            L = T.sum((self.x - z) **2, axis = 1)
             
         cost = T.mean(L)
         

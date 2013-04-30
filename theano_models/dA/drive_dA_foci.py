@@ -17,7 +17,7 @@ from datetime import datetime
 from optparse import OptionParser
 
 
-def drive_dA(learning_rate=0.1, training_epochs=3,
+def drive_dA(learning_rate=0.01, training_epochs=15,
              batch_size=20):
     """
         This dA is driven with foci data
