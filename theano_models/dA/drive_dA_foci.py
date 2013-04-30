@@ -17,7 +17,7 @@ from datetime import datetime
 from optparse import OptionParser
 
 
-def drive_dA(learning_rate=0.01, training_epochs=15,
+def drive_dA(learning_rate=0.01, training_epochs=50,
              batch_size=20):
     """
         This dA is driven with foci data
@@ -45,7 +45,7 @@ def drive_dA(learning_rate=0.01, training_epochs=15,
     today = datetime.today()
     day = str(today.date())
     hour = str(today.time())
-    output_filename = "denoising_autoencoder_mnist." + day + "." + hour
+    output_filename = "denoising_autoencoder_foci." + day + "." + hour
     output_file = open(output_filename,'w')
     
     print >> output_file, "Run on " + str(datetime.now())    
@@ -74,7 +74,7 @@ def drive_dA(learning_rate=0.01, training_epochs=15,
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
     da = AutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
-            n_visible=n_cols, n_hidden=400, loss='squared')
+            n_visible=n_cols, n_hidden=800, loss='squared')
 
     cost, updates = da.get_cost_updates(corruption_level=0.,
                                         learning_rate=learning_rate)
@@ -96,7 +96,7 @@ def drive_dA(learning_rate=0.01, training_epochs=15,
         for batch_index in xrange(n_train_batches):
             c.append(train_da(batch_index))
 
-        print 'Training epoch %d, cost ' % epoch, numpy.mean(c)
+        print >> output_file, 'Training epoch %d, cost ' % epoch, numpy.mean(c)
 
     end_time = time.clock()
 
@@ -115,7 +115,7 @@ def drive_dA(learning_rate=0.01, training_epochs=15,
     theano_rng = RandomStreams(rng.randint(2 ** 30))
  
     da = AutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
-                n_visible=n_cols, n_hidden=400, loss='squared')    
+                n_visible=n_cols, n_hidden=800, loss='squared')    
 
     cost, updates = da.get_cost_updates(corruption_level=float(options.corruption),
                                         learning_rate=learning_rate)
@@ -136,7 +136,7 @@ def drive_dA(learning_rate=0.01, training_epochs=15,
         for batch_index in xrange(n_train_batches):
             c.append(train_da(batch_index))
 
-        print 'Training epoch %d, cost ' % epoch, numpy.mean(c)
+        print >> output_file, 'Training epoch %d, cost ' % epoch, numpy.mean(c)
 
     end_time = time.clock()
 
