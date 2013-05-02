@@ -10,7 +10,7 @@ from time import time
 
 import numpy as np
 from tables import *
-from utils.extract_datasets import extract_labeled_chunkrange
+from extract_datasets import extract_labeled_chunkrange
 
 
 # Display progress logs on stdout
@@ -69,10 +69,8 @@ n_neighbors = 20
 dimension_list = range(opts.low, opts.high + 1, opts.step)
 for i in dimension_list:
     index = (i / opts.step) - 1     
-    clf = LocallyLinearEmbedding(n_neighbors, n_components=i,
-                                          method='standard')
+    clf = LocallyLinearEmbedding(n_neighbors, out_dim=i, method='standard')
     X_lle = clf.fit_transform(D)
-    
     
     for j in range(0,opts.iters,1):
         km = KMeans(k=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  

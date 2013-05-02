@@ -9,7 +9,6 @@ evaluate the differences between the three algorithms on a selection from an ima
 Adapted from the example provided by Mathieu Blondel: http://scikit-learn.org/stable/_downloads/plot_kernel_pca.py
 
 """
-print __doc__
 
 import numpy as np
 import pylab as pl
@@ -18,14 +17,13 @@ from matplotlib import offsetbox
 from matplotlib.font_manager import FontProperties
 from mpl_toolkits.mplot3d import Axes3D
 
+import logging
+import sys
 from tables import *
 from optparse import OptionParser
-import logging
-import time
-import sys
+from time import time
 
-
-import utils.extract_datasets
+from extract_datasets import extract_labeled_chunkrange
 from sklearn.decomposition import PCA
 from sklearn.manifold import Isomap, LocallyLinearEmbedding
 from sklearn.preprocessing import scale
@@ -56,7 +54,7 @@ op.add_option("--output",
 datafile = openFile(opts.inputfile, mode = "r", title = "Data is stored here")
 
 # Extract some of the dataset from the datafile
-X, labels = utils.extract_datasets.extract_datasets(datafile, opts.size)
+X, labels = extract_labeled_chunkrange(datafile, opts.size)
 
 # Sample from the dataset
 wt_labels = np.nonzero(labels[:,0] == 0)[0]
@@ -115,7 +113,7 @@ if opts.dimension == 2:
     plot_embedding(D_iso, 2, "Isomap projection")
     plot_embedding(D_lle, 3, "LLE projection")
     pl.subplots_adjust(left=None, bottom=None, right=None, wspace=0.15, hspace=None)
-    pl.savefig("pca_lle_isomap_fig.eps",format="eps", orientation='landscape', pad_inches=0)    
+    pl.savefig(opts.outputfile,format="eps", orientation='landscape', pad_inches=0)    
 else:
     # Twice as wide as it is tall.
     fig = plt.figure(figsize=plt.figaspect(0.5))    

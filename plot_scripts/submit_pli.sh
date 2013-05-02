@@ -13,4 +13,4 @@
 
 # Run the job
 cd $PBS_O_WORKDIR
-python plot_pca_lle_isomap.py --h5file "${SCRATCH}/sm_rep1_data/sample.h5" --size 7 --sample-size 3000 --dimension 2 --output "${SCRATCH}/figures" 
+python plot_pca_lle_isomap.py --h5file "${SCRATCH}/sm_rep1_data/sample.h5" --size 7 --sample-size 3000 --dimension 2 --output "${SCRATCH}/figures/pli.eps" 
