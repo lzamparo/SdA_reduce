@@ -99,8 +99,6 @@ class AutoEncoder(object):
         self.params = [self.W, self.b, self.b_prime]
         
         
-        
-        
     def get_corrupted_input(self, input, corruption_level):
         """ This function keeps ``1-corruption_level`` entries of the inputs the same
         and zero-out randomly selected subset of size ``coruption_level``
@@ -165,6 +163,7 @@ class AutoEncoder(object):
         self.n_visible = n_visible
         self.n_hidden = h_hidden
         self.loss = loss
+        numpy_rng = numpy.random.RandomState(123)
         self.theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
         self.W_prime = self.W.T
         if input == None:
