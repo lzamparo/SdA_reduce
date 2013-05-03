@@ -62,18 +62,20 @@ class SdA(object):
                                  # [int] labels
 
         # The SdA is an MLP, for which all weights of intermediate layers
-        # are shared with a different denoising autoencoders
+        # are shared with different denoising autoencoders.
+        #
         # We will first construct the SdA as a deep multilayer perceptron,
         # and when constructing each sigmoidal layer we also construct a
-        # denoising autoencoder that shares weights with that layer
+        # denoising autoencoder that shares weights with that layer.
+        #
         # During pretraining we will train these autoencoders (which will
-        # lead to chainging the weights of the MLP as well)
+        # lead to chainging the weights of the MLP as well).
+        #
         # During finetunining we will finish training the SdA by doing
         # stochastich gradient descent on the MLP
 
         for i in xrange(self.n_layers):
-            # construct the sigmoidal layer
-
+            
             # the size of the input is either the number of hidden units of
             # the layer below or the input size if we are on the first layer
             if i == 0:
@@ -250,3 +252,5 @@ class SdA(object):
             return [test_score_i(i) for i in xrange(n_test_batches)]
 
         return train_fn, valid_score, test_score
+
+    

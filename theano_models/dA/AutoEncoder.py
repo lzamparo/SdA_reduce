@@ -151,3 +151,17 @@ class AutoEncoder(object):
             updates.append((param, param - learning_rate * gparam))
             
         return (cost, updates)
+    
+    def __getstate__(self):
+        """ Return a tuple of all the important parameters that define this dA """
+        return (self.W, self.b, self.b_prime, self.n_visible, self.n_hidden, self.loss)
+    
+    def __setstate__(self, state):
+        """ Set the state of this dA from values returned from a deserialization process like unpickle. """
+        W, b, b_prime, n_visible, n_hidden, loss = state
+        self.W = W
+        self.b = b 
+        self.b_prime = b_prime
+        self.n_visible = n_visible
+        self.n_hidden = h_hidden
+        self.loss = loss
