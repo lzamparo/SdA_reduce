@@ -51,6 +51,32 @@ op.add_option("--output",
 
 (opts, args) = op.parse_args()
 
+fig = plt.figure(figsize=(12,6),dpi=100)
+
+#----------------------------------------------------------------------
+# Scale and visualize the embedding vectors in 2D
+def plot_embedding(X, tile, title=None):
+    x_min, x_max = np.min(X, 0), np.max(X, 0)
+    X = (X - x_min) / (x_max - x_min)
+
+    sub = fig.add_subplot(1, 3, tile)
+    
+    # Establish the indices for plotting as slices of the X matrix
+    # Only need the foci upper index, all others can be sliced using the dimensions already stored
+    foci_upper_index = wt_samplesize + foci_samplesize
+    
+    sub.plot(X[:wt_samplesize, 0], X[:wt_samplesize, 1], "ro")
+    sub.plot(X[wt_samplesize:foci_upper_index, 0], X[wt_samplesize:foci_upper_index, 1], "bo")
+    sub.plot(X[foci_upper_index:, 0], X[foci_upper_index:, 1], "go")
+          
+    legend_font_props = FontProperties()
+    legend_font_props.set_size('small')
+    sub.legend( ('Wild Type', 'Foci', 'Non-round Nuclei'), loc="lower left", numpoints=1,prop=legend_font_props)
+    
+    if title is not None:
+        sub.set_title(title,fontsize=15)
+
+
 ###############################################################################
 # Load a training set from the given .h5 file
 datafile = openFile(opts.inputfile, mode = "r", title = "Data is stored here")
@@ -109,41 +135,10 @@ D_lle = clf.fit_transform(D_scaled)
 print "Done in time %.2fs " % (time() - t0)
 print "Reconstruction error: %g" % clf.reconstruction_error_
 
-if opts.dimension == 2:
-    fig = plt.figure(figsize=(12,6),dpi=100)
-    plot_embedding(D_pca, 1, "PCA projection")
-    plot_embedding(D_iso, 2, "Isomap projection")
-    plot_embedding(D_lle, 3, "LLE projection")
-    fig.savefig(opts.outputfile,format="pdf", orientation='landscape', pad_inches=0)    
-else:
-    # Twice as wide as it is tall.
-    fig = plt.figure(figsize=plt.figaspect(0.5))    
-    plot_embedding_3D(D_iso, 1, "Isomap projection")
-    plot_embedding_3D(D_lle, 2, "Local Linear Embedding")
-    plt.savefig("manifold_fig_3D.pdf",format="pdf",dpi=200, orientation='landscape', pad_inches=0)
-
-#----------------------------------------------------------------------
-# Scale and visualize the embedding vectors in 2D
-def plot_embedding(X, tile, title=None):
-    x_min, x_max = np.min(X, 0), np.max(X, 0)
-    X = (X - x_min) / (x_max - x_min)
-
-    sub = fig.add_subplot(1, 3, tile)
-    
-    # Establish the indices for plotting as slices of the X matrix
-    # Only need the foci upper index, all others can be sliced using the dimensions already stored
-    foci_upper_index = wt_samplesize + foci_samplesize
-    
-    sub.plot(X[:wt_samplesize, 0], X[:wt_samplesize, 1], "ro")
-    sub.plot(X[wt_samplesize:foci_upper_index, 0], X[wt_samplesize:foci_upper_index, 1], "bo")
-    sub.plot(X[foci_upper_index:, 0], X[foci_upper_index:, 1], "go")
-          
-    legend_font_props = FontProperties()
-    legend_font_props.set_size('small')
-    sub.legend( ('Wild Type', 'Foci', 'Non-round Nuclei'), loc="lower left", numpoints=1,prop=legend_font_props)
-    
-    if title is not None:
-        sub.set_title(title,fontsize=15)
+plot_embedding(D_pca, 1, "PCA projection")
+plot_embedding(D_iso, 2, "Isomap projection")
+plot_embedding(D_lle, 3, "LLE projection")
+fig.savefig(opts.outputfile,format="pdf", orientation='landscape', pad_inches=0)    
 
 # close the data file
 datafile.close()
