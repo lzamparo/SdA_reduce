@@ -11,11 +11,13 @@ Adapted from the example provided by Mathieu Blondel: http://scikit-learn.org/st
 """
 
 import numpy as np
-import pylab as pl
+import matplotlib as mpl
+mpl.use('pdf')			# needed so that you can plot in a batch job with no X server (undefined $DISPLAY) problems 
+
 import matplotlib.pyplot as plt
 from matplotlib import offsetbox
 from matplotlib.font_manager import FontProperties
-from mpl_toolkits.mplot3d import Axes3D
+#from mpl_toolkits.mplot3d import Axes3D
 
 import logging
 import sys
@@ -81,11 +83,11 @@ ab_nuclei_sample = np.random.permutation(ab_nuclei_data)[0:ab_nuclei_samplesize,
 D = np.vstack((wt_data_sample,foci_data_sample,ab_nuclei_sample))
 D_scaled = scale(D)
 
+#----------------------------------------------------------------------
+# PCA projection
+print "Computing PCA embedding"
 pca = PCA()
 D_pca = pca.fit_transform(D_scaled)
-
-# Plot results.  Manipulate D_scaled by standardizing the PCA matrix to shrink
-# plotting axis if required.
 
 n_samples, n_features = D.shape
 n_neighbors = 30
@@ -94,13 +96,13 @@ n_neighbors = 30
 # Isomap projection 
 print "Computing Isomap embedding"
 t0 = time()
-D_iso = manifold.Isomap(n_neighbors, n_components=2).fit_transform(D_scaled)
+D_iso = Isomap(n_neighbors, out_dim=2).fit_transform(D_scaled)
 print "Done in time %.2fs " % (time() - t0)
 
 #----------------------------------------------------------------------
 # Locally linear embedding 
 print "Computing LLE embedding"
-clf = manifold.LocallyLinearEmbedding(n_neighbors, n_components=2,
+clf = LocallyLinearEmbedding(n_neighbors, out_dim=2,
                                       method='standard')
 t0 = time()
 D_lle = clf.fit_transform(D_scaled)
@@ -108,19 +110,18 @@ print "Done in time %.2fs " % (time() - t0)
 print "Reconstruction error: %g" % clf.reconstruction_error_
 
 if opts.dimension == 2:
-    pl.figure(figsize=(12,8),dpi=100)
+	fig = plt.figure(figsize=(12,6),dpi=100)
     plot_embedding(D_pca, 1, "PCA projection")
     plot_embedding(D_iso, 2, "Isomap projection")
     plot_embedding(D_lle, 3, "LLE projection")
-    pl.subplots_adjust(left=None, bottom=None, right=None, wspace=0.15, hspace=None)
-    pl.savefig(opts.outputfile,format="eps", orientation='landscape', pad_inches=0)    
+    fig.savefig(opts.outputfile,format="pdf", orientation='landscape', pad_inches=0)    
 else:
     # Twice as wide as it is tall.
-    fig = plt.figure(figsize=plt.figaspect(0.5))    
-    plot_embedding_3D(D_iso, 1, "Isomap projection")
-    plot_embedding_3D(D_lle, 2, "Local Linear Embedding")
-    plt.savefig("manifold_fig_3D.pdf",format="pdf",dpi=200, orientation='landscape', pad_inches=0)
-    plt.show()
+    #fig = plt.figure(figsize=plt.figaspect(0.5))    
+    #plot_embedding_3D(D_iso, 1, "Isomap projection")
+    #plot_embedding_3D(D_lle, 2, "Local Linear Embedding")
+    #plt.savefig("manifold_fig_3D.pdf",format="pdf",dpi=200, orientation='landscape', pad_inches=0)
+    #plt.show()
 
 
 #----------------------------------------------------------------------
@@ -129,23 +130,22 @@ def plot_embedding(X, tile, title=None):
     x_min, x_max = np.min(X, 0), np.max(X, 0)
     X = (X - x_min) / (x_max - x_min)
 
-    pl.subplot(1, 3, tile)
+    sub = fig.add_subplot(1, 3, tile)
     
     # Establish the indices for plotting as slices of the X matrix
     # Only need the foci upper index, all others can be sliced using the dimensions already stored
     foci_upper_index = wt_samplesize + foci_samplesize
     
-    pl.plot(X[:wt_samplesize, 0], X[:wt_samplesize, 1], "ro")
-    pl.plot(X[wt_samplesize:foci_upper_index, 0], X[wt_samplesize:foci_upper_index, 1], "bo")
-    pl.plot(X[foci_upper_index:, 0], X[foci_upper_index:, 1], "go")
+    sub.plot(X[:wt_samplesize, 0], X[:wt_samplesize, 1], "ro")
+    sub.plot(X[wt_samplesize:foci_upper_index, 0], X[wt_samplesize:foci_upper_index, 1], "bo")
+    sub.plot(X[foci_upper_index:, 0], X[foci_upper_index:, 1], "go")
           
     legend_font_props = FontProperties()
     legend_font_props.set_size('small')
-    pl.legend( ('Wild Type', 'Foci', 'Non-round Nuclei'), loc="lower left", numpoints=1, prop=legend_font_props)
+    sub.legend( ('Wild Type', 'Foci', 'Non-round Nuclei'), loc="lower left", numpoints=1,prop=legend_font_props)
     
-    #pl.xticks([]), pl.yticks([])
     if title is not None:
-        pl.title(title,fontsize=15)
+        sub.set_title(title,fontsize=15)
 
 # close the data file
 datafile.close()
