@@ -154,14 +154,27 @@ class AutoEncoder(object):
     
     def __getstate__(self):
         """ Return a tuple of all the important parameters that define this dA """
-        return (self.W, self.b, self.b_prime, self.n_visible, self.n_hidden, self.loss)
+        return (self.W.get_value(), self.b.get_value(), self.b_prime.get_value(), self.n_visible, self.n_hidden, self.loss)
     
     def __setstate__(self, state):
         """ Set the state of this dA from values returned from a deserialization process like unpickle. """
         W, b, b_prime, n_visible, n_hidden, loss = state
-        self.W = W
-        self.b = b 
-        self.b_prime = b_prime
+        self.W = shared(value=W, name='W')
+        self.b = shared(value=b, name = 'bvis')
+        self.b_prime = shared(value=b_prime, name= 'bhid')
         self.n_visible = n_visible
         self.n_hidden = h_hidden
         self.loss = loss
+        self.theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
+        self.W_prime = self.W.T
+        if input == None:
+            self.x = T.dmatrix(name='input')
+        self.params = [self.W, self.b, self.b_prime]
+        
+    def get_params(self):
+        """ Return the params of this dA.  This is for pickling testing purposes """
+        return self.params
+    
+    def set_input(self, input):
+        """ Set the input for an unpickled dA """
+        self.x = input
