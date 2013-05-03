@@ -110,19 +110,17 @@ print "Done in time %.2fs " % (time() - t0)
 print "Reconstruction error: %g" % clf.reconstruction_error_
 
 if opts.dimension == 2:
-	fig = plt.figure(figsize=(12,6),dpi=100)
+    fig = plt.figure(figsize=(12,6),dpi=100)
     plot_embedding(D_pca, 1, "PCA projection")
     plot_embedding(D_iso, 2, "Isomap projection")
     plot_embedding(D_lle, 3, "LLE projection")
     fig.savefig(opts.outputfile,format="pdf", orientation='landscape', pad_inches=0)    
 else:
     # Twice as wide as it is tall.
-    #fig = plt.figure(figsize=plt.figaspect(0.5))    
-    #plot_embedding_3D(D_iso, 1, "Isomap projection")
-    #plot_embedding_3D(D_lle, 2, "Local Linear Embedding")
-    #plt.savefig("manifold_fig_3D.pdf",format="pdf",dpi=200, orientation='landscape', pad_inches=0)
-    #plt.show()
-
+    fig = plt.figure(figsize=plt.figaspect(0.5))    
+    plot_embedding_3D(D_iso, 1, "Isomap projection")
+    plot_embedding_3D(D_lle, 2, "Local Linear Embedding")
+    plt.savefig("manifold_fig_3D.pdf",format="pdf",dpi=200, orientation='landscape', pad_inches=0)
 
 #----------------------------------------------------------------------
 # Scale and visualize the embedding vectors in 2D
@@ -149,3 +147,6 @@ def plot_embedding(X, tile, title=None):
 
 # close the data file
 datafile.close()
+
+
+
