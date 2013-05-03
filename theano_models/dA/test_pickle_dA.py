@@ -11,8 +11,6 @@ from theano.tensor.shared_randomstreams import RandomStreams
 from mlp.logistic_sgd import load_data
 from AutoEncoder import AutoEncoder
 
-from unittest.TestCase import assertAlmostEqual
-   
     
 def test_pickled_dA(learning_rate=0.1,
             dataset='../data/mnist.pkl.gz',
@@ -84,11 +82,14 @@ def test_pickled_dA(learning_rate=0.1,
     dA_params = dA.get_params()
     pickled_params = pickled_dA.get_params()
     
-    assertAlmostEqual(dA_params[0].get_value(), pickled_params[0].get_value())
-    assertAlmostEqual(dA_params[1].get_value(), pickled_params[1].get_value())
-    assertAlmostEqual(dA_params[2].get_value(), pickled_params[2].get_value())
+    if not numpy.allclose(dA_params[0].get_value(), pickled_params[0].get_value()):
+        print "numpy says that Ws are not close"
+    if not numpy.allclose(dA_params[1].get_value(), pickled_params[1].get_value()):
+        print "numpy says that the bvis are not close"
+    if not numpy.allclose(dA_params[2].get_value(), pickled_params[2].get_value()):
+        print "numpy says that the bhid are not close"
     
-    print "Finished tests, see if they passed."
+    print "Finished tests, did they pass?"
             
     
 if __name__ == '__main__':

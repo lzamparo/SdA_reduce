@@ -163,7 +163,7 @@ class AutoEncoder(object):
         self.b = shared(value=b, name = 'bvis')
         self.b_prime = shared(value=b_prime, name= 'bhid')
         self.n_visible = n_visible
-        self.n_hidden = h_hidden
+        self.n_hidden = n_hidden
         self.loss = loss
         self.theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
         self.W_prime = self.W.T
