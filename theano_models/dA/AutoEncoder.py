@@ -163,7 +163,7 @@ class AutoEncoder(object):
         self.n_visible = n_visible
         self.n_hidden = n_hidden
         self.loss = loss
-        numpy_rng = numpy.random.RandomState(123)
+        numpy_rng = np.random.RandomState(123)
         self.theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
         self.W_prime = self.W.T
         if input == None:

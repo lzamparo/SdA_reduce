@@ -79,7 +79,7 @@ def test_pickled_dA(learning_rate=0.1,
     ############
     # Compare the two models #
     ###########
-    dA_params = dA.get_params()
+    dA_params = da.get_params()
     pickled_params = pickled_dA.get_params()
     
     if not numpy.allclose(dA_params[0].get_value(), pickled_params[0].get_value()):
