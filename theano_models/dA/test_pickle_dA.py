@@ -161,7 +161,7 @@ def test_continue_pickled_dA(learning_rate=0.1,
     rng = numpy.random.RandomState(123)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
     
-    unpickled_dA.sett_input(x)
+    unpickled_dA.set_input(x)
     
     cost, updates = unpickled_dA.get_cost_updates(corruption_level=0., learning_rate=learning_rate)
     
