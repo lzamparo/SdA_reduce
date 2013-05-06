@@ -31,3 +31,11 @@ class MLP(object):
 		self.params = self.hiddenLayer.params + \
 				self.logRegressionLayer.params
 		
+	def __getstate__(self):
+		return (self.hiddenLayer,self.logRegressionLayer)
+	
+	def __setstate__(self, state):
+		(hiddenLayer,logRegressionLayer) = state
+		self.hiddenLayer = hiddenLayer
+		self.logRegressionLayer = logRegressionLayer
+		

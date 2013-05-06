@@ -128,20 +128,10 @@ def test_continue_pickled_dA(learning_rate=0.1,
         
     datasets = load_data(dataset)
     train_set_x, train_set_y = datasets[0]
-
-    # compute number of minibatches for training, validation and testing
-    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
-
-    # allocate symbolic variables for the data
-    index = T.lscalar()    # index to a [mini]batch
-    x = T.matrix('x')  # the data is presented as rasterized images
     
     ####################################
     # Build the model #
     ####################################    
-    
-    datasets = load_data(dataset)
-    train_set_x, train_set_y = datasets[0]
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
@@ -161,7 +151,7 @@ def test_continue_pickled_dA(learning_rate=0.1,
     rng = numpy.random.RandomState(123)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
     
-    unpickled_dA.set_input(x)
+    #unpickled_dA.set_input(x)
     
     cost, updates = unpickled_dA.get_cost_updates(corruption_level=0., learning_rate=learning_rate)
     

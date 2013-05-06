@@ -24,12 +24,14 @@ class HiddenLayer(object):
         self.params = [self.W, self.b]
         
     def __getstate__():
-        return (self.W.get_value(), self.b.get_value(), self.activation)
+        return (self.W.get_value(), self.b.get_value(), self.activation, self.input)
     
     def __setstate__(self,state):
         """ Set the parameters of this layer based on the values pulled out of state """
-        (W, B, activation) = state
+        (W, B, activation, input) = state
         self.W = theano.shared(value=W, name = 'W')
         self.b = theano.shared(value=b, name = 'b')
+        self.input = input
         self.output = activation(T.dot(input, self.W) + self.b)
         self.params = [self.W, self.b]
+        
