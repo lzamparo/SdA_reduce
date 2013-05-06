@@ -91,6 +91,16 @@ class LogisticRegression(object):
 
         # parameters of the model
         self.params = [self.W, self.b]
+        
+    def __getstate__(self):
+        """ Return the parameters of this model for pickling """
+        return (self.W.get_value(), self.b.get_value())
+    
+    def __setstate__(self,state):
+        """ Set the state of the logistic regression model based on the given parameters in state """
+        W, b = state
+        self.W = theano.shared(W, name='W', borrow=True)
+        self.b = theano.shared(b, name='b', borrow=True)
 
     def negative_log_likelihood(self, y):
         """Return the mean of the negative log-likelihood of the prediction
@@ -367,6 +377,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     print >> sys.stderr, ('The code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.1fs' % ((end_time - start_time)))
+    
 
 if __name__ == '__main__':
     sgd_optimization_mnist()
