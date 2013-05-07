@@ -18,7 +18,7 @@ from MLP import MLP
 
 def test_pickle_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, 
 	n_epochs=10, dataset='../data/mnist.pkl.gz', batch_size=20,
-	pickle_file='/scratch/z/zhaolei/lzamparo/gpu_tests/dA_results/MLP_pickle.pkl',n_hidden=500):
+	pickle_file='/scratch/z/zhaolei/lzamparo/gpu_tests/mlp_results/MLP_pickle.pkl',n_hidden=500):
 	""" Interrupt the training of an MLP, pickle the MLP object, unpickle, and continue """
 
 	datasets = load_data(dataset)
@@ -214,7 +214,7 @@ def test_pickle_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001,
 
 def test_pickle_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, 
 	n_epochs=10, dataset='../data/mnist.pkl.gz', batch_size=20,
-	pickle_file='/scratch/z/zhaolei/lzamparo/gpu_tests/dA_results/MLP_pickle.pkl',n_hidden=500):
+	pickle_file='/scratch/z/zhaolei/lzamparo/gpu_tests/mlp_results/MLP_pickle.pkl',n_hidden=500):
 	""" Load a pickled MLP object, train for a set number of epochs """
 	
 	datasets = load_data(dataset)
