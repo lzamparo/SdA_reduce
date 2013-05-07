@@ -23,7 +23,7 @@ class HiddenLayer(object):
         self.output = activation(T.dot(input, self.W) + self.b)
         self.params = [self.W, self.b]
         
-    def __getstate__():
+    def __getstate__(self):
         return (self.W.get_value(), self.b.get_value(), self.activation, self.input)
     
     def __setstate__(self,state):
