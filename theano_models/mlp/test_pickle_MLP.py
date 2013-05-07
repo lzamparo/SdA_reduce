@@ -159,6 +159,7 @@ def test_pickle_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001,
 	print "Unpickling the model..."
 	f = file(pickle_file, 'rb')
 	unpickled_classifier = cPickle.load(f)
+	unpickled_classifier.reconstruct_state(x, T.tanh)
 	f.close()
 	
 	print(("Continue training for %i epochs ") % (n_epochs - epoch))
@@ -242,6 +243,7 @@ def test_continue_pickled_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001,
 	print "Unpickling the model..."
 	f = file(pickle_file, 'rb')
 	classifier = cPickle.load(f)
+	classifier.reconstruct_state(x, T.tanh)
 	f.close()
 
 	# cost to be minimized

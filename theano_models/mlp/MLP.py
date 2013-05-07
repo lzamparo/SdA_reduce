@@ -32,10 +32,18 @@ class MLP(object):
 				self.logRegressionLayer.params
 		
 	def __getstate__(self):
+		""" Return the hidden layer and logistic regression layer that make up the MLP. """
 		return (self.hiddenLayer,self.logRegressionLayer)
 	
 	def __setstate__(self, state):
+		""" Re-establish the hidden layer and logistic regression layer objects. """
 		(hiddenLayer,logRegressionLayer) = state
 		self.hiddenLayer = hiddenLayer
 		self.logRegressionLayer = logRegressionLayer
+	
+	def reconstruct_state(self,input, activation):
+		""" Re-establish the inputs for each layer of the MLP. """
+		self.hiddenLayer.reconstruct_state(input,activation)
+		self.logRegressionLayer.reconstruct_state(self.hiddenLayer.output)
+		
 		

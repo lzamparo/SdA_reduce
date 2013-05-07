@@ -24,14 +24,17 @@ class HiddenLayer(object):
         self.params = [self.W, self.b]
         
     def __getstate__(self):
-        return (self.W.get_value(), self.b.get_value(), self.activation, self.input)
+        """ Return the weight matrix and bias parameters. """
+        return (self.W.get_value(), self.b.get_value())
     
     def __setstate__(self,state):
-        """ Set the parameters of this layer based on the values pulled out of state """
-        (W, B, activation, input) = state
+        """ Set the parameters of this layer based on the values pulled out of state. """
+        (W, B) = state
         self.W = theano.shared(value=W, name = 'W')
         self.b = theano.shared(value=b, name = 'b')
+               
+    def reconstruct_state(self, input, activation=T.tanh):
+        """ Set up the symbolic input, outputs as in the constructor. """
         self.input = input
         self.output = activation(T.dot(input, self.W) + self.b)
-        self.params = [self.W, self.b]
-        
+        self.params = [self.W, self.b]        

@@ -101,6 +101,17 @@ class LogisticRegression(object):
         W, b = state
         self.W = theano.shared(W, name='W', borrow=True)
         self.b = theano.shared(b, name='b', borrow=True)
+        
+    def reconstruct_state(self,input):
+        """ Set up the symbolic input, outputs as in the constructor. """
+        # compute vector of class-membership probabilities in symbolic form
+        self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W) + self.b)
+
+        # compute prediction as class whose probability is maximal in
+        # symbolic form
+        self.y_pred = T.argmax(self.p_y_given_x, axis=1)
+        # parameters of the model
+        self.params = [self.W, self.b]        
 
     def negative_log_likelihood(self, y):
         """Return the mean of the negative log-likelihood of the prediction
