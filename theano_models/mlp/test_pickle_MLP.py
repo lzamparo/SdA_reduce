@@ -212,7 +212,7 @@ def test_pickle_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001,
 	
 
 
-def test_pickle_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, 
+def test_continue_pickled_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, 
 	n_epochs=10, dataset='../data/mnist.pkl.gz', batch_size=20,
 	pickle_file='/scratch/z/zhaolei/lzamparo/gpu_tests/mlp_results/MLP_pickle.pkl',n_hidden=500):
 	""" Load a pickled MLP object, train for a set number of epochs """
@@ -353,4 +353,4 @@ def test_pickle_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001,
 		
 if __name__ == "__main__":
 	test_pickle_mlp()
-	test_continue_pickle_mlp()
+	test_continue_pickled_mlp()
