@@ -162,6 +162,38 @@ def test_pickle_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001,
 	unpickled_classifier.reconstruct_state(x, T.tanh)
 	f.close()
 	
+	### Re-establish the cost, grad, parameter updates ###
+	# cost to be minimized
+	cost = unpickled_classifier.negative_log_likelihood(y) \
+                + L1_reg * unpickled_classifier.L1 \
+                + L2_reg * unpickled_classifier.L2_sqr
+
+	# theano function that computes the mistakes made by the model on a minibatch
+	test_model = theano.function(inputs=[index],
+                outputs = unpickled_classifier.errors(y),
+                givens={
+                        x: test_set_x[index * batch_size:(index + 1) * batch_size],
+                        y: test_set_y[index * batch_size:(index + 1) * batch_size]})
+
+	# theano function to validate the model
+	validate_model = theano.function(inputs=[index],
+                outputs = unpickled_classifier.errors(y),
+                givens = {
+                        x: valid_set_x[index * batch_size:(index + 1) * batch_size],
+                        y: valid_set_y[index * batch_size:(index + 1) * batch_size]})
+
+	# compute the gradient of the cost function w.r.t theta
+	gparams = []
+	for param in unpickled_classifier.params:
+		gparam = T.grad(cost, param)
+		gparams.append(gparam)
+
+	# build the list of parameter updates.  This consists of tuples of paramters and values
+	updates = []
+
+	for param, gparam in zip(unpickled_classifier.params, gparams):
+		updates.append((param, param - learning_rate * gparam))	
+	
 	print(("Continue training for %i epochs ") % (n_epochs - epoch))
 	start_time = time.clock()
 	

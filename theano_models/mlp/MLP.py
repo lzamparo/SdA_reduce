@@ -45,5 +45,18 @@ class MLP(object):
 		""" Re-establish the inputs for each layer of the MLP. """
 		self.hiddenLayer.reconstruct_state(input,activation)
 		self.logRegressionLayer.reconstruct_state(self.hiddenLayer.output)
+		self.L1 = abs(self.hiddenLayer.W).sum() \
+				        + abs(self.logRegressionLayer.W).sum()
 		
+		self.L2_sqr = (self.hiddenLayer.W **2).sum() \
+	                        + (self.logRegressionLayer.W **2).sum()
+
+		# Define the log likelihood, errors based on component models
+
+		self.negative_log_likelihood = self.logRegressionLayer.negative_log_likelihood 
+
+		self.errors = self.logRegressionLayer.errors
+
+		self.params = self.hiddenLayer.params + \
+	                        self.logRegressionLayer.params		
 		
