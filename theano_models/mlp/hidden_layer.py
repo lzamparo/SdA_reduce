@@ -29,7 +29,7 @@ class HiddenLayer(object):
     
     def __setstate__(self,state):
         """ Set the parameters of this layer based on the values pulled out of state. """
-        (W, B) = state
+        (W, b) = state
         self.W = theano.shared(value=W, name = 'W')
         self.b = theano.shared(value=b, name = 'b')
                
