@@ -171,7 +171,9 @@ def test_continue_pickled_dA(learning_rate=0.1,
             c.append(train_da(batch_index))    
     
 
-    print "passed unpickled dA test"    
+    print "passed unpickled dA test"
+    
+    
     
 if __name__ == '__main__':
     test_pickled_dA()
