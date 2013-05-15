@@ -15,6 +15,7 @@ class SdA(object):
     dAs. The hidden layer of the dA at layer `i` becomes the input of
     the dA at layer `i+1`. The first layer dA gets as input the input of
     the SdA, and the hidden layer of the last dA represents the output.
+    
     Note that after pretraining, the SdA is dealt with as a normal MLP,
     the dAs are only used to initialize the weights.
     """

@@ -10,8 +10,25 @@ from sklearn.preprocessing import scale
 
 
 def load_data_unlabeled(dataset, features = (5,612)):
-    """ Take an unpacked dataset (from extract_datasets), scale it, and return as a shared theano variable"""
-    pass
+    """ Take an unpacked dataset (from extract_datasets), scale it, and return as a shared theano variable.
+    
+    :type dataset: numpy ndarray
+    :param dataset: the numpy ndarray returned from some function in extract_dataset
+    
+    :type features: tuple
+    :param features: keep only those features indexed between features[0],features[1]  """
+    
+    # Scale the data: centre, and unit-var.
+    data_scaled = scale(dataset)
+    
+    # if features tuple is defined, throw away unwanted columns
+    if features:
+        data_scaled = data_scaled[:,features[0]:features[1]]
+        
+    print '... loading data'
+    print '... converting to shared vars'
+    
+    return theano.shared(np.asarray(data_scaled, dtype=theano.config.floatX), borrow=borrow)    
     
 
 def load_data_labeled(dataset, labels, ratios = np.array([0.8,0.1,0.1]), features = (5,612)):
