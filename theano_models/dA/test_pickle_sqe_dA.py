@@ -1,4 +1,5 @@
 import numpy
+import cPickle
 
 import theano
 import theano.tensor as T
@@ -229,5 +230,5 @@ if __name__ == "__main__":
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the hdf5 filename as an absolute pathname")
     (options, args) = parser.parse_args()   
     
-    test_pickled_sqe_dA();
-    test_unpickled_sqe_dA();
+    test_pickled_sqe_dA()
+    test_unpickled_sqe_dA()
