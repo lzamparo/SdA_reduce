@@ -108,7 +108,7 @@ def test_pickled_sqe_dA(learning_rate=0.001,
     f.close()    
     
     x = T.matrix('x')
-    pickled_dA.set_input(x)
+    pickled_dA.set_input(x)   
     
     ############
     # Resume training #
@@ -189,6 +189,8 @@ def test_unpickled_sqe_dA(learning_rate=0.001,
     f = file(pickle_file, 'rb')
     pickled_dA = cPickle.load(f)
     f.close()    
+    
+    pickled_dA.set_input(x)
     
     ############
     # Resume training #
