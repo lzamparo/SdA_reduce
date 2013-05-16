@@ -168,12 +168,6 @@ class AutoEncoder(object):
         self.theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
         self.W_prime = self.W.T
         
-        if input == None:
-            self.x = T.dmatrix(name='input')
-                       
-        else:
-            self.x = input
-        
         self.params = [self.W, self.b, self.b_prime]
         
     def get_params(self):

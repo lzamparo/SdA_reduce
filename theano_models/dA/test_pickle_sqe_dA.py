@@ -107,10 +107,12 @@ def test_pickled_sqe_dA(learning_rate=0.001,
     pickled_dA = cPickle.load(f)
     f.close()    
     
+    x = T.matrix('x')
+    pickled_dA.set_input(x)
     
     ############
     # Resume training #
-    ############    
+    ############        
     
     cost, updates = pickled_dA.get_cost_updates(corruption_level=float(options.corruption),
                                             learning_rate=learning_rate)
