@@ -19,22 +19,25 @@ class HiddenLayer(object):
 
         b_values = numpy.zeros((n_out,), dtype = theano.config.floatX)
         self.b = theano.shared(value=b_values, name = 'b')
+        self._outsize = n_out
 
         self.output = activation(T.dot(input, self.W) + self.b)
         self.params = [self.W, self.b]
         
     def __getstate__(self):
         """ Return the weight matrix and bias parameters. """
-        return (self.W.get_value(), self.b.get_value())
+        return (self.W.get_value(), self.b.get_value(), self._outsize)
     
     def __setstate__(self,state):
         """ Set the parameters of this layer based on the values pulled out of state. """
-        (W, b) = state
+        (W, b, outsize) = state
         self.W = theano.shared(value=W, name = 'W')
         self.b = theano.shared(value=b, name = 'b')
+        self._outsize = outsize
                
     def reconstruct_state(self, input, activation=T.tanh):
         """ Set up the symbolic input, outputs as in the constructor. """
         self.input = input
         self.output = activation(T.dot(input, self.W) + self.b)
-        self.params = [self.W, self.b]        
+        self.params = [self.W, self.b] 
+        

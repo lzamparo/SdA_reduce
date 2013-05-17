@@ -269,11 +269,47 @@ class SdA(object):
         self.dA_layers = dA_layers_list
         self.sigmoid_layers = mlp_layers_list
         
-    def reconstruct_state(self, input):
+    def reconstruct_layers(self, input_data):
         """ Reconstruct both MLP and stacked dA aspects of an unpickled SdA model.  This expects that the sigmoid_layers
         and dA_layers lists are populated with unpickled hidden_layer or dA objects.  The input should be provided to 
         the initial layer, and the output of layer i is set to the input of layer i+1. 
         Also, fill up the self.params list with the parameter values of the MLP list. """
     
-        pass
+        for i in xrange(self.n_layers):
+            
+            # the input to this layer is either the activation of the hidden
+            # layer below or the input of the SdA if you are on the first
+            # layer
+            if i == 0:
+                layer_input = input_data
+            else:
+                layer_input = self.sigmoid_layers[i-1].output
+                
+            self.sigmoid_layers[i].reconstruct_state(layer_input)
+            self.dA_layers[i].set_input(layer_input)            
+
+            # Do I need to re-tie the W,b parameters of both layers?  Or will they still be shared after un-pickling?
+            # Test it out, examine any barf produced.
+            
+            
+            
+    def reconstruct_loglayer(self, n_outs = 10):
+        """ Reconstruct a logistic layer on top of a previously trained SdA """
+        # We now need to add a logistic layer on top of the MLP
+        self.logLayer = LogisticRegression(
+                         input=self.sigmoid_layers[-1].output,
+                         n_in=self.sigmoid_layers[-1]._outsize, n_out=n_outs)
+
+        self.params.extend(self.logLayer.params)
+        # construct a function that implements one step of finetunining
+
+        # compute the cost for second phase of training,
+        # defined as the negative log likelihood
+        self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
+        # compute the gradients with respect to the model parameters
+        # symbolic variable that points to the number of errors made on the
+        # minibatch given by self.x and self.y
+        self.errors = self.logLayer.errors(self.y)        
+
+        
             
