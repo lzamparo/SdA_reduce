@@ -93,7 +93,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
 
     print >> output_file, ('Pretraining time for file ' +
                           os.path.split(__file__)[1] +
-                          ' was %.2fm to go through %i epochs' % ((end_time - start_time) / 60.), num_epochs / 2)
+                          ' was %.2fm to go through %i epochs' % (((end_time - start_time) / 60.), (num_epochs / 2)))
 
     # Pickle the SdA
     print >> output_file, 'Pickling the model...'
@@ -135,7 +135,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     end_time = time.clock()    
     print >> output_file, ('Pretraining time for file ' +
                           os.path.split(__file__)[1] +
-                          ' was %.2fm to go through the remaining %i epochs' % ((end_time - start_time) / 60.), num_epochs / 2)    
+                          ' was %.2fm to go through the remaining %i epochs' % (((end_time - start_time) / 60.), (num_epochs / 2)))    
     output_file.close()
     
 if __name__ == '__main__':
