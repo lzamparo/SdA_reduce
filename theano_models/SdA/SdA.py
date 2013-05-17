@@ -268,8 +268,9 @@ class SdA(object):
         self.n_layers = layers
         self.dA_layers = dA_layers_list
         self.sigmoid_layers = mlp_layers_list
+        self.x = T.matrix('x')  # symbolic input for the training data
         
-    def reconstruct_layers(self, input_data):
+    def reconstruct_layers(self):
         """ Reconstruct both MLP and stacked dA aspects of an unpickled SdA model.  This expects that the sigmoid_layers
         and dA_layers lists are populated with unpickled hidden_layer or dA objects.  The input should be provided to 
         the initial layer, and the output of layer i is set to the input of layer i+1. 
@@ -281,7 +282,7 @@ class SdA(object):
             # layer below or the input of the SdA if you are on the first
             # layer
             if i == 0:
-                layer_input = input_data
+                layer_input = self.x
             else:
                 layer_input = self.sigmoid_layers[i-1].output
                 
