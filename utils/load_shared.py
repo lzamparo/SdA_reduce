@@ -9,7 +9,7 @@ import numpy as np
 from sklearn.preprocessing import scale
 
 
-def load_data_unlabeled(dataset, features = (5,612)):
+def load_data_unlabeled(dataset, features = (5,612), borrow=True):
     """ Take an unpacked dataset (from extract_datasets), scale it, and return as a shared theano variable.
     
     :type dataset: numpy ndarray
