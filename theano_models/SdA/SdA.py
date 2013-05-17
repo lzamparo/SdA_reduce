@@ -57,9 +57,10 @@ class SdA(object):
 
         if not theano_rng:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
+        
         # allocate symbolic variables for the data
-        self.x = T.matrix('x')  # the data is presented as rasterized images
-        self.y = T.ivector('y')  # the labels are presented as 1D vector of
+        self.x = T.matrix('x')  # the training input
+        self.y = T.ivector('y')  # the labels (if present) are presented as 1D vector of
                                  # [int] labels
 
         # The SdA is an MLP, for which all weights of intermediate layers
@@ -73,7 +74,7 @@ class SdA(object):
         # lead to chainging the weights of the MLP as well).
         #
         # During finetunining we will finish training the SdA by doing
-        # stochastich gradient descent on the MLP
+        # stochastic gradient descent on the MLP
 
         for i in xrange(self.n_layers):
             
@@ -255,3 +256,24 @@ class SdA(object):
         return train_fn, valid_score, test_score
 
     
+    def __getstate__(self):
+        """ Pickle this SdA by returning the number of layers, list of sigmoid layers and list of dA layers. """
+        return (self.n_layers, self.sigmoid_layers, self.dA_layers)
+    
+    def __setstate__(self, state):
+        """ Unpickle an SdA model by restoring the lists of both MLP hidden layers and dA layers.  
+        Connecting the inputs and outputs will fall to reconstruct_state, which should be called from any driver script
+        once the SdA has been unpickled. """
+        (layers, mlp_layers_list, dA_layers_list) = state
+        self.n_layers = layers
+        self.dA_layers = dA_layers_list
+        self.sigmoid_layers = mlp_layers_list
+        
+    def reconstruct_state(self, input):
+        """ Reconstruct both MLP and stacked dA aspects of an unpickled SdA model.  This expects that the sigmoid_layers
+        and dA_layers lists are populated with unpickled hidden_layer or dA objects.  The input should be provided to 
+        the initial layer, and the output of layer i is set to the input of layer i+1. 
+        Also, fill up the self.params list with the parameter values of the MLP list. """
+    
+        pass
+            
