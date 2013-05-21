@@ -3,10 +3,11 @@ import theano.tensor as T
 import numpy
 
 class HiddenLayer(object):
-    def __init__(self, rng, input, n_in, n_out, activation=T.tanh):
+    def __init__(self, rng, input, n_in, n_out, activation=T.nnet.sigmoid):
 
         self.input = input
-
+        
+        # Recipe for initializing W for tanh activation layers
         W_values = numpy.asarray(rng.uniform( \
             low = -numpy.sqrt(6. / (n_in + n_out)), \
             high = numpy.sqrt(6. / (n_in + n_out)), \

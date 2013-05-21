@@ -108,8 +108,6 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     pickled_sda = cPickle.load(f)
     f.close()    
 
-    pickled_sda.reconstruct_layers()
-    
     # Train for the remaining 
     pretraining_fns = pickled_sda.pretraining_functions(train_set_x=train_set_x,
                                                     batch_size=batch_size)
@@ -189,7 +187,6 @@ def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     pickled_sda = cPickle.load(f)
     f.close()    
     
-    pickled_sda.reconstruct_layers()
     
     # Train for the remaining 
     pretraining_fns = pickled_sda.pretraining_functions(train_set_x=train_set_x,

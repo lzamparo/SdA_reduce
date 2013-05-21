@@ -3,6 +3,7 @@ import numpy
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
+from theano import shared
 
 from mlp.logistic_sgd import LogisticRegression, load_data
 from mlp.hidden_layer import HiddenLayer
@@ -55,6 +56,7 @@ class SdA(object):
         self.sigmoid_layers = []
         self.dA_layers = []
         self.params = []
+        self.n_outs = n_outs
         self.n_layers = len(hidden_layers_sizes)
 
         # Sanity checks on parameter list sizes
@@ -77,10 +79,10 @@ class SdA(object):
         # and when constructing each sigmoidal layer we also construct a
         # denoising autoencoder that shares weights with that layer.
         #
-        # During pretraining we will train these autoencoders (which will
+        # During pre-training we will train these autoencoders (which will
         # lead to chainging the weights of the MLP as well).
         #
-        # During finetunining we will finish training the SdA by doing
+        # During fine-tunining we will finish training the SdA by doing
         # stochastic gradient descent on the MLP
 
         for i in xrange(self.n_layers):
@@ -266,24 +268,23 @@ class SdA(object):
     
     def __getstate__(self):
         """ Pickle this SdA by returning the number of layers, list of sigmoid layers and list of dA layers. """
-        return (self.n_layers, self.sigmoid_layers, self.dA_layers)
+        return (self.n_layers, self.n_outs, self.sigmoid_layers, self.dA_layers)
     
     def __setstate__(self, state):
         """ Unpickle an SdA model by restoring the lists of both MLP hidden layers and dA layers.  
-        Connecting the inputs and outputs will fall to reconstruct_state, which should be called from any driver script
-        once the SdA has been unpickled. """
-        (layers, mlp_layers_list, dA_layers_list) = state
+        Reconstruct both MLP and stacked dA aspects of an unpickled SdA model.  The input should be provided to 
+        the initial layer, and the input of layer i+1 is set to the output of layer i. 
+        Fill up the self.params list with the parameter sets of the MLP list. """
+        (layers, n_outs, mlp_layers_list, dA_layers_list) = state
         self.n_layers = layers
-        self.dA_layers = dA_layers_list
+        self.n_outs = n_outs
+        self.dA_layers = []
         self.sigmoid_layers = mlp_layers_list
         self.x = T.matrix('x')  # symbolic input for the training data
         
-    def reconstruct_layers(self):
-        """ Reconstruct both MLP and stacked dA aspects of an unpickled SdA model.  This expects that the sigmoid_layers
-        and dA_layers lists are populated with unpickled hidden_layer or dA objects.  The input should be provided to 
-        the initial layer, and the output of layer i is set to the input of layer i+1. 
-        Also, fill up the self.params list with the parameter values of the MLP list. """
-    
+        numpy_rng = np.random.RandomState(123)
+        theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
+           
         for i in xrange(self.n_layers):
             
             # the input to this layer is either the activation of the hidden
@@ -295,12 +296,20 @@ class SdA(object):
                 layer_input = self.sigmoid_layers[i-1].output
                 
             self.sigmoid_layers[i].reconstruct_state(layer_input)
-            self.dA_layers[i].set_input(layer_input)            
+            self.params.extend(self.sigmoid_layers[i].params)
+            
+            # Rebuild the dA layer from scratch, explicitly tying the W,bhid params to those from the sigmoid layer
+            dA_layer = AutoEncoder(numpy_rng=numpy_rng,
+                          theano_rng=theano_rng,
+                          input=layer_input,
+                          n_visible=dA_layers_list[i].n_visible,
+                          n_hidden=dA_layers_list[i].n_hidden,
+                          W=self.sigmoid_layers[i].W,
+                          bhid=self.sigmoid_layers[i].b,
+                          bvis=dA_layers_list[i].b_prime,
+                          loss=dA_layers_list[i].loss)
+            self.dA_layers.append(dA_layer)
 
-            # Do I need to re-tie the W,b parameters of both layers?  Or will they still be shared after un-pickling?
-            # Test it out, examine any barf produced.
-            
-            
             
     def reconstruct_loglayer(self, n_outs = 10):
         """ Reconstruct a logistic layer on top of a previously trained SdA """
