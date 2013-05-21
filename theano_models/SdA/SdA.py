@@ -279,6 +279,7 @@ class SdA(object):
         self.n_layers = layers
         self.n_outs = n_outs
         self.dA_layers = []
+        self.params = []
         self.sigmoid_layers = mlp_layers_list
         self.x = T.matrix('x')  # symbolic input for the training data
         
