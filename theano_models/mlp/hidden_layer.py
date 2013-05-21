@@ -39,5 +39,10 @@ class HiddenLayer(object):
         """ Set up the symbolic input, outputs as in the constructor. """
         self.input = input
         self.output = activation(T.dot(input, self.W) + self.b)
-        self.params = [self.W, self.b] 
+        self.params = [self.W, self.b]
+        
+    def get_params(self):
+        """ Return the params of this MLP.  This is for pickling testing purposes """
+        return self.params    
+    
         

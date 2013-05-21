@@ -22,7 +22,7 @@ class SdA(object):
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=10,
-                 corruption_levels=[0.1, 0.1]):
+                 corruption_levels=[0.1, 0.1], dA_losses=['xent','xent']):
         """ This class is made to support a variable number of layers.
 
         :type numpy_rng: numpy.random.RandomState
@@ -46,6 +46,10 @@ class SdA(object):
         :type corruption_levels: list of float
         :param corruption_levels: amount of corruption to use for each
                                   layer
+                                  
+        :type dA_loss: list of strings
+        :param dA_loss: loss functions to use for each of the dA layers.  
+                                                            
         """
 
         self.sigmoid_layers = []
@@ -53,7 +57,10 @@ class SdA(object):
         self.params = []
         self.n_layers = len(hidden_layers_sizes)
 
+        # Sanity checks on parameter list sizes
         assert self.n_layers > 0
+        assert len(hidden_layers_sizes) == len(dA_losses) 
+        assert len(dA_losses) == len(corruption_levels)
 
         if not theano_rng:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
@@ -115,7 +122,8 @@ class SdA(object):
                           n_visible=input_size,
                           n_hidden=hidden_layers_sizes[i],
                           W=sigmoid_layer.W,
-                          bhid=sigmoid_layer.b)
+                          bhid=sigmoid_layer.b,
+                          loss=dA_losses[i])
             self.dA_layers.append(dA_layer)
 
         # We now need to add a logistic layer on top of the MLP

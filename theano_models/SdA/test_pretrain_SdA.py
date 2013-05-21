@@ -64,7 +64,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
 
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=[850, 400, 50],
-              n_outs=3)
+              n_outs=3, dA_loss=['squared','xent','xent'])
 
     #########################
     # PRETRAINING THE MODEL #
@@ -135,9 +135,18 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     print >> output_file, ('Pretraining time for file ' +
                           os.path.split(__file__)[1] +
                           ' was %.2fm to go through the remaining %i epochs' % (((end_time - start_time) / 60.), (num_epochs / 2)))
-       
-    output_file.close()
     
+    # Test that the W-matrices for the dA layers are all close to the W-matrices for the MLP layers
+    for i in xrange(pickled_sda.n_layers):
+        dA_params = pickled_sda.dA_layers[i].get_params()
+        MLP_params = pickled_sda.sigmoid_layers[i].get_params()
+    
+        if not numpy.allclose(dA_params[0].get_value(), MLP_params[0].get_value()):
+            print >> output_file, ("numpy says that Ws in layer %i are not close" % (i))
+        if not numpy.allclose(dA_params[1].get_value(), MLP_params[1].get_value()):
+            print >> output_file, ("numpy says that the biases in layer %i are not close" % (i))  
+    
+    output_file.close()   
     
 def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     """ Unpickle an SdA from file, continue pre-training for a given number of epochs.
@@ -207,7 +216,19 @@ def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     print >> output_file, ('Pretraining time for file ' +
                           os.path.split(__file__)[1] +
                           ' was %.2fm to go through the remaining %i epochs' % (((end_time - start_time) / 60.), (num_epochs / 2)))    
-    output_file.close()
+
+    
+    # Test that the W-matrices for the dA layers are all close to the W-matrices for the MLP layers
+    for i in xrange(pickled_sda.n_layers):
+        dA_params = pickled_sda.dA_layers[i].get_params()
+        MLP_params = pickled_sda.sigmoid_layers[i].get_params()
+    
+        if not numpy.allclose(dA_params[0].get_value(), MLP_params[0].get_value()):
+            print >> output_file, ("numpy says that Ws in layer %i are not close" % (i))
+        if not numpy.allclose(dA_params[1].get_value(), MLP_params[1].get_value()):
+            print >> output_file, ("numpy says that the biases in layer %i are not close" % (i))  
+    
+    output_file.close()    
     
     
 if __name__ == '__main__':
