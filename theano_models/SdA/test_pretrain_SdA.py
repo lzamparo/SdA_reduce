@@ -64,6 +64,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
 
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=[850, 400, 50],
+              corruption_levels = [0.1,0.1,0.1],
               n_outs=3, dA_losses=['squared','xent','xent'])
 
     #########################
