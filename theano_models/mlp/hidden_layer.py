@@ -36,7 +36,7 @@ class HiddenLayer(object):
         self.b = theano.shared(value=b, name = 'b')
         self._outsize = outsize
                
-    def reconstruct_state(self, input, activation=T.tanh):
+    def reconstruct_state(self, input, activation=T.nnet.sigmoid):
         """ Set up the symbolic input, outputs as in the constructor. """
         self.input = input
         self.output = activation(T.dot(input, self.W) + self.b)

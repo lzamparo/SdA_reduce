@@ -74,10 +74,10 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size)
 
-    print 'Dumping pretraining functions to output file pre pickling...'
-    print >> output_file, 'Pretraining functions, pre pickling'
-    for i in xrange(sda.n_layers):
-        theano.printing.debugprint(pretraining_fns[i], file = output_file, print_type=True) 
+    #print '... dumping pretraining functions to output file pre pickling'
+    #print >> output_file, 'Pretraining functions, pre pickling'
+    #for i in xrange(sda.n_layers):
+        #theano.printing.debugprint(pretraining_fns[i], file = output_file, print_type=True) 
 
     print '... pre-training the model'
     start_time = time.clock()
@@ -117,10 +117,10 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     pretraining_fns = pickled_sda.pretraining_functions(train_set_x=train_set_x,
                                                     batch_size=batch_size)
     
-    print 'Dumping pretraining functions to output file post unpickling...'
-    print >> output_file, 'Pretraining functions, post unpickling'
-    for i in xrange(sda.n_layers):
-        theano.printing.debugprint(pretraining_fns[i], file = output_file, print_type=True)
+    #print '... dumping pretraining functions to output file post unpickling'
+    #print >> output_file, 'Pretraining functions, post unpickling'
+    #for i in xrange(sda.n_layers):
+        #theano.printing.debugprint(pretraining_fns[i], file = output_file, print_type=True)
     
     print >> output_file, 'Resume training...'
     start_time = time.clock()

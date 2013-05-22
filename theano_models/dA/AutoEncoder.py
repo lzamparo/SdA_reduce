@@ -130,8 +130,8 @@ class AutoEncoder(object):
         # Take the sum over columns
         # So L is a vector, with one entry being the error for that example
         # Note: this is the Xent loss, for binary input (or bit probability) data
-        # for Gaussian real-valued units, change to squared error loss:
-        # L = -T.sum((self.x - z) **2, axis = 1)
+        # For Gaussian real-valued units, change to squared error loss:
+        # L = T.sum((self.x - z) **2, axis = 1)
         
         if (self.loss == 'xent'):
             L = -T.sum(self.x * T.log(z) + (1 - self.x) * T.log(1 - z), axis=1)
