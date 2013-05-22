@@ -146,10 +146,10 @@ class SdA(object):
 
     def pretraining_functions(self, train_set_x, batch_size):
         ''' Generates a list of functions, each of them implementing one
-        step in trainnig the dA corresponding to the layer with same index.
-        The function will require as input the minibatch index, and to train
-        a dA you just need to iterate, calling the corresponding function on
-        all minibatch indexes.
+        step in training the dA corresponding to the layer with same index.
+        The function takes a minibatch index, and so training one dA layer
+        corresponds to iterating this layer-specific training function in the
+        list over all minibatch indexes.
 
         :type train_set_x: theano.tensor.TensorType
         :param train_set_x: Shared variable that contains all datapoints used

@@ -74,6 +74,11 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size)
 
+    print 'Dumping pretraining functions to output file pre pickling...'
+    print >> output_file, 'Pretraining functions, pre pickling'
+    for i in xrange(sda.n_layers):
+        theano.printing.debugprint(pretraining_fns[i], file = output_file, print_type=True) 
+
     print '... pre-training the model'
     start_time = time.clock()
     ## Pre-train layer-wise
@@ -108,9 +113,14 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     pickled_sda = cPickle.load(f)
     f.close()    
 
-    # Train for the remaining 
+    # Regenerate the list of pretraining functions for the pickled SdA
     pretraining_fns = pickled_sda.pretraining_functions(train_set_x=train_set_x,
                                                     batch_size=batch_size)
+    
+    print 'Dumping pretraining functions to output file post unpickling...'
+    print >> output_file, 'Pretraining functions, post unpickling'
+    for i in xrange(sda.n_layers):
+        theano.printing.debugprint(pretraining_fns[i], file = output_file, print_type=True)
     
     print >> output_file, 'Resume training...'
     start_time = time.clock()
@@ -135,7 +145,8 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
                           os.path.split(__file__)[1] +
                           ' was %.2fm to go through the remaining %i epochs' % (((end_time - start_time) / 60.), (num_epochs / 2)))
     
-    # Test that the W-matrices for the dA layers are all close to the W-matrices for the MLP layers
+    # Test that the W-matrices and biases for the dA layers are all close to the W-matrices 
+    # and biases for the MLP layers
     for i in xrange(pickled_sda.n_layers):
         dA_params = pickled_sda.dA_layers[i].get_params()
         MLP_params = pickled_sda.sigmoid_layers[i].get_params()
