@@ -5,8 +5,6 @@
  It is based on Stacked de-noising Autoencoder models from the Bengio lab.  
  See http://deeplearning.net/tutorial/SdA.html#sda  
 
- For the time being, timing information is retained from the original 
-
 """
 import cPickle
 import gzip
@@ -65,7 +63,7 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
     
     # Get the training data sample from the input file
     data_set_file = openFile(str(options.inputfile), mode = 'r')
-    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 10)
+    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 10, offset = options.offset)
     train_set_x = load_data_unlabeled(datafiles)
     data_set_file.close()
 
@@ -75,13 +73,18 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
     
     # numpy random generator
     numpy_rng = numpy.random.RandomState(89677)
-    print '... building the model'
     
-    # TODO: If -r is present, load the model from that file and skip the initialization.
-    # Also, check the restorefile for an indication of how many epochs were run.  Train on only the remaining epochs.    
-    # construct the stacked denoising autoencoder class
-
-    sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
+    
+    # Check if we can restore from a previously trained model,    
+    # otherwise construct a new SdA
+    if options.restorefile not None:
+        print >> output_file, 'Unpickling the model from %s ...' % (options.restorefile)
+        f = file(options.restorefile, 'rb')
+        sda = cPickle.load(f)
+        f.close()        
+    else:
+        print '... building the model'
+        sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=[850, 400, 50],
               n_outs=3)
 
@@ -94,12 +97,11 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
 
     print '... pre-training the model'
     start_time = time.clock()
+    
     ## Pre-train layer-wise
-    corruption_levels = [float(options.corruption), float(options.corruption), float(options.corruption)]
+    corruption_levels = [options.corruption, options.corruption, options.corruption]
     for i in xrange(sda.n_layers):
-        # pickle the current model, along with the current epoch run
-        # TODO: pickling code here.
-        
+                
         for epoch in xrange(pretraining_epochs):
             # go through the training set
             c = []
@@ -109,21 +111,29 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
                          lr=pretrain_lr))
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
+            
+        if options.savefile not None:
+            print >> output_file, 'Pickling the model...'
+            f = file(options.savefile, 'wb')
+            cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
+            f.close()            
 
     end_time = time.clock()
 
     print >> output_file, ('The pretraining code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
+    output_file.close()
 
 
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-d", "--dir", dest="dir", help="test output directory")
-    parser.add_option("-s","--savefile",dest = "savefile", help = "Save the model to this pickle file")
-    parser.add_option("-r","--restorefile",dest = "restorefile", help = "Restore the model from this pickle file")
+    parser.add_option("-s","--savefile",dest = "savefile", help = "Save the model to this pickle file", default=None)
+    parser.add_option("-r","--restorefile",dest = "restorefile", help = "Restore the model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
-    parser.add_option("-c", "--corruption", dest="corruption", help="use this amount of corruption for the denoising AE")
+    parser.add_option("-c", "--corruption", dest="corruption", type="float", help="use this amount of corruption for the dA")
+    parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
     
     (options, args) = parser.parse_args()        
     

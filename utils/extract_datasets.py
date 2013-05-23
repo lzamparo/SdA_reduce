@@ -6,7 +6,7 @@ import numpy as np
 
 """ Take a reference to an open hdf5 pytables file, extract the first num_files chunks, stack 
 them together and return the larger nparray.  Also extract the labels, return them. """
-def extract_labeled_chunkrange(data_set_file, num_files = 1):
+def extract_labeled_chunkrange(data_set_file, num_files = 1, offset = 0):
     arrays_list = data_set_file.listNodes("/recarrays", classname='Array')
     labels_list = data_set_file.listNodes("/labels", classname='Array')
     data = np.empty(arrays_list[0].shape)
@@ -16,8 +16,15 @@ def extract_labeled_chunkrange(data_set_file, num_files = 1):
         print "Error!  Asking for %d data files when only %d are available" % (num_files, len(arrays_list))
         return None
     
+    if num_files + offset > len(arrays_list):
+        print "Error!  Asking for %d data files beginning at %d, but only %d are available from start to end" % (num_files, offset, (len(arrays_list) - offset))
+        return None
+        
     empty = True
-    for (datanode, labelnode) in zip(arrays_list[0:num_files],labels_list[0:num_files]):
+    start = offset 
+    end = offset + num_files
+    
+    for (datanode, labelnode) in zip(arrays_list[start:end],labels_list[start:end]):
         if empty:
             data[:] = datanode.read()
             labels[:] = labelnode.read()
@@ -30,7 +37,7 @@ def extract_labeled_chunkrange(data_set_file, num_files = 1):
 
 """ Take a reference to an open hdf5 pytables file, extract the first num_files chunks, stack 
 them together and return the larger nparray."""
-def extract_unlabeled_chunkrange(data_set_file, num_files = 1):
+def extract_unlabeled_chunkrange(data_set_file, num_files = 1, offset = 0):
     
     arrays_list = data_set_file.listNodes("/recarrays", classname='Array')
     
@@ -38,10 +45,16 @@ def extract_unlabeled_chunkrange(data_set_file, num_files = 1):
         print "Error!  Asking for more data than is available"
         return None
     
+    if num_files + offset > len(arrays_list):
+        print "Error!  Asking for %d data files beginning at %d, but only %d are available from start to end" % (num_files, offset, (len(arrays_list) - offset))
+        return None    
+    
     empty = True
+    start = offset 
+    end = offset + num_files    
     data = np.empty(arrays_list[0].shape)
     
-    for datanode in arrays_list[0:num_files]:
+    for datanode in arrays_list[start:end]:
         if empty:
             data[:] = datanode.read()
             empty = False
