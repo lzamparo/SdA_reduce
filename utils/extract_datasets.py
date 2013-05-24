@@ -9,8 +9,7 @@ them together and return the larger nparray.  Also extract the labels, return th
 def extract_labeled_chunkrange(data_set_file, num_files = 1, offset = 0):
     arrays_list = data_set_file.listNodes("/recarrays", classname='Array')
     labels_list = data_set_file.listNodes("/labels", classname='Array')
-    data = np.empty(arrays_list[0].shape)
-    labels = np.empty(labels_list[0].shape)
+    
     
     if num_files > len(arrays_list):
         print "Error!  Asking for %d data files when only %d are available" % (num_files, len(arrays_list))
@@ -23,6 +22,8 @@ def extract_labeled_chunkrange(data_set_file, num_files = 1, offset = 0):
     empty = True
     start = offset 
     end = offset + num_files
+    data = np.empty(arrays_list[start].shape)
+    labels = np.empty(labels_list[start].shape)    
     
     for (datanode, labelnode) in zip(arrays_list[start:end],labels_list[start:end]):
         if empty:
@@ -52,7 +53,7 @@ def extract_unlabeled_chunkrange(data_set_file, num_files = 1, offset = 0):
     empty = True
     start = offset 
     end = offset + num_files    
-    data = np.empty(arrays_list[0].shape)
+    data = np.empty(arrays_list[start].shape)
     
     for datanode in arrays_list[start:end]:
         if empty:
