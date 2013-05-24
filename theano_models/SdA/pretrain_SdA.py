@@ -86,6 +86,8 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
         print '... building the model'
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=[850, 400, 50],
+              corruption_levels = [options.corruption,options.corruption,options.corruption],
+              dA_losses=['squared','xent','xent'],              
               n_outs=3)
 
     #########################
