@@ -77,7 +77,7 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
     
     # Check if we can restore from a previously trained model,    
     # otherwise construct a new SdA
-    if options.restorefile not None:
+    if options.restorefile is not None:
         print >> output_file, 'Unpickling the model from %s ...' % (options.restorefile)
         f = file(options.restorefile, 'rb')
         sda = cPickle.load(f)
@@ -112,11 +112,14 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             
-        if options.savefile not None:
+        if options.savefile is not None:
             print >> output_file, 'Pickling the model...'
+            current_dir = os.getcwd()    
+            os.chdir(options.dir)            
             f = file(options.savefile, 'wb')
             cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
-            f.close()            
+            f.close()
+            os.chdir(current_dir)
 
     end_time = time.clock()
 
