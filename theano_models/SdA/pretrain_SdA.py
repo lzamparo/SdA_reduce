@@ -84,10 +84,14 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
         f.close()        
     else:
         print '... building the model'
+        arch_list = options.arch.split("-")
+        corruption_list = [options.corruption for i in arch_list]
+        dA_losses = ['xent' for i in arch_list]
+        dA_losses[0] = 'squared'
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
-              hidden_layers_sizes=[850, 400, 50],
-              corruption_levels = [options.corruption,options.corruption,options.corruption],
-              dA_losses=['squared','xent','xent'],              
+              hidden_layers_sizes=arch_list,
+              corruption_levels = corruption_list,
+              dA_losses=dA_losses,              
               n_outs=3)
 
     #########################
@@ -101,7 +105,7 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
     start_time = time.clock()
     
     ## Pre-train layer-wise
-    corruption_levels = [options.corruption, options.corruption, options.corruption]
+    corruption_levels = sda.corruption_levels
     for i in xrange(sda.n_layers):
                 
         for epoch in xrange(pretraining_epochs):
@@ -139,7 +143,7 @@ if __name__ == '__main__':
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-c", "--corruption", dest="corruption", type="float", help="use this amount of corruption for the dA")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
-    
+    parser.add_option("-a", "--arch", dest="arch", help="use this dash separated list to specify the architecture of the SdA.  E.g -a 850-400-50")
     (options, args) = parser.parse_args()        
     
     pretrain_SdA()

@@ -57,6 +57,7 @@ class SdA(object):
         self.dA_layers = []
         self.params = []
         self.n_outs = n_outs
+        self.corruption_levels = corruption_levels
         self.n_layers = len(hidden_layers_sizes)
 
         # Sanity checks on parameter list sizes
@@ -105,7 +106,7 @@ class SdA(object):
             sigmoid_layer = HiddenLayer(rng=numpy_rng,
                                         input=layer_input,
                                         n_in=input_size,
-                                        n_out=hidden_layers_sizes[i],
+                                        n_out=int(hidden_layers_sizes[i]),
                                         activation=T.nnet.sigmoid)
             # add the layer to our list of layers
             self.sigmoid_layers.append(sigmoid_layer)
@@ -122,7 +123,7 @@ class SdA(object):
                           theano_rng=theano_rng,
                           input=layer_input,
                           n_visible=input_size,
-                          n_hidden=hidden_layers_sizes[i],
+                          n_hidden=int(hidden_layers_sizes[i]),
                           W=sigmoid_layer.W,
                           bhid=sigmoid_layer.b,
                           loss=dA_losses[i])
@@ -268,16 +269,17 @@ class SdA(object):
     
     def __getstate__(self):
         """ Pickle this SdA by returning the number of layers, list of sigmoid layers and list of dA layers. """
-        return (self.n_layers, self.n_outs, self.sigmoid_layers, self.dA_layers)
+        return (self.n_layers, self.n_outs, self.sigmoid_layers, self.dA_layers, self.corruption_levels)
     
     def __setstate__(self, state):
         """ Unpickle an SdA model by restoring the lists of both MLP hidden layers and dA layers.  
         Reconstruct both MLP and stacked dA aspects of an unpickled SdA model.  The input should be provided to 
         the initial layer, and the input of layer i+1 is set to the output of layer i. 
         Fill up the self.params list with the parameter sets of the MLP list. """
-        (layers, n_outs, mlp_layers_list, dA_layers_list) = state
+        (layers, n_outs, mlp_layers_list, dA_layers_list, corruption_levels) = state
         self.n_layers = layers
         self.n_outs = n_outs
+        self.corruption_levels = corruption_levels
         self.dA_layers = []
         self.params = []
         self.sigmoid_layers = mlp_layers_list
