@@ -33,7 +33,7 @@ from optparse import OptionParser
 import os
 
 
-def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
+def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=20):
     """
     
     Pretrain an SdA model for the given number of training epochs.  The model is either initialized from scratch, or 
@@ -108,6 +108,8 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
     ## Pre-train layer-wise
     corruption_levels = sda.corruption_levels
     for i in xrange(sda.n_layers):
+        
+        # TODO: Set the learning rates to use.  See Yann Lecun's paper for backprop learning rate settings.
                 
         for epoch in xrange(pretraining_epochs):
             # go through the training set
