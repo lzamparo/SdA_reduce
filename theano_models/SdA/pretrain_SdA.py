@@ -56,14 +56,14 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
     today = datetime.today()
     day = str(today.date())
     hour = str(today.time())
-    output_filename = "stacked_denoising_autoencoder_pretrain." + day + "." + hour
+    output_filename = "stacked_denoising_autoencoder_" + options.arch + "." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
     print >> output_file, "Run on " + str(datetime.now())    
     
     # Get the training data sample from the input file
     data_set_file = openFile(str(options.inputfile), mode = 'r')
-    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 10, offset = options.offset)
+    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 15, offset = options.offset)
     train_set_x = load_data_unlabeled(datafiles)
     data_set_file.close()
 
@@ -135,6 +135,10 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
     output_file.close()
 
 
+def generate_learning_rates(num_layers):
+    """ Take the number of layers in the SdA model, and generate a list of learning rates to be applied to each layer. """
+    pass
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-d", "--dir", dest="dir", help="test output directory")
@@ -143,7 +147,7 @@ if __name__ == '__main__':
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-c", "--corruption", dest="corruption", type="float", help="use this amount of corruption for the dA")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
-    parser.add_option("-a", "--arch", dest="arch", help="use this dash separated list to specify the architecture of the SdA.  E.g -a 850-400-50")
+    parser.add_option("-a", "--arch", dest="arch", default = "", help="use this dash separated list to specify the architecture of the SdA.  E.g -a 850-400-50")
     (options, args) = parser.parse_args()        
     
     pretrain_SdA()

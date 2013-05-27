@@ -4,7 +4,7 @@
 # N.B: PBS lines are interpreted by qsub.  Change these defaults as 
 # required
 #
-#PBS -l nodes=1:ppn=8:gpus=1,walltime=10:00:00
+#PBS -l nodes=1:ppn=8:gpus=1,walltime=14:00:00
 #PBS -N StackedAutoencoder
 #PBS -q arc
 
@@ -14,7 +14,7 @@
 
 # Run the job
 cd $PBS_O_WORKDIR
-python pretrain_SdA.py -d "${SCRATCH}/gpu_tests/SdA_results" -c 0.10 -s SdA_850_400_50.pkl -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o 5
+python pretrain_SdA.py -d "${SCRATCH}/gpu_tests/SdA_results" -c 0.10 -a 900-500-200-50 -s SdA_900_500_200_50.pkl -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o 3
 
 
 
