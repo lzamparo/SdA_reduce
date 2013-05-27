@@ -84,7 +84,8 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=10):
         f.close()        
     else:
         print '... building the model'
-        arch_list = options.arch.split("-")
+        arch_list_str = options.arch.split("-")
+        arch_list = [int(item) for item in arch_list_str]
         corruption_list = [options.corruption for i in arch_list]
         dA_losses = ['xent' for i in arch_list]
         dA_losses[0] = 'squared'
