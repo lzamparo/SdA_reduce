@@ -44,18 +44,11 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     from dA.AutoEncoder import AutoEncoder
     from SdA import SdA    
     
-    # Print the shared args, stored as first element in the shared_args list:
-    #d = shared_args[0]
-    #for key,value in d.iteritems():
-        #print "Shared arg " + key + ": " + str(value)
-    
-    #name = os.getpid()
-    #for key,value in private_args.iteritems():
-        #print str(name) + " private arg " + key + ": " + value        
+    shared_args_dict = shared_args[0]
     
     current_dir = os.getcwd()    
     
-    os.chdir(shared_args['dir'])
+    os.chdir(shared_args_dict['dir'])
     today = datetime.today()
     day = str(today.date())
     hour = str(today.time())
@@ -65,8 +58,8 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     print >> output_file, "Run on " + str(datetime.now())    
     
     # Get the training data sample from the input file
-    data_set_file = openFile(str(shared_args['input']), mode = 'r')
-    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 15, offset = shared_args['offset'])
+    data_set_file = openFile(str(shared_args_dict['input']), mode = 'r')
+    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 15, offset = shared_args_dict['offset'])
     train_set_x = load_data_unlabeled(datafiles)
     data_set_file.close()
 
@@ -83,7 +76,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     if private_args.has_key('restore'):
         print >> output_file, 'Unpickling the model from %s ...' % (private_args['restore'])
         current_dir = os.getcwd()    
-        os.chdir(shared_args['dir'])         
+        os.chdir(shared_args_dict['dir'])         
         f = file(private_args['restore'], 'rb')
         sda = cPickle.load(f)
         f.close()        
@@ -92,7 +85,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
         print '... building the model'
         arch_list_str = private_args['arch'].split("-")
         arch_list = [int(item) for item in arch_list_str]
-        corruption_list = [shared_args['corruption'] for i in arch_list]
+        corruption_list = [shared_args_dict['corruption'] for i in arch_list]
         dA_losses = ['xent' for i in arch_list]
         dA_losses[0] = 'squared'
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
@@ -130,7 +123,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
         if private_args.has_key('save'):
             print >> output_file, 'Pickling the model...'
             current_dir = os.getcwd()    
-            os.chdir(shared_args['dir'])            
+            os.chdir(shared_args_dict['dir'])            
             f = file(private_args['save'], 'wb')
             cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
             f.close()
