@@ -79,9 +79,12 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=20):
     # otherwise construct a new SdA
     if options.restorefile is not None:
         print >> output_file, 'Unpickling the model from %s ...' % (options.restorefile)
+        current_dir = os.getcwd()    
+        os.chdir(options.dir)         
         f = file(options.restorefile, 'rb')
         sda = cPickle.load(f)
         f.close()        
+        os.chdir(current_dir)
     else:
         print '... building the model'
         arch_list_str = options.arch.split("-")
