@@ -1,0 +1,9 @@
+# No compiled python files
+*.pyc
+# No temporary files kicking around
+*~
+# No data files
+*.gz
+# No error or output files from scinet
+*.e*
+*.o*
