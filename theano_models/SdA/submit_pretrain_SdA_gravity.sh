@@ -13,6 +13,8 @@
 #sh load_theano_modules.sh
 
 # Run the job
+
+# To make substitutions from a higher up script: -a $FIRSTMODEL -b $SECONDMODEL -o $OFFSET
 cd $PBS_O_WORKDIR
 python test_multiproc_gpus.py -d "${SCRATCH}/gpu_tests/SdA_results" -c 0.10 -a 900-500-200-50 -b 1000-600-200-50 -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o 3
 
