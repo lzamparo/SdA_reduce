@@ -47,12 +47,13 @@ def f(shared_args,private_args):
                                               # (we shall return to this in a
                                               # following section of this tutorial)
     
-    # Compile
+    # Compile.  allow_input_downcast reassures the compiler that we are ok using
+    # 64 bit floating point numbers on the cpu, gut only 32 bit floats on the gpu.
     train = theano.function(
               inputs=[x,y],
               outputs=[prediction, xent],
-              updates=((w, w - 0.1 * gw), (b, b - 0.1 * gb)))
-    predict = theano.function(inputs=[x], outputs=prediction)
+              updates=((w, w - 0.1 * gw), (b, b - 0.1 * gb)), allow_input_downcast=True)
+    predict = theano.function(inputs=[x], outputs=prediction, allow_input_downcast=True)
     
     # Train
     for i in range(training_steps):
