@@ -1,6 +1,8 @@
-""" Test script for using two GPUs, one per sub-process,
-using the python multiprocessing module.  """
+""" SdA pretraining script that uses two GPUs, one per sub-process,
+via the Python multiprocessing module.  """
 
+
+# These imports will not trigger any theano GPU binding, so are safe to sit here.
 from multiprocessing import Process, Manager
 from optparse import OptionParser
 import os
@@ -31,7 +33,8 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     :type batch_size: int
     :param batch_size: train in mini-batches of this size """
     
-    # Import sandbox.cuda and specify the GPU to bind to this subprocess
+    # Import sandbox.cuda to bind the specified GPU to this subprocess
+    # then import the remaining theano and model modules.
     import theano.sandbox.cuda
     theano.sandbox.cuda.use(private_args['gpu'])
     
@@ -140,6 +143,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
 
 if __name__ == '__main__':
     
+    # Parse command line args
     parser = OptionParser()
     parser.add_option("-d", "--dir", dest="dir", help="output directory")   
     parser.add_option("-p","--firstrestorefile",dest = "pr_file", help = "Restore the first model from this pickle file", default=None)
@@ -151,9 +155,9 @@ if __name__ == '__main__':
     parser.add_option("-b", "--secondarch", dest="q_arch", default = "", help="dash separated list to specify the second architecture of the SdA.")
     (options, args) = parser.parse_args()    
     
+    # Construct a dict of shared arguments that should be read by both processes
     manager = Manager()
 
-    # Construct a dict of shared arguments that should be read by both processes
     args = manager.list()
     args.append({})
     shared_args = args[0]

@@ -91,8 +91,8 @@ if __name__ == '__main__':
     q_args['gpu'] = 'gpu1'
 
     # Run both sub-processes
-    p = Process(target=pretrain, args=(args,p_args,))
-    q = Process(target=pretrain, args=(args,q_args,))
+    p = Process(target=f, args=(args,p_args,))
+    q = Process(target=f, args=(args,q_args,))
     p.start()
     q.start()
     p.join()
