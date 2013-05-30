@@ -4,6 +4,7 @@ via the Python multiprocessing module.  Each GPU fits a logistic regression mode
 
 # These imports will not trigger any theano GPU binding
 from multiprocessing import Process, Manager
+import numpy as np
 import os
 
 def f(shared_args,private_args): 
@@ -20,7 +21,7 @@ def f(shared_args,private_args):
     import theano.tensor as T
     from theano.tensor.shared_randomstreams import RandomStreams
     
-    rng = numpy.random    
+    rng = np.random    
     
     # Pull the size of the matrices from 
     shared_args_dict = shared_args[0]
@@ -87,7 +88,6 @@ if __name__ == '__main__':
     q_args = {}
        
     p_args['gpu'] = 'gpu0'
-
     q_args['gpu'] = 'gpu1'
 
     # Run both sub-processes
