@@ -12,14 +12,14 @@ for i in {700..1000..100}; # first layer
       first="$i-$j-400-50"  
       second="$i-$j-300-50"
       ((offset++))
-      qsub submit_grid_pretrain_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset"
+      qsub submit_pretrain_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset"
       sleep 5
       
       # Submit the next job
       first="$i-$j-200-50"  
       second="$i-$j-100-50"
       ((offset++))
-      qsub submit_grid_pretrain_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset"
+      qsub submit_pretrain_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset"
       
       # Reset the offset parameter if the grid is too fine.
       if (( offset > 190 )); then 
