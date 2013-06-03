@@ -10,6 +10,7 @@ e.g Pre-training layer 0, epoch 49, cost  430.334141733
 Each layer transition is marked by the line: Pickling the model..."""
 
 import sys, re, os
+import numpy as np
 from collections import OrderedDict
 
 # Extract the model name from each filename.
@@ -81,10 +82,14 @@ for layer in results.keys():
         results[layer][model] = minval
 
 # At this point, find the top 5 scoring models in each of the dicts
+# Also, compute some order statistics to qualify this list: max, min
 print "...Finding top 5 scoring results in each layer"
 for layer in results.keys():
     d = results[layer]
     sorted_layer_results = sorted(d.items(), key=lambda t: t[1])
+    sl_max = max(results[layer].values())
+    sl_min = min(results[layer].values())
+    print "Max, min, mean for layer " + layer + ": " + str(sl_max) + " , " + str(sl_min) + " , " + str(np.mean(results[layer].values()))
     print "Top five archs for layer " + layer
     for i in range(0,5):
         model, score = sorted_layer_results[i]
