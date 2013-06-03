@@ -74,7 +74,8 @@ for f in model_files:
 
 print "...Done"
 print "...Finding top 5 scoring results in each layer"
-for layer, d in results:
+for layer in results.keys():
+    d = results[layer]
     sorted_layer_results = sorted(d.items(), key=lambda t: t[0])
     print "Top five archs for layer " + layer
     for i in range(0,5):
