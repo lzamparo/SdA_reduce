@@ -16,7 +16,7 @@ from collections import OrderedDict
 def extract_model_name(regex,filename):
     match = regex.match(filename)
     if match is not None:
-        return match.group()
+        return match.groups()[0]
 
 # Extract the layer and cost from a line
 def extract_cost(line):
@@ -84,7 +84,7 @@ for layer in results.keys():
 print "...Finding top 5 scoring results in each layer"
 for layer in results.keys():
     d = results[layer]
-    sorted_layer_results = sorted(d.items(), key=lambda t: t[0])
+    sorted_layer_results = sorted(d.items(), key=lambda t: t[1])
     print "Top five archs for layer " + layer
     for i in range(0,5):
         model, score = sorted_layer_results[i]
