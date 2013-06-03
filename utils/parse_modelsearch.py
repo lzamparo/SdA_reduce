@@ -1,23 +1,24 @@
-# Process all the model training output files in the given directory
-# And produce a ranking of top 10 models based on per-layer results.
+""" Process all the model training output files in the given directory
+and produce a ranking of top 10 models based on per-layer results.
 
-# Files names look like this: stacked_denoising_autoencoder_800-900-300-50.2013-05-31.08:57:06.721435
-#
-# The average training error for each layer of each model is reported:
-# e.g Pre-training layer 0, epoch 49, cost  430.334141733
-#
-# Each layer transition is marked by the line: Pickling the model...
+Files names look like this: stacked_denoising_autoencoder_800-900-300-50.2013-05-31.08:57:06.721435
+
+The average training error for each layer of each model is reported:
+
+e.g Pre-training layer 0, epoch 49, cost  430.334141733
+
+Each layer transition is marked by the line: Pickling the model..."""
 
 import sys, re, os
 from collections import OrderedDict
 
-# write a function to extract the model name from each filename.
+# Extract the model name from each filename.
 def extract_model_name(regex,filename):
     match = regex.match(filename)
     if match is not None:
         return match.group()
 
-# write a function to extract the layer and cost from a line
+# Extract the layer and cost from a line
 def extract_cost(line):
     first_split = line.split(",")
     layer_clause = first_split[0].split()
@@ -69,10 +70,17 @@ for f in model_files:
             results[layer][f_model] = [cost]       
     infile.close()
     
-# At this point, find the top 5 scoring models in each of the dicts
-# sorted(d.items(), key=lambda t: t[0])
-
 print "...Done"
+    
+
+print "...Finding the min for each layer and model combination"
+for layer in results.keys():
+    for model in results[layer].keys():
+        val_list = results[layer][model]
+        minval = min(val_list)
+        results[layer][model] = minval
+
+# At this point, find the top 5 scoring models in each of the dicts
 print "...Finding top 5 scoring results in each layer"
 for layer in results.keys():
     d = results[layer]
