@@ -56,6 +56,10 @@ class SdA(object):
         self.sigmoid_layers = []
         self.dA_layers = []
         self.params = []
+        
+        # Keep track of previous parameter updates so we can use momentum
+        self.updates = {}
+        
         self.n_outs = n_outs
         self.corruption_levels = corruption_levels
         self.n_layers = len(hidden_layers_sizes)
@@ -129,17 +133,28 @@ class SdA(object):
                           loss=dA_losses[i])
             self.dA_layers.append(dA_layer)
 
+        # keep track of parameter updates for pretraining
+        for param in self.params:
+            init = np.zeros(param.get_value(borrow=True).shape,
+                            dtype=theano.config.floatX)
+            update_name = param.name + '_update'
+            self.updates[param] = theano.shared(init, name=update_name)        
+            
+
         # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(
                          input=self.sigmoid_layers[-1].output,
                          n_in=hidden_layers_sizes[-1], n_out=n_outs)
 
         self.params.extend(self.logLayer.params)
+        
+                
+        
         # construct a function that implements one step of finetunining
-
         # compute the cost for second phase of training,
         # defined as the negative log likelihood
         self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
+        
         # compute the gradients with respect to the model parameters
         # symbolic variable that points to the number of errors made on the
         # minibatch given by self.x and self.y
@@ -159,15 +174,19 @@ class SdA(object):
         :type batch_size: int
         :param batch_size: size of a [mini]batch
 
-        :type learning_rate: float
-        :param learning_rate: learning rate used during training for any of
-                              the dA layers
         '''
 
-        # index to a [mini]batch
-        index = T.lscalar('index')  # index to a minibatch
-        corruption_level = T.scalar('corruption')  # % of corruption to use
-        learning_rate = T.scalar('lr')  # learning rate to use
+        # index to a minibatch
+        index = T.lscalar('index') 
+        # % of corruption to use
+        corruption_level = T.scalar('corruption')
+        # learning rate to use
+        learning_rate = T.scalar('lr')
+        # momentum rate to use
+        momentum = T.scalar('mom')
+        # weight decay to use
+        weight_decay = T.scalar('weight_decay')  
+        
         # number of batches
         n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
         # begining of a batch, given `index`
@@ -180,12 +199,31 @@ class SdA(object):
             # get the cost and the updates list
             cost, updates = dA.get_cost_updates(corruption_level,
                                                 learning_rate)
+            
+            # modify the updates to account for the momentum term and weight decay regularization
+            # As returned from dA.get_cost_updates, the list of tuples goes like
+            # param: parameter by name, update: param - learning_rate * gparam
+
+            #for param, grad, model_update in zip(self.model_params, grad_model_params, self.model_updates):
+            #delta = self.momentum * model_update - self.learnrate * grad
+            #updates[param] = param + delta
+            #updates[model_update] = delta            
+            mod_updates = []
+            for param, grad_update in updates:
+                last_update = self.updates[param]
+                delta = momentum * last_update - weight_decay * learning_rate * param - learning_rate * grad_update
+                mod_updates.append((param, param + delta))
+                mod_updates.append((last_update, delta))
+                
+            
             # compile the theano function
             fn = theano.function(inputs=[index,
                               theano.Param(corruption_level, default=0.2),
-                              theano.Param(learning_rate, default=0.1)],
+                              theano.Param(learning_rate, default=0.1),
+                              theano.Param(momentum, default=0.),
+                              theano.Param(weight_decay, default=0.)],
                                  outputs=cost,
-                                 updates=updates,
+                                 updates=mod_updates,
                                  givens={self.x: train_set_x[batch_begin:
                                                              batch_end]})
             # append `fn` to the list of functions
@@ -226,7 +264,7 @@ class SdA(object):
         index = T.lscalar('index')  # index to a [mini]batch
 
         # compute the gradients with respect to the model parameters
-        gparams = T.grad(self.finetune_cost, self.params)
+        gparams = T.grad(self.finetune_cost, self.params)       
 
         # compute list of fine-tuning updates
         updates = []
