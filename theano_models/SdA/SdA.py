@@ -1,3 +1,4 @@
+import pdb
 import numpy as np
 
 import theano
@@ -206,26 +207,34 @@ class SdA(object):
             cost, updates = dA.get_cost_updates(corruption_level,
                                                 learning_rate)
             
-            # modify the updates to account for the momentum term and weight decay regularization
+            # modify the updates to account for the momentum smoothing and weight decay regularization
             # As returned from dA.get_cost_updates, the list of tuples goes like
-            # param: parameter by name, update: param - learning_rate * gparam
-
-            #for param, grad, model_update in zip(self.model_params, grad_model_params, self.model_updates):
-            #delta = self.momentum * model_update - self.learnrate * grad
-            #updates[param] = param + delta
-            #updates[model_update] = delta
-                        
+            # param: (shared var) parameter , update: param - learning_rate * gparam
+            
+            #Can you check what the dtype of grad_update is when param == W?
+            #It may be possible that a float64 gradient is returned for a
+            #float32 parameter. If that is the case, you can cast it by using
+            #"grad_update.astype(config.floatX)" for instance (assuming floatX ==
+            #'float32').
+            
+            # Roll call!  everyone below print out your name and type
             mod_updates = []
+            pdb.set_trace()
             for param, grad_update in updates:
                 if param in self.updates:
                     last_update = self.updates[param]
+                    print "Name: " + last_update.name + " type: " + str(last_update.type)
+                    print "Name: " + param.name + " type: " + str(param.type)
+                    print "Grade update for " + param.name  + " has type: " + str(grad_update.type)
                     delta = momentum * last_update - weight_decay * learning_rate * param - learning_rate * grad_update
                     mod_updates.append((param, param + delta))
                     mod_updates.append((last_update, delta))
                 else:
+                    print "Name: " + param.name + " type: " + str(param.type)
+                    print "Grade update for " + param.name  + " has type: " + str(grad_update.type)                    
                     mod_updates.append((param, grad_update))
                 
-            
+            pdb.set_trace()
             # compile the theano function
             fn = theano.function(inputs=[index,
                               theano.Param(corruption_level, default=0.2),

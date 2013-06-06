@@ -43,7 +43,7 @@ class HiddenLayer(object):
         self.params = [self.W, self.b]
         
     def get_params(self):
-        """ Return the params of this MLP.  This is for pickling testing purposes """
+        """ Return the params of this hidden layer.  This is for pickling testing purposes """
         return self.params    
     
         

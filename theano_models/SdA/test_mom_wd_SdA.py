@@ -1,6 +1,9 @@
 import numpy
 import cPickle
 
+import theano.sandbox.cuda
+theano.sandbox.cuda.use('gpu')
+
 import theano
 import theano.tensor as T
 from mlp.logistic_sgd import LogisticRegression
