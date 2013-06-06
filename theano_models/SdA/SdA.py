@@ -23,8 +23,9 @@ class SdA(object):
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=10,
-                 corruption_levels=[0.1, 0.1], dA_losses=['xent','xent']):
-        """ This class is made to support a variable number of layers.
+                 log_top=False, corruption_levels=[0.1, 0.1], 
+                 dA_losses=['xent','xent']):
+        """ This class is made to support a variable number of layers
 
         :type numpy_rng: numpy.random.RandomState
         :param numpy_rng: numpy random number generator used to draw initial
@@ -42,14 +43,18 @@ class SdA(object):
                                at least one value
 
         :type n_outs: int
-        :param n_outs: dimension of the output of the network
+        :param n_outs: dimension of the output of the network 
+        
+        :type log_top: boolean
+        :param log_top: True if a logistic regression layer should be stacked
+        on top of all the other layers
 
         :type corruption_levels: list of float
         :param corruption_levels: amount of corruption to use for each
                                   layer
                                   
         :type dA_loss: list of strings
-        :param dA_loss: loss functions to use for each of the dA layers.  
+        :param dA_loss: loss functions to use for each of the dA layers  
                                                             
         """
 
@@ -141,24 +146,25 @@ class SdA(object):
             self.updates[param] = theano.shared(init, name=update_name)        
             
 
-        # We now need to add a logistic layer on top of the MLP
-        self.logLayer = LogisticRegression(
-                         input=self.sigmoid_layers[-1].output,
-                         n_in=hidden_layers_sizes[-1], n_out=n_outs)
-
-        self.params.extend(self.logLayer.params)
+        # Add a logistic layer on top of the MLP ?
+        if log_top:
+            self.logLayer = LogisticRegression(
+                             input=self.sigmoid_layers[-1].output,
+                             n_in=hidden_layers_sizes[-1], n_out=n_outs)
+    
+            self.params.extend(self.logLayer.params)
         
                 
         
-        # construct a function that implements one step of finetunining
-        # compute the cost for second phase of training,
-        # defined as the negative log likelihood
-        self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
-        
-        # compute the gradients with respect to the model parameters
-        # symbolic variable that points to the number of errors made on the
-        # minibatch given by self.x and self.y
-        self.errors = self.logLayer.errors(self.y)
+            # construct a function that implements one step of finetunining
+            # compute the cost for second phase of training,
+            # defined as the negative log likelihood
+            self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
+            
+            # compute the gradients with respect to the model parameters
+            # symbolic variable that points to the number of errors made on the
+            # minibatch given by self.x and self.y
+            self.errors = self.logLayer.errors(self.y)
 
     def pretraining_functions(self, train_set_x, batch_size):
         ''' Generates a list of functions, each of them implementing one
@@ -207,7 +213,15 @@ class SdA(object):
             #for param, grad, model_update in zip(self.model_params, grad_model_params, self.model_updates):
             #delta = self.momentum * model_update - self.learnrate * grad
             #updates[param] = param + delta
-            #updates[model_update] = delta            
+            #updates[model_update] = delta
+            for key in self.updates.keys():
+                print "self.update key: " + key
+                
+            for key,val in updates:
+                print "updates key: " + key
+                
+            assert(len(self.updates.keys()) == len(updates))
+            
             mod_updates = []
             for param, grad_update in updates:
                 last_update = self.updates[param]
