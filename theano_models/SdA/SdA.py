@@ -350,6 +350,15 @@ class SdA(object):
                           bvis=dA_layers_list[i].b_prime,
                           loss=dA_layers_list[i].loss)
             self.dA_layers.append(dA_layer)
+            
+        # Reconstruct the dictionary of shared vars for parameter updates 
+        # so we can use momentum when training.
+        self.updates = {}
+        for param in self.params:
+            init = np.zeros(param.get_value(borrow=True).shape,
+                            dtype=theano.config.floatX)
+            update_name = param.name + '_update'
+            self.updates[param] = theano.shared(init, name=update_name)        
 
             
     def reconstruct_loglayer(self, n_outs = 10):
