@@ -190,7 +190,7 @@ class SdA(object):
         # learning rate to use
         learning_rate = T.scalar('lr')
         # momentum rate to use
-        momentum = T.scalar('mom')
+        momentum = T.scalar('momentum')
         # weight decay to use
         weight_decay = T.scalar('weight_decay')  
         
