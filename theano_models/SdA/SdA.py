@@ -214,20 +214,16 @@ class SdA(object):
             #delta = self.momentum * model_update - self.learnrate * grad
             #updates[param] = param + delta
             #updates[model_update] = delta
-            for key in self.updates.keys():
-                print "self.update key: " + key
-                
-            for key,val in updates:
-                print "updates key: " + key
-                
-            assert(len(self.updates.keys()) == len(updates))
-            
+                        
             mod_updates = []
             for param, grad_update in updates:
-                last_update = self.updates[param]
-                delta = momentum * last_update - weight_decay * learning_rate * param - learning_rate * grad_update
-                mod_updates.append((param, param + delta))
-                mod_updates.append((last_update, delta))
+                if param in self.updates:
+                    last_update = self.updates[param]
+                    delta = momentum * last_update - weight_decay * learning_rate * param - learning_rate * grad_update
+                    mod_updates.append((param, param + delta))
+                    mod_updates.append((last_update, delta))
+                else:
+                    mod_updates.append((param, grad_update))
                 
             
             # compile the theano function
