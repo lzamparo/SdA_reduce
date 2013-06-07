@@ -1,7 +1,6 @@
 """ SdA pretraining script that uses two GPUs, one per sub-process,
 via the Python multiprocessing module.  """
 
-
 # These imports will not trigger any theano GPU binding, so are safe to sit here.
 from multiprocessing import Process, Manager
 from optparse import OptionParser
@@ -51,7 +50,7 @@ def pretrain(shared_args, private_args, num_epochs=50, batch_size=20):
     from mlp.logistic_sgd import LogisticRegression
     from mlp.hidden_layer import HiddenLayer
     from dA.AutoEncoder import AutoEncoder
-    from SdA import SdA    
+    from SdA.SdA import SdA    
     
     shared_args_dict = shared_args[0]
     
@@ -82,12 +81,13 @@ def pretrain(shared_args, private_args, num_epochs=50, batch_size=20):
     # Set the particular argument (momentum|corruption|weight_decay|learning_rate)
     # based on the value in private_args
     shared_args_dict[private_args['param']] = private_args['val']
-    
-    corruption_list = [float(shared_args_dict['corruption']) for i in shared_args_dict['arch']]
-    dA_losses = ['xent' for i in shared_args_dict['arch']]
+    arch_list = shared_args_dict['arch']
+    corruption_list = [float(shared_args_dict['corruption']) for i in arch_list]
+    arch_list = shared_args_dict['arch']
+    dA_losses = ['xent' for i in arch_list]
     dA_losses[0] = 'squared'
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
-          hidden_layers_sizes=shared_args_dict['arch'],
+          hidden_layers_sizes=arch_list,
           corruption_levels = corruption_list,
           dA_losses=dA_losses,              
           n_outs=3)    
