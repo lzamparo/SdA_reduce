@@ -9,8 +9,7 @@ for i in 0 0.3 0.5; # momentum
   for j in 0.7 0.9; # momentum again
     do 
       ((offset++))
-      #qsub submit_hypersearch_momentum.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
-      echo submit_hypersearch_momentum.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
+      qsub submit_hypersearch_momentum.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
       sleep 5
       
       # Reset the offset parameter if the grid is too fine.
@@ -26,8 +25,7 @@ for i in 0.00001 0.0001; # weight-decay
   for j in 0.00005 0.0005; # weight-decay again
     do 
       ((offset++))
-      #qsub submit_hypersearch_wd.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
-      echo submit_hypersearch_wd.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
+      qsub submit_hypersearch_wd.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
       sleep 5
       
       # Reset the offset parameter if the grid is too fine.
@@ -43,8 +41,7 @@ for i in 0 0.1; # corruption
   for j in 0.2 0.3; # corruption again
     do 
       ((offset++))
-      #qsub submit_hypersearch_corr.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
-      echo submit_hypersearch_corr.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
+      qsub submit_hypersearch_corr.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
       sleep 5
       
       # Reset the offset parameter if the grid is too fine.
@@ -60,8 +57,7 @@ for i in 0.001 0.005; # learning rate
   for j in 0.01 0.05; # learning rate again
     do 
       ((offset++))
-      #qsub submit_hypersearch_lr.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
-      echo submit_hypersearch_lr.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
+      qsub submit_hypersearch_lr.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
       sleep 5
       
       # Reset the offset parameter if the grid is too fine.

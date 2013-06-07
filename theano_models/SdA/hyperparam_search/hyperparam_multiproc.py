@@ -63,7 +63,7 @@ def pretrain(shared_args, private_args, num_epochs=50, batch_size=20):
     hour = str(today.time())
     
     #output_filename = "stacked_denoising_autoencoder_" + private_args['arch'] + "." + day + "." + hour
-    output_filename = "hyperparam_search." + private_args['param'] + "." + str(private_args['val']) + ".out"
+    output_filename = "hyperparam_search-" + private_args['param'] + "-" + str(private_args['val']) + "-out"
     output_file = open(output_filename, 'w')
     os.chdir(current_dir)
     print >> output_file, "Run on " + str(datetime.now())  
