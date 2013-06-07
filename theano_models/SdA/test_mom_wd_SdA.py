@@ -197,9 +197,10 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-d", "--dir", dest="dir", help="test output directory")
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
-    parser.add_option("-c", "--corruption", dest="corruption", type='float', help="use this amount of corruption for the dAs")
-    parser.add_option("-m", "--momentum", dest="momentum", type='float', help="use this amount of momentum")
-    parser.add_option("-w", "--weightdecay", dest="weight_decay", type='float', help="use this amount of weight decay")
+    parser.add_option("-c", "--corruption", dest="corruption", default=0.1, type='float', help="use this amount of corruption for the dAs")
+    parser.add_option("-m", "--momentum", dest="momentum", type='float', default=0., help="use this amount of momentum")
+    parser.add_option("-w", "--weightdecay", dest="weight_decay", type='float', default=0., help="use this amount of weight decay")
+    parser.add_option("-l", "--learningrate", dest="learning_rate", type='float', default=0.01, help="use this learning rate")
     
     (options, args) = parser.parse_args()        
     
