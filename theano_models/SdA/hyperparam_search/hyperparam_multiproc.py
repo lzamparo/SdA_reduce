@@ -65,6 +65,17 @@ def pretrain(shared_args, private_args, num_epochs=50, batch_size=20):
     
     # numpy random generator
     numpy_rng = numpy.random.RandomState(89677)    
+    
+    # Get the training data sample from the input file
+    print '... fetching the data'
+    data_set_file = openFile(str(options.inputfile), mode = 'r')
+    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 10)
+    train_set_x = load_data_unlabeled(datafiles)
+    data_set_file.close()
+
+    # compute number of minibatches for training, validation and testing
+    n_train_batches, n_features = train_set_x.get_value(borrow=True).shape
+    n_train_batches /= batch_size    
      
     print '... building the model'
     
@@ -81,18 +92,6 @@ def pretrain(shared_args, private_args, num_epochs=50, batch_size=20):
           dA_losses=dA_losses,              
           n_outs=3)    
     
-    # Get the training data sample from the input file
-    data_set_file = openFile(str(options.inputfile), mode = 'r')
-    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 10)
-    train_set_x = load_data_unlabeled(datafiles)
-    data_set_file.close()
-
-    # compute number of minibatches for training, validation and testing
-    n_train_batches, n_features = train_set_x.get_value(borrow=True).shape
-    n_train_batches /= batch_size
-    
-    print '... building the model'
-
 
     #########################
     # PRETRAINING THE MODEL #
