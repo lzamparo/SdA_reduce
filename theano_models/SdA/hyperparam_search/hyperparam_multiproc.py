@@ -74,7 +74,7 @@ def pretrain(shared_args, private_args, num_epochs=50, batch_size=20):
     shared_args_dict[private_args['param']] = private_args['val']
     
     corruption_list = [float(shared_args_dict['corruption']) for i in shared_args_dict['arch']]
-    dA_losses = ['xent' for i in arch_list]
+    dA_losses = ['xent' for i in shared_args_dict['arch']]
     dA_losses[0] = 'squared'
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
           hidden_layers_sizes=shared_args_dict['arch'],
