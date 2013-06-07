@@ -58,15 +58,14 @@ def pretrain(shared_args, private_args, num_epochs=50, batch_size=20):
     current_dir = os.getcwd()    
     
     os.chdir(shared_args_dict['dir'])
-    today = datetime.today()
-    day = str(today.date())
-    hour = str(today.time())
-    
-    #output_filename = "stacked_denoising_autoencoder_" + private_args['arch'] + "." + day + "." + hour
     output_filename = "hyperparam_search-" + private_args['param'] + "-" + str(private_args['val']) + "-out"
     output_file = open(output_filename, 'w')
     os.chdir(current_dir)
-    print >> output_file, "Run on " + str(datetime.now())  
+    print >> output_file, "Run on " + str(datetime.now())     
+    
+    # numpy random generator
+    numpy_rng = numpy.random.RandomState(89677)    
+     
     print '... building the model'
     
     # Set the particular argument (momentum|corruption|weight_decay|learning_rate)
@@ -92,8 +91,6 @@ def pretrain(shared_args, private_args, num_epochs=50, batch_size=20):
     n_train_batches, n_features = train_set_x.get_value(borrow=True).shape
     n_train_batches /= batch_size
     
-    # numpy random generator
-    numpy_rng = numpy.random.RandomState(89677)
     print '... building the model'
 
 
