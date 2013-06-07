@@ -73,9 +73,9 @@ def test_mom_wd(filename, num_epochs=10, momentum=0., weight_decay=0., pretrain_
     print '... building the model'
 
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
-              hidden_layers_sizes=[700, 300, 50],
-              corruption_levels = [0.1,0.1,0.1],
-              n_outs=3, dA_losses=['squared','xent','xent'])
+              hidden_layers_sizes=[700, 700, 300, 50],
+              corruption_levels = [0.2,0.2,0.2,0.2],
+              n_outs=3, dA_losses=['squared','xent','xent','xent'])
 
     #########################
     # PRETRAINING THE MODEL #
@@ -87,7 +87,7 @@ def test_mom_wd(filename, num_epochs=10, momentum=0., weight_decay=0., pretrain_
     print '... pre-training the model'
     start_time = time.clock()
     ## Pre-train layer-wise
-    corruption_levels = [float(options.corruption), float(options.corruption), float(options.corruption)]
+    corruption_levels = [float(options.corruption), float(options.corruption), float(options.corruption), float(options.corruption)]
     for i in xrange(sda.n_layers):
         
         for epoch in xrange(num_epochs):

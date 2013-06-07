@@ -1,4 +1,3 @@
-import pdb
 import numpy as np
 
 import theano
@@ -217,24 +216,16 @@ class SdA(object):
             #"grad_update.astype(config.floatX)" for instance (assuming floatX ==
             #'float32').
             
-            # Roll call!  everyone below print out your name and type
             mod_updates = []
-            pdb.set_trace()
             for param, grad_update in updates:
                 if param in self.updates:
                     last_update = self.updates[param]
-                    print "Name: " + last_update.name + " type: " + str(last_update.type)
-                    print "Name: " + param.name + " type: " + str(param.type)
-                    print "Grade update for " + param.name  + " has type: " + str(grad_update.type)
                     delta = momentum * last_update - weight_decay * learning_rate * param - learning_rate * grad_update
                     mod_updates.append((param, param + delta))
                     mod_updates.append((last_update, delta))
-                else:
-                    print "Name: " + param.name + " type: " + str(param.type)
-                    print "Grade update for " + param.name  + " has type: " + str(grad_update.type)                    
+                else:               
                     mod_updates.append((param, grad_update))
                 
-            pdb.set_trace()
             # compile the theano function
             fn = theano.function(inputs=[index,
                               theano.Param(corruption_level, default=0.2),
