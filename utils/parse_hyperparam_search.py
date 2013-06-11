@@ -118,9 +118,8 @@ for layer in results.keys():
         sorted_layer_results = sorted(d.items(), key=lambda t: t[1])
         sl_max = max(results[layer][hparam].values())
         sl_min = min(results[layer][hparam].values())
-        print "Max, min, mean for layer " + layer + "and hyper-param " + hparam + ": " + str(sl_max) + " , " + str(sl_min) + " , " + str(np.mean(results[layer][hparam].values()))
+        print "Max, min, mean for layer " + layer + " and hyper-param " + hparam + ": " + str(sl_max) + " , " + str(sl_min) + " , " + str(np.mean(results[layer][hparam].values()))
         print "Top five archs for layer " + layer
-        for i in sorted_layer_results:
-            value, score = sorted_layer_results[i]
-            print str(i) + ": " + value + " , " + str(score)
+        for value, score in sorted_layer_results:
+            print value + ": " +  str(score)
         
