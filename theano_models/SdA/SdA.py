@@ -5,7 +5,7 @@ import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 from theano import shared
 
-from mlp.logistic_sgd import LogisticRegression, load_data
+from mlp.logistic_sgd import LogisticRegression
 from mlp.hidden_layer import HiddenLayer
 from dA.AutoEncoder import AutoEncoder
 
@@ -43,7 +43,7 @@ class SdA(object):
                                at least one value
 
         :type n_outs: int
-        :param n_outs: dimension of the output of the network 
+        :param n_outs: dimension of the output of the network.  
         
         :type log_top: boolean
         :param log_top: True if a logistic regression layer should be stacked
@@ -79,8 +79,14 @@ class SdA(object):
         
         # allocate symbolic variables for the data
         self.x = T.matrix('x')  # the training input
-        self.y = T.ivector('y')  # the labels (if present) are presented as 1D vector of
-                                 # [int] labels
+        
+        if log_top:
+            self.y = T.ivector('y')  # the labels (if present) are presented as 1D vector of
+                                     # [int] labels
+        else:
+            self.y = T.scalar('y') # TODO: check to see if this should be the reconstructed 
+                                   # matrix, or the reconstruction error.
+
 
         # The SdA is an MLP, for which all weights of intermediate layers
         # are shared with different denoising autoencoders.
@@ -92,8 +98,11 @@ class SdA(object):
         # During pre-training we will train these autoencoders (which will
         # lead to chainging the weights of the MLP as well).
         #
-        # During fine-tunining we will finish training the SdA by doing
-        # stochastic gradient descent on the MLP
+        # During fine-tunining we will finish training the SdA either by doing
+        # SGD on the MLP (if a logistic regression layer is sitting on top),
+        # or by doing SGD on larger batches of data to minimize reconstruction 
+        # error, as was done in [Salakhutdinov & Hinton, Science 2006].
+        
 
         for i in xrange(self.n_layers):
             
@@ -119,10 +128,10 @@ class SdA(object):
                                         activation=T.nnet.sigmoid)
             # add the layer to our list of layers
             self.sigmoid_layers.append(sigmoid_layer)
-            # its arguably a philosophical question...
-            # but we are going to only declare that the parameters of the
-            # sigmoid_layers are parameters of the StackedDAA
-            # the visible biases in the dA are parameters of those
+            
+            # We are going to only declare that the parameters of the
+            # sigmoid_layers are parameters of the SdA.
+            # The visible biases in the dA are parameters of those
             # dA, but not the SdA
             self.params.extend(sigmoid_layer.params)
 
@@ -138,7 +147,7 @@ class SdA(object):
                           loss=dA_losses[i])
             self.dA_layers.append(dA_layer)
 
-        # keep track of parameter updates for pretraining
+        # Keep track of parameter updates for pretraining
         for param in self.params:
             init = np.zeros(param.get_value(borrow=True).shape,
                             dtype=theano.config.floatX)
@@ -156,7 +165,6 @@ class SdA(object):
         
                 
         
-            # construct a function that implements one step of finetunining
             # compute the cost for second phase of training,
             # defined as the negative log likelihood
             self.finetune_cost = self.logLayer.negative_log_likelihood(self.y)
@@ -165,6 +173,39 @@ class SdA(object):
             # symbolic variable that points to the number of errors made on the
             # minibatch given by self.x and self.y
             self.errors = self.logLayer.errors(self.y)
+        
+        # If not, set-up finetuning to compute reconstruction error
+        else:
+            self.finetune_cost = reconstruct_input(self.x)
+            
+            self.errors = reconstruction_errors(self.x)
+            
+            
+    def reconstruct_input(self, X):
+        """ Take a matrix of training examples where X[i,:] is one 
+        data vector, return a matrix \hat{X} where \hat{X}[i,:] is the  
+        reconstructed data vector output of the 'unrolled' SdA 
+        
+        :type X: theano.tensor.TensorType
+        :param X: Shared variable that contains a batch of datapoints 
+                  to be reconstructed
+        """
+        Z = T.matrix
+        return 
+    
+    def calc_reconstruction_error(self, X):
+        """ Calculate the reconstruction error. Take a matrix of 
+        training examples where X[i,:] is one data vector, return 
+        the squared error between X, Z where Z is the reconstructed data. 
+        
+        :type X: theano.tensor.TensorType
+        :param X: Shared variable that contains a batch of datapoints 
+                  to be reconstructed
+        """
+        Z = self.reconstruct_input(X)
+        L = T.sum((X - Z) **2, axis = 1)
+        return T.mean(L)
+            
 
     def pretraining_functions(self, train_set_x, batch_size):
         ''' Generates a list of functions, each of them implementing one
