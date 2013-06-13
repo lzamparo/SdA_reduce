@@ -183,4 +183,4 @@ if __name__ == '__main__':
     
         
     (options, args) = parser.parse_args()    
-    finetune_SdA()
+    finetune_SdA(model_file=options.model)
