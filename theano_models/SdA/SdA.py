@@ -190,11 +190,11 @@ class SdA(object):
                   to be pushed through the SdA (i.e reconstructed)
         """
         X_prime = X
-        for i in xrange(self.n_layers):
-            X_prime = self.dA_layers[i].get_hidden_values(X_prime)
+        for dA in self.dA_layers:
+            X_prime = dA.get_hidden_values(X_prime)
         
-        for i in xrange(self.n_layers):
-            X_prime = self.dA_layers[n - i - 1].get_reconstructed_input(X_prime)
+        for dA in self.dA_layers[::-1]:
+            X_prime = dA.get_reconstructed_input(X_prime)
         return X_prime
          
     
