@@ -176,24 +176,29 @@ class SdA(object):
         
         # If not, set-up finetuning to compute reconstruction error
         else:
-            self.finetune_cost = reconstruct_input(self.x)
+            self.finetune_cost = self.reconstruction_error(self.x)
             
-            self.errors = reconstruction_errors(self.x)
+            self.errors = self.reconstruction_error(self.x)
             
             
     def reconstruct_input(self, X):
-        """ Take a matrix of training examples where X[i,:] is one 
-        data vector, return a matrix \hat{X} where \hat{X}[i,:] is the  
-        reconstructed data vector output of the 'unrolled' SdA 
+        """ Given data X, provide the symbolic computation of  
+        \hat{X} where \hat{X} is the reconstructed data vector output of the 'unrolled' SdA 
         
         :type X: theano.tensor.TensorType
-        :param X: Shared variable that contains a batch of datapoints 
-                  to be reconstructed
+        :param X: Shared variable that contains data 
+                  to be pushed through the SdA (i.e reconstructed)
         """
-        Z = T.matrix
-        return 
+        X_prime = X
+        for i in xrange(n):
+            X_prime = self.dA_layers[i].get_hidden_values(X_prime)
+        
+        for i in xrange(n):
+            X_prime = self.dA_layers[n - i - 1].get_reconstructed_input(X_prime)
+        return X_prime
+         
     
-    def calc_reconstruction_error(self, X):
+    def reconstruction_error(self, X):
         """ Calculate the reconstruction error. Take a matrix of 
         training examples where X[i,:] is one data vector, return 
         the squared error between X, Z where Z is the reconstructed data. 
@@ -248,14 +253,6 @@ class SdA(object):
                                                 learning_rate)
             
             # modify the updates to account for the momentum smoothing and weight decay regularization
-            # As returned from dA.get_cost_updates, the list of tuples goes like
-            # param: (shared var) parameter , update: param - learning_rate * gparam
-            
-            #Can you check what the dtype of grad_update is when param == W?
-            #It may be possible that a float64 gradient is returned for a
-            #float32 parameter. If that is the case, you can cast it by using
-            #"grad_update.astype(config.floatX)" for instance (assuming floatX ==
-            #'float32').
             
             mod_updates = []
             for param, grad_update in updates:
@@ -282,18 +279,17 @@ class SdA(object):
 
         return pretrain_fns
 
-    def build_finetune_functions(self, datasets, batch_size, learning_rate):
-        '''Generates a function `train` that implements one step of
-        finetuning, a function `validate` that computes the error on
-        a batch from the validation set, and a function `test` that
-        computes the error on a batch from the testing set
 
-        :type datasets: list of pairs of theano.tensor.TensorType
-        :param datasets: It is a list that contain all the datasets;
-                         the has to contain three pairs, `train`,
-                         `valid`, `test` in this order, where each pair
-                         is formed of two Theano variables, one for the
-                         datapoints, the other for the labels
+    def build_finetune_functions_reconstruction(self, datasets, batch_size, learning_rate):
+        ''' 
+        Generates a function `train` that implements one step of
+        finetuning, a function `validate` that computes the reconstruction 
+        error on a batch from the validation set
+
+        :type datasets: tuple of theano.tensor.TensorType
+        :param datasets: A tuple of two datasets;
+                         `train`, `valid` in this order, each 
+                         one is a T.dmatrix of datapoints
 
         :type batch_size: int
         :param batch_size: size of a minibatch
@@ -301,19 +297,14 @@ class SdA(object):
         :type learning_rate: float
         :param learning_rate: learning rate used during finetune stage
         '''
-
-        (train_set_x, train_set_y) = datasets[0]
-        (valid_set_x, valid_set_y) = datasets[1]
-        (test_set_x, test_set_y) = datasets[2]
-
+        (train_set_x, valid_set_x) = datasets
+        
         # compute number of minibatches for training, validation and testing
         n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
         n_valid_batches /= batch_size
-        n_test_batches = test_set_x.get_value(borrow=True).shape[0]
-        n_test_batches /= batch_size
-
-        index = T.lscalar('index')  # index to a [mini]batch
-
+        
+        index = T.lscalar('index')  # index to a [mini]batch     
+        
         # compute the gradients with respect to the model parameters
         gparams = T.grad(self.finetune_cost, self.params)       
 
@@ -321,40 +312,26 @@ class SdA(object):
         updates = []
         for param, gparam in zip(self.params, gparams):
             updates.append((param, param - gparam * learning_rate))
+                    
 
         train_fn = theano.function(inputs=[index],
               outputs=self.finetune_cost,
               updates=updates,
               givens={
                 self.x: train_set_x[index * batch_size:
-                                    (index + 1) * batch_size],
-                self.y: train_set_y[index * batch_size:
                                     (index + 1) * batch_size]})
-
-        test_score_i = theano.function([index], self.errors,
-                 givens={
-                   self.x: test_set_x[index * batch_size:
-                                      (index + 1) * batch_size],
-                   self.y: test_set_y[index * batch_size:
-                                      (index + 1) * batch_size]})
 
         valid_score_i = theano.function([index], self.errors,
               givens={
                  self.x: valid_set_x[index * batch_size:
-                                     (index + 1) * batch_size],
-                 self.y: valid_set_y[index * batch_size:
                                      (index + 1) * batch_size]})
 
         # Create a function that scans the entire validation set
         def valid_score():
             return [valid_score_i(i) for i in xrange(n_valid_batches)]
 
-        # Create a function that scans the entire test set
-        def test_score():
-            return [test_score_i(i) for i in xrange(n_test_batches)]
-
-        return train_fn, valid_score, test_score
-
+        return train_fn, valid_score        
+    
     
     def __getstate__(self):
         """ Pickle this SdA by returning the number of layers, list of sigmoid layers and list of dA layers. """
@@ -431,4 +408,76 @@ class SdA(object):
         self.errors = self.logLayer.errors(self.y)        
 
         
-            
+    def build_finetune_functions(self, datasets, batch_size, learning_rate):
+        '''Generates a function `train` that implements one step of
+        finetuning, a function `validate` that computes the error on
+        a batch from the validation set, and a function `test` that
+        computes the error on a batch from the testing set
+
+        :type datasets: list of pairs of theano.tensor.TensorType
+        :param datasets: It is a list that contain all the datasets;
+                         the has to contain three pairs, `train`,
+                         `valid`, `test` in this order, where each pair
+                         is formed of two Theano variables, one for the
+                         datapoints, the other for the labels
+
+        :type batch_size: int
+        :param batch_size: size of a minibatch
+
+        :type learning_rate: float
+        :param learning_rate: learning rate used during finetune stage
+        '''
+
+        (train_set_x, train_set_y) = datasets[0]
+        (valid_set_x, valid_set_y) = datasets[1]
+        (test_set_x, test_set_y) = datasets[2]
+
+        # compute number of minibatches for training, validation and testing
+        n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
+        n_valid_batches /= batch_size
+        n_test_batches = test_set_x.get_value(borrow=True).shape[0]
+        n_test_batches /= batch_size
+
+        index = T.lscalar('index')  # index to a [mini]batch
+
+        # compute the gradients with respect to the model parameters
+        gparams = T.grad(self.finetune_cost, self.params)       
+
+        # compute list of fine-tuning updates
+        updates = []
+        for param, gparam in zip(self.params, gparams):
+            updates.append((param, param - gparam * learning_rate))
+
+        train_fn = theano.function(inputs=[index],
+              outputs=self.finetune_cost,
+              updates=updates,
+              givens={
+                self.x: train_set_x[index * batch_size:
+                                    (index + 1) * batch_size],
+                self.y: train_set_y[index * batch_size:
+                                    (index + 1) * batch_size]})
+
+        test_score_i = theano.function([index], self.errors,
+                 givens={
+                   self.x: test_set_x[index * batch_size:
+                                      (index + 1) * batch_size],
+                   self.y: test_set_y[index * batch_size:
+                                      (index + 1) * batch_size]})
+
+        valid_score_i = theano.function([index], self.errors,
+              givens={
+                 self.x: valid_set_x[index * batch_size:
+                                     (index + 1) * batch_size],
+                 self.y: valid_set_y[index * batch_size:
+                                     (index + 1) * batch_size]})
+
+        # Create a function that scans the entire validation set
+        def valid_score():
+            return [valid_score_i(i) for i in xrange(n_valid_batches)]
+
+        # Create a function that scans the entire test set
+        def test_score():
+            return [test_score_i(i) for i in xrange(n_test_batches)]
+
+        return train_fn, valid_score, test_score                
+                
