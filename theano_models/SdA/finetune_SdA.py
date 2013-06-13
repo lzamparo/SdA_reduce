@@ -65,20 +65,9 @@ def finetune_SdA(model_file, finetune_lr=0.01, momentum=0.3, weight_decay = 0.00
     :type batch_size: int
     :param batch_size: size of the mini-batches 
 
-    """    
-
-    current_dir = os.getcwd()    
-
-    os.chdir(options.dir)
-    today = datetime.today()
-    day = str(today.date())
-    hour = str(today.time())
-    output_filename = "finetuning_sda." + day + "." + hour
-    output_file = open(output_filename,'w')
+    """       
     
-    print >> output_file, "Run on " + str(datetime.now())    
-    
-    os.chdir(current_dir)   
+    # TODO: error checking here using 'with' ?
 
     # Get the training, validation data samples from the input file
     data_set_file = openFile(str(options.inputfile), mode = 'r')
@@ -96,9 +85,26 @@ def finetune_SdA(model_file, finetune_lr=0.01, momentum=0.3, weight_decay = 0.00
     numpy_rng = numpy.random.RandomState(89677)
     print '... loading the model'
         
+    # TODO: error checking here using 'with'?    
     f = file(options.model, 'rb')
     sda = cPickle.load(f)
-    f.close()               
+    f.close()   
+    
+    
+    # set up text output file
+    current_dir = os.getcwd()    
+    
+    os.chdir(options.dir)
+    today = datetime.today()
+    day = str(today.date())
+    hour = str(today.time())
+    output_filename = "finetuning_sda." + day + "." + hour
+    output_file = open(output_filename,'w')
+    
+    print >> output_file, "Run on " + str(datetime.now())    
+    
+    os.chdir(current_dir)    
+    
     
     ########################
     # FINETUNING THE MODEL #
