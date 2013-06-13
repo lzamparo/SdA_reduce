@@ -39,7 +39,7 @@ import os
 
 
 
-def finetune_SdA(model_file, finetune_lr=0.01, momentum=0.3, weight_decay = 0.0001, finetuning_epochs=10000,
+def finetune_SdA(model_file, finetune_lr=0.01, momentum=0.3, weight_decay = 0.0001, finetuning_epochs=10,
              batch_size=100):
     """
     Finetune and validate a pre-trained SdA.
