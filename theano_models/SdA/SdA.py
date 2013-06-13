@@ -386,7 +386,13 @@ class SdA(object):
             init = np.zeros(param.get_value(borrow=True).shape,
                             dtype=theano.config.floatX)
             update_name = param.name + '_update'
-            self.updates[param] = theano.shared(init, name=update_name)        
+            self.updates[param] = theano.shared(init, name=update_name)
+            
+        # For now, reconstruct finetuning cost as if there is no log-layer.  
+        # TODO: when constructing SdAs, those with no intended log-layer should have 
+        # negative n_outs
+        self.finetune_cost = self.reconstruction_error(self.x)
+        self.errors = self.reconstruction_error(self.x)        
 
             
     def reconstruct_loglayer(self, n_outs = 10):
