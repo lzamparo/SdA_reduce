@@ -182,7 +182,6 @@ if __name__ == '__main__':
     parser.add_option("-d", "--dir", dest="dir", help="write model output (pkl and txt) to this directory.")
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-o", "--offset", dest="offset", type='int', help="use this offset when drawing data.")
-    parser.add_option("-c", "--corruption", dest="corruption", type='float', help="use this level of corruption for the denoising AE.")
     
         
     (options, args) = parser.parse_args()    
