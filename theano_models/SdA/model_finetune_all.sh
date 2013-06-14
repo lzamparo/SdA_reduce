@@ -15,8 +15,8 @@ do
     ((offset+=5))
     sleep 5
     
-    # Reset the offset parameter if the grid is too fine.
-    if (( offset > 190 )); then 
+    # Each pair of jobs needs 30 data chunks, and there are 211 in total.  Reset the offset parameter if necessary.
+    if (( offset > 181 )); then 
        offset=0
     fi    
 done
