@@ -11,7 +11,7 @@ do
     let prev=$i-1
     first=${arr[$i]}
     second=${arr[$prev]}
-    echo submit_finetune_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset"
+    qsub submit_finetune_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset"
     ((offset+=5))
     sleep 5
     

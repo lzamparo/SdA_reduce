@@ -14,9 +14,9 @@
 
 # Run the job
 
-# To make substitutions from a higher up script: -a $FIRSTMODEL -b $SECONDMODEL -o $OFFSET
+# To make substitutions from a higher up script: -p $FIRSTMODEL -q $SECONDMODEL -o $OFFSET
 cd $PBS_O_WORKDIR
-python finetune_SdA_multiproc.py -d "${SCRATCH}/gpu_models/SdA/finetune_output" -a $FIRSTMODEL -b $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET
+python finetune_SdA_multiproc.py -d "${SCRATCH}/gpu_models/SdA/finetune_output" -p $FIRSTMODEL -q $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET
 
 
 
