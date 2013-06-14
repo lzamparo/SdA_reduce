@@ -171,7 +171,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight
 def extract_arch(filename, model_regex):
     ''' Return the model architecture of this filename
     Modle filenames look like SdA_1000_500_100_50.pkl'''
-    match = regex.match(filename)
+    match = model_regex.match(filename)
     if match is not None:    
         return match.groups()[0]
         
