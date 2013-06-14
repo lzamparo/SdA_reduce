@@ -133,7 +133,6 @@ def finetune_SdA(model_file, finetune_lr=0.01, momentum=0.3, weight_decay = 0.00
 
     best_params = None
     best_validation_loss = numpy.inf
-    test_score = 0.
     start_time = time.clock()
 
     done_looping = False
@@ -151,7 +150,7 @@ def finetune_SdA(model_file, finetune_lr=0.01, momentum=0.3, weight_decay = 0.00
                 this_validation_loss = numpy.mean(validation_losses)
                 print >> output_file, ('epoch %i, minibatch %i/%i, validation error %f %%' %
                       (epoch, minibatch_index + 1, n_train_batches,
-                       this_validation_loss * 100.))
+                       this_validation_loss))
 
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
@@ -165,15 +164,13 @@ def finetune_SdA(model_file, finetune_lr=0.01, momentum=0.3, weight_decay = 0.00
                     best_validation_loss = this_validation_loss
                     best_iter = iter
 
-
             if patience <= iter:
                 done_looping = True
                 break
 
     end_time = time.clock()
-    print >> output_file, (('Optimization complete with best validation score of %f %%,'
-           'with test performance %f %%') %
-                 (best_validation_loss * 100., test_score * 100.))
+    print >> output_file, (('Optimization complete with best validation score of %f ') %
+                 (best_validation_loss))
     print >> output_file, ('The training code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
