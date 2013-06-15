@@ -224,8 +224,8 @@ if __name__ == '__main__':
     q_args['save'] = pkl_save_file
 
     # Run both sub-processes
-    p = Process(target=pretrain, args=(args,p_args,))
-    q = Process(target=pretrain, args=(args,q_args,))
+    p = Process(target=finetune_SdA, args=(args,p_args,))
+    q = Process(target=finetune_SdA, args=(args,q_args,))
     p.start()
     q.start()
     p.join()
