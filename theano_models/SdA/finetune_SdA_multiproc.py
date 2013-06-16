@@ -103,7 +103,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight
     print '... fine-tuning the model'    
 
     # early-stopping parameters
-    patience = 10 * n_train_batches  # look as this many batches regardless
+    patience = 200 * n_train_batches  # look as this many batches regardless
     patience_increase = 2.  # wait this much longer when a new best is
                             # found
     improvement_threshold = 0.995  # a relative improvement of this much is
