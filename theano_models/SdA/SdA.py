@@ -81,22 +81,17 @@ class SdA(object):
             self.y = T.ivector('y')  # the labels (if present) are presented as 1D vector of
                                      # [int] labels
 
-        # The SdA is an MLP, for which all weights of intermediate layers
-        # are shared with different denoising autoencoders.
-        #
-        # We will first construct the SdA as a deep multilayer perceptron,
-        # and when constructing each sigmoidal layer we also construct a
+        # The SdA is both an MLP and a stacked dA model: when 
+        # constructing each sigmoidal layer we also construct a
         # denoising autoencoder that shares weights with that layer.
         #
         # During pre-training we will train these autoencoders (which will
         # lead to chainging the weights of the MLP as well).
         #
-        # During fine-tunining we will finish training the SdA either by doing
-        # SGD on the MLP (if a logistic regression layer is sitting on top),
-        # or by doing SGD on larger batches of data to minimize reconstruction 
+        # During fine-tunining we will finish training the SdA by doing 
+        # SGD on larger batches of data to minimize reconstruction 
         # error, as was done in [Salakhutdinov & Hinton, Science 2006].
         
-
         for i in xrange(self.n_layers):
             
             # the size of the input is either the number of hidden units of
@@ -122,15 +117,8 @@ class SdA(object):
             
             # add the layer to our list of layers
             self.sigmoid_layers.append(sigmoid_layer)
-            
-            # We are going to only declare that the parameters of the
-            # sigmoid_layers are parameters of the SdA.
-            # The visible biases in the dA are parameters of those
-            # dA, but not the SdA
-            self.params.extend(sigmoid_layer.params)
 
-            # The first layer is a Gaussian denoising autoencoder that 
-            # shares weights with the sigmoid_layer
+            # Build and stack the dA layer
             if i == 0:
                 dA_layer = GaussianAutoEncoder(numpy_rng=numpy_rng,
                             theano_rng=theano_rng,
@@ -149,6 +137,11 @@ class SdA(object):
                             bhid=sigmoid_layer.b)                
                 
             self.dA_layers.append(dA_layer)
+            
+            # We are going to only declare that the parameters of the
+            # dA_layers are parameters of the SdA, for momentum update reasons
+            self.params.extend(dA_layer.params)            
+            
 
         # Keep track of parameter updates, so we may use momentum updates
         for param in self.params:
