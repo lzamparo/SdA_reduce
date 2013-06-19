@@ -53,8 +53,6 @@ class SdA(object):
         :param corruption_levels: amount of corruption to use for each
                                   layer
                                   
-        :type dA_loss: list of strings
-        :param dA_loss: loss functions to use for each of the dA layers  
                                                             
         """
 
@@ -71,8 +69,7 @@ class SdA(object):
 
         # Sanity checks on parameter list sizes
         assert self.n_layers > 0
-        assert len(hidden_layers_sizes) == len(dA_losses) 
-        assert len(dA_losses) == len(corruption_levels)
+        assert len(hidden_layers_sizes) == len(corruption_levels)
 
         if not theano_rng:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
