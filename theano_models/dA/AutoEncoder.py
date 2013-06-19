@@ -144,7 +144,6 @@ class AutoEncoder(object):
         self.x = input
 
 
-
 class BernoulliAutoEncoder(AutoEncoder):
         
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 

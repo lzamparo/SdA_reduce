@@ -246,6 +246,8 @@ class SdA(object):
         batch_end = batch_begin + batch_size
 
         pretrain_fns = []
+        # Debugging
+        i = 0 
         for dA in self.dA_layers:
             # get the cost and the updates list
             cost, updates = dA.get_cost_updates(corruption_level,learning_rate)
@@ -268,9 +270,10 @@ class SdA(object):
                 param, grad_update = item
                 print "param is: " + param.name
                 print "grad update is:" + theano.pp(grad_update)
+                
             
             # Debugging 
-            print "cost is: " + theano.pp(cost)
+            print "cost for dA on layer " + str(i) + " is: " + theano.pp(cost)
                 
             # compile the theano function
             fn = theano.function(inputs=[index,
@@ -284,7 +287,9 @@ class SdA(object):
                                                              batch_end]})
             # append `fn` to the list of functions
             pretrain_fns.append(fn)
-
+            
+            # Debugging
+            i = i + 1
         return pretrain_fns
 
 
