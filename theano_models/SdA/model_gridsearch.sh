@@ -21,8 +21,8 @@ for i in {700..1000..100}; # first layer
       ((offset++))
       qsub submit_pretrain_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset"
       
-      # Reset the offset parameter if the grid is too fine.
-      if (( offset > 190 )); then 
+      # Each pair of jobs needs 25 data chunks, and there are 211 in total.  Reset the offset parameter if necessary.
+      if (( offset > 185 )); then 
          offset=0
       fi
     

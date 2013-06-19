@@ -20,7 +20,7 @@ from tables import openFile
 
 from datetime import datetime
 
-def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, batch_size=20): 
+def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, batch_size=100): 
     """ Pretrain an SdA model for the given number of training epochs.  The model is either initialized from 
     scratch, or is reconstructed from a previously pickled model.
 
@@ -41,10 +41,6 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     import theano
     import theano.tensor as T
     from theano.tensor.shared_randomstreams import RandomStreams
-    
-    from mlp.logistic_sgd import LogisticRegression
-    from mlp.hidden_layer import HiddenLayer
-    from dA.AutoEncoder import AutoEncoder
     from SdA import SdA    
     
     shared_args_dict = shared_args[0]
@@ -62,7 +58,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     
     # Get the training data sample from the input file
     data_set_file = openFile(str(shared_args_dict['input']), mode = 'r')
-    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 15, offset = shared_args_dict['offset'])
+    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 25, offset = shared_args_dict['offset'])
     train_set_x = load_data_unlabeled(datafiles)
     data_set_file.close()
 
@@ -89,13 +85,10 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
         arch_list_str = private_args['arch'].split("-")
         arch_list = [int(item) for item in arch_list_str]
         corruption_list = [shared_args_dict['corruption'] for i in arch_list]
-        dA_losses = ['xent' for i in arch_list]
-        dA_losses[0] = 'squared'
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=arch_list,
-              corruption_levels = corruption_list,
-              dA_losses=dA_losses,              
-              n_outs=3)
+              corruption_levels = corruption_list,             
+              n_outs=-1)
 
     #########################
     # PRETRAINING THE MODEL #
@@ -107,11 +100,13 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     print '... pre-training the model'
     start_time = time.clock()
     
-    ## Pre-train layer-wise
+    # Set the learning rates and corruption levels.  
+    # First rate should be much smaller due to the Gaussian visible units.
     corruption_levels = sda.corruption_levels
-    for i in xrange(sda.n_layers):
-        
-        # TODO: Set the learning rates to use.  See Yann Lecun's paper for backprop learning rate settings.
+    learning_rates = [pretrain_lr * 10. for i in arch_list]
+    learning_rates[0] = pretrain_lr
+    
+    for i in xrange(sda.n_layers):       
                 
         for epoch in xrange(pretraining_epochs):
             # go through the training set
@@ -119,7 +114,9 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
             for batch_index in xrange(n_train_batches):
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i],
-                         lr=pretrain_lr))
+                         lr=learning_rates[i],
+                         momentum=shared_args_dict["momentum"],
+                         weight_decay=shared_args_dict["weight_decay"]))
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             
@@ -150,7 +147,7 @@ if __name__ == '__main__':
     parser.add_option("-q","--secondrestorefile",dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-c", "--corruption", dest="corruption", type="float", help="use this amount of corruption for the dA")
-    parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
+    parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")    
     parser.add_option("-a", "--firstarch", dest="p_arch", default = "", help="dash separated list to specify the first architecture of the SdA.  E.g: -a 850-400-50")
     parser.add_option("-b", "--secondarch", dest="q_arch", default = "", help="dash separated list to specify the second architecture of the SdA.")
     (options, args) = parser.parse_args()    
@@ -163,6 +160,9 @@ if __name__ == '__main__':
     shared_args = args[0]
     shared_args['dir'] = options.dir
     shared_args['input'] = options.inputfile
+    shared_args['momentum'] = 0.8
+    shared_args['weight_decay'] = 0.00001
+    shared_args['learning_rate'] = 0.005    
     shared_args['corruption'] = options.corruption
     shared_args['offset'] = options.offset
     args[0] = shared_args

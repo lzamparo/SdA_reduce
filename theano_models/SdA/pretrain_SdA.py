@@ -138,10 +138,6 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=100):
     output_file.close()
 
 
-def generate_learning_rates(num_layers):
-    """ Take the number of layers in the SdA model, and generate a list of learning rates to be applied to each layer. """
-    pass
-
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-d", "--dir", dest="dir", help="test output directory")

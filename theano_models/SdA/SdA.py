@@ -239,8 +239,7 @@ class SdA(object):
         batch_end = batch_begin + batch_size
 
         pretrain_fns = []
-        # Debugging
-        i = 0 
+        
         for dA in self.dA_layers:
             # get the cost and the updates list
             cost, updates = dA.get_cost_updates(corruption_level,learning_rate)
@@ -250,7 +249,6 @@ class SdA(object):
             mod_updates = []
             for param, grad_update in updates:
                 if param in self.updates:
-                    print "adding momentum, wd update for " + param.name
                     last_update = self.updates[param]
                     delta = momentum * last_update - weight_decay * learning_rate * param - learning_rate * grad_update
                     mod_updates.append((param, param + delta))
@@ -258,15 +256,6 @@ class SdA(object):
                 else:               
                     mod_updates.append((param, grad_update))
             
-            # Debugging: somehow momentum does not make it into the computational graph.  Let's see what's in modupdates
-            for item in mod_updates:
-                param, grad_update = item
-                print "param is: " + param.name
-                print "grad update is:" + theano.pp(grad_update)
-                
-            
-            # Debugging 
-            print "cost for dA on layer " + str(i) + " is: " + theano.pp(cost)
                 
             # compile the theano function
             fn = theano.function(inputs=[index,
@@ -281,8 +270,6 @@ class SdA(object):
             # append `fn` to the list of functions
             pretrain_fns.append(fn)
             
-            # Debugging
-            i = i + 1
         return pretrain_fns
 
 
@@ -372,7 +359,6 @@ class SdA(object):
                 layer_input = self.sigmoid_layers[i-1].output
                 
             self.sigmoid_layers[i].reconstruct_state(layer_input)
-            self.params.extend(self.sigmoid_layers[i].params)
             
             if i == 0:
                 # Rebuild the dA layer from scratch, explicitly tying the W,bhid params to those from the sigmoid layer
@@ -395,6 +381,7 @@ class SdA(object):
                             bvis=dA_layers_list[i].b_prime) 
                 
             self.dA_layers.append(dA_layer)
+            self.params.extend(self.dA_layers[i].params)
             
         # Reconstruct the dictionary of shared vars for parameter updates 
         # so we can use momentum when training.
