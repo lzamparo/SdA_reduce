@@ -133,20 +133,20 @@ class SdA(object):
             # shares weights with the sigmoid_layer
             if i == 0:
                 dA_layer = GaussianAutoEncoder(numpy_rng=numpy_rng,
-                              theano_rng=theano_rng,
-                              input=layer_input,
-                              n_visible=input_size,
-                              n_hidden=int(hidden_layers_sizes[i]),
-                              W=sigmoid_layer.W,
-                              bhid=sigmoid_layer.b)
+                            theano_rng=theano_rng,
+                            input=layer_input,
+                            n_visible=input_size,
+                            n_hidden=int(hidden_layers_sizes[i]),
+                            W=sigmoid_layer.W,
+                            bhid=sigmoid_layer.b)
             else:
                 dA_layer = BernoulliAutoEncoder(numpy_rng=numpy_rng,
-                                theano_rng=theano_rng,
-                                input=layer_input,
-                                n_visible=input_size,
-                                n_hidden=int(hidden_layers_sizes[i]),
-                                W=sigmoid_layer.W,
-                                bhid=sigmoid_layer.b)                
+                            theano_rng=theano_rng,
+                            input=layer_input,
+                            n_visible=input_size,
+                            n_hidden=int(hidden_layers_sizes[i]),
+                            W=sigmoid_layer.W,
+                            bhid=sigmoid_layer.b)                
                 
             self.dA_layers.append(dA_layer)
 
@@ -248,14 +248,14 @@ class SdA(object):
         pretrain_fns = []
         for dA in self.dA_layers:
             # get the cost and the updates list
-            cost, updates = dA.get_cost_updates(corruption_level,
-                                                learning_rate)
+            cost, updates = dA.get_cost_updates(corruption_level,learning_rate)
             
             # modify the updates to account for the momentum smoothing and weight decay regularization
             
             mod_updates = []
             for param, grad_update in updates:
                 if param in self.updates:
+                    print "adding momentum, wd update for " + param.name
                     last_update = self.updates[param]
                     delta = momentum * last_update - weight_decay * learning_rate * param - learning_rate * grad_update
                     mod_updates.append((param, param + delta))
