@@ -117,7 +117,7 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=100):
                          corruption=corruption_levels[i],
                          lr=learning_rates[i],
                          momentum=options.momentum,
-                         weight_decay=options.weight_decay)))
+                         weight_decay=options.weight_decay))
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             
