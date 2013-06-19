@@ -7,7 +7,7 @@ from theano import shared
 
 from mlp.logistic_sgd import LogisticRegression
 from mlp.hidden_layer import HiddenLayer
-from dA.AutoEncoder import AutoEncoder
+from dA.AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder
 
 class SdA(object):
     """Stacked denoising auto-encoder class (SdA)
@@ -22,14 +22,13 @@ class SdA(object):
     """
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
-                 hidden_layers_sizes=[500, 500], n_outs=10,
-                 log_top=False, corruption_levels=[0.1, 0.1], 
-                 dA_losses=['xent','xent']):
+                 hidden_layers_sizes=[500, 500], n_outs=-1,
+                 corruption_levels=[0.1, 0.1]):
         """ This class is made to support a variable number of layers
 
         :type numpy_rng: numpy.random.RandomState
         :param numpy_rng: numpy random number generator used to draw initial
-                    weights
+                          weights
 
         :type theano_rng: theano.tensor.shared_randomstreams.RandomStreams
         :param theano_rng: Theano random generator; if None is given one is
@@ -43,7 +42,8 @@ class SdA(object):
                                at least one value
 
         :type n_outs: int
-        :param n_outs: dimension of the output of the network.  
+        :param n_outs: dimension of the output of the network.  Negative if 
+                       there is no logistic layer on top.
         
         :type log_top: boolean
         :param log_top: True if a logistic regression layer should be stacked
@@ -80,13 +80,9 @@ class SdA(object):
         # allocate symbolic variables for the data
         self.x = T.matrix('x')  # the training input
         
-        if log_top:
+        if n_outs > 0:
             self.y = T.ivector('y')  # the labels (if present) are presented as 1D vector of
                                      # [int] labels
-        else:
-            self.y = T.scalar('y') # TODO: check to see if this should be the reconstructed 
-                                   # matrix, or the reconstruction error.
-
 
         # The SdA is an MLP, for which all weights of intermediate layers
         # are shared with different denoising autoencoders.
@@ -126,6 +122,7 @@ class SdA(object):
                                         n_in=input_size,
                                         n_out=int(hidden_layers_sizes[i]),
                                         activation=T.nnet.sigmoid)
+            
             # add the layer to our list of layers
             self.sigmoid_layers.append(sigmoid_layer)
             
@@ -135,19 +132,28 @@ class SdA(object):
             # dA, but not the SdA
             self.params.extend(sigmoid_layer.params)
 
-            # Construct a denoising autoencoder that shared weights with this
-            # layer
-            dA_layer = AutoEncoder(numpy_rng=numpy_rng,
-                          theano_rng=theano_rng,
-                          input=layer_input,
-                          n_visible=input_size,
-                          n_hidden=int(hidden_layers_sizes[i]),
-                          W=sigmoid_layer.W,
-                          bhid=sigmoid_layer.b,
-                          loss=dA_losses[i])
+            # The first layer is a Gaussian denoising autoencoder that 
+            # shares weights with the sigmoid_layer
+            if i == 0:
+                dA_layer = GaussianAutoEncoder(numpy_rng=numpy_rng,
+                              theano_rng=theano_rng,
+                              input=layer_input,
+                              n_visible=input_size,
+                              n_hidden=int(hidden_layers_sizes[i]),
+                              W=sigmoid_layer.W,
+                              bhid=sigmoid_layer.b)
+            else:
+                dA_layer = BernoulliAutoEncoder(numpy_rng=numpy_rng,
+                                theano_rng=theano_rng,
+                                input=layer_input,
+                                n_visible=input_size,
+                                n_hidden=int(hidden_layers_sizes[i]),
+                                W=sigmoid_layer.W,
+                                bhid=sigmoid_layer.b)                
+                
             self.dA_layers.append(dA_layer)
 
-        # Keep track of parameter updates for pretraining
+        # Keep track of parameter updates, so we may use momentum updates
         for param in self.params:
             init = np.zeros(param.get_value(borrow=True).shape,
                             dtype=theano.config.floatX)
@@ -155,15 +161,12 @@ class SdA(object):
             self.updates[param] = theano.shared(init, name=update_name)        
             
 
-        # Add a logistic layer on top of the MLP ?
-        if log_top:
+        if n_outs > 0:
             self.logLayer = LogisticRegression(
                              input=self.sigmoid_layers[-1].output,
                              n_in=hidden_layers_sizes[-1], n_out=n_outs)
     
             self.params.extend(self.logLayer.params)
-        
-                
         
             # compute the cost for second phase of training,
             # defined as the negative log likelihood
@@ -174,7 +177,6 @@ class SdA(object):
             # minibatch given by self.x and self.y
             self.errors = self.logLayer.errors(self.y)
         
-        # If not, set-up finetuning to compute reconstruction error
         else:
             self.finetune_cost = self.reconstruction_error(self.x)
             
@@ -342,6 +344,7 @@ class SdA(object):
         Reconstruct both MLP and stacked dA aspects of an unpickled SdA model.  The input should be provided to 
         the initial layer, and the input of layer i+1 is set to the output of layer i. 
         Fill up the self.params list with the parameter sets of the MLP list. """
+        
         (layers, n_outs, mlp_layers_list, dA_layers_list, corruption_levels) = state
         self.n_layers = layers
         self.n_outs = n_outs
@@ -367,16 +370,26 @@ class SdA(object):
             self.sigmoid_layers[i].reconstruct_state(layer_input)
             self.params.extend(self.sigmoid_layers[i].params)
             
-            # Rebuild the dA layer from scratch, explicitly tying the W,bhid params to those from the sigmoid layer
-            dA_layer = AutoEncoder(numpy_rng=numpy_rng,
-                          theano_rng=theano_rng,
-                          input=layer_input,
-                          n_visible=dA_layers_list[i].n_visible,
-                          n_hidden=dA_layers_list[i].n_hidden,
-                          W=self.sigmoid_layers[i].W,
-                          bhid=self.sigmoid_layers[i].b,
-                          bvis=dA_layers_list[i].b_prime,
-                          loss=dA_layers_list[i].loss)
+            if i == 0:
+                # Rebuild the dA layer from scratch, explicitly tying the W,bhid params to those from the sigmoid layer
+                dA_layer = GaussianAutoEncoder(numpy_rng=numpy_rng,
+                            theano_rng=theano_rng,
+                            input=layer_input,
+                            n_visible=dA_layers_list[i].n_visible,
+                            n_hidden=dA_layers_list[i].n_hidden,
+                            W=self.sigmoid_layers[i].W,
+                            bhid=self.sigmoid_layers[i].b,
+                            bvis=dA_layers_list[i].b_prime)
+            else:
+                dA_layer = BernoulliAutoEncoder(numpy_rng=numpy_rng,
+                            theano_rng=theano_rng,
+                            input=layer_input,
+                            n_visible=dA_layers_list[i].n_visible,
+                            n_hidden=dA_layers_list[i].n_hidden,
+                            W=self.sigmoid_layers[i].W,
+                            bhid=self.sigmoid_layers[i].b,
+                            bvis=dA_layers_list[i].b_prime) 
+                
             self.dA_layers.append(dA_layer)
             
         # Reconstruct the dictionary of shared vars for parameter updates 
@@ -388,11 +401,12 @@ class SdA(object):
             update_name = param.name + '_update'
             self.updates[param] = theano.shared(init, name=update_name)
             
-        # For now, reconstruct finetuning cost as if there is no log-layer.  
-        # TODO: when constructing SdAs, those with no intended log-layer should have 
-        # negative n_outs
-        self.finetune_cost = self.reconstruction_error(self.x)
-        self.errors = self.reconstruction_error(self.x)        
+        # Reconstruct the finetuning cost functions
+        if n_outs > 0:
+            self.reconstruct_loglayer(n_outs)
+        else:
+            self.finetune_cost = self.reconstruction_error(self.x)
+            self.errors = self.reconstruction_error(self.x)        
 
             
     def reconstruct_loglayer(self, n_outs = 10):

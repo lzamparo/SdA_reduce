@@ -18,9 +18,6 @@ import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 
-from mlp.logistic_sgd import LogisticRegression
-from mlp.hidden_layer import HiddenLayer
-from dA.AutoEncoder import AutoEncoder
 from SdA import SdA
 
 from extract_datasets import extract_unlabeled_chunkrange
@@ -33,7 +30,7 @@ from optparse import OptionParser
 import os
 
 
-def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=20):
+def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=100):
     """
     
     Pretrain an SdA model for the given number of training epochs.  The model is either initialized from scratch, or 
@@ -63,7 +60,7 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=20):
     
     # Get the training data sample from the input file
     data_set_file = openFile(str(options.inputfile), mode = 'r')
-    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 15, offset = options.offset)
+    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 25, offset = options.offset)
     train_set_x = load_data_unlabeled(datafiles)
     data_set_file.close()
 
@@ -90,13 +87,10 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=20):
         arch_list_str = options.arch.split("-")
         arch_list = [int(item) for item in arch_list_str]
         corruption_list = [options.corruption for i in arch_list]
-        dA_losses = ['xent' for i in arch_list]
-        dA_losses[0] = 'squared'
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=arch_list,
               corruption_levels = corruption_list,
-              dA_losses=dA_losses,              
-              n_outs=3)
+              n_outs=-1)
 
     #########################
     # PRETRAINING THE MODEL #
@@ -110,17 +104,20 @@ def pretrain_SdA(pretraining_epochs=50, pretrain_lr=0.001, batch_size=20):
     
     ## Pre-train layer-wise
     corruption_levels = sda.corruption_levels
+    learning_rates = [pretrain_lr * 10. for i in arch_list]
+    learning_rates[0] = pretrain_lr    
+    
     for i in xrange(sda.n_layers):
-        
-        # TODO: Set the learning rates to use.  See Yann Lecun's paper for backprop learning rate settings.
-                
+                       
         for epoch in xrange(pretraining_epochs):
             # go through the training set
             c = []
             for batch_index in xrange(n_train_batches):
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i],
-                         lr=pretrain_lr))
+                         lr=learning_rates[i],
+                         momentum=options.momentum,
+                         weight_decay=options.weight_decay)))
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             
@@ -152,6 +149,8 @@ if __name__ == '__main__':
     parser.add_option("-r","--restorefile",dest = "restorefile", help = "Restore the model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-c", "--corruption", dest="corruption", type="float", help="use this amount of corruption for the dA")
+    parser.add_option("-m", "--momentum", dest="momentum", type="float", help="use this amount of momentum when updating", default=0.7)
+    parser.add_option("-w", "--weight_decay", dest="weight_decay", type="float", help="use this amount of weight decay for regularizing the weights", default=0.00002)
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
     parser.add_option("-a", "--arch", dest="arch", default = "", help="use this dash separated list to specify the architecture of the SdA.  E.g -a 850-400-50")
     (options, args) = parser.parse_args()        
