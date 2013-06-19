@@ -262,6 +262,12 @@ class SdA(object):
                     mod_updates.append((last_update, delta))
                 else:               
                     mod_updates.append((param, grad_update))
+            
+            # Debugging: somehow momentum does not make it into the computational graph.  Let's see what's in modupdates
+            for item in mod_updates:
+                param, grad_update = item
+                print "param is: " + param.name
+                print "grad update is:" + str(grad_update)
                 
             # compile the theano function
             fn = theano.function(inputs=[index,
