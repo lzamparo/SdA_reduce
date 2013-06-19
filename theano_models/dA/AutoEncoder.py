@@ -184,19 +184,10 @@ class BernoulliAutoEncoder(AutoEncoder):
             :param bvis: Theano variable pointing to a set of biases values (for
                          visible units) that should be shared belong dA and another
                          architecture; if dA should be standalone set this to None
-                         
-            :type loss: string
-            :param loss: specify the type of loss function to use when computing the loss
-            in get_cost_updates(...).  Currently defined values are 'xent' for cross-entropy, 
-            'squared' for squared error.
-            
-            :type decoder: string
-            :param decoder: specify the decoding function to use when computing get_cost_updates(...).  
-            Currently defined values are 'sigmoid' for sigmoid, 'linear' for linear. 
         
         
         """        
-        super(AutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden,
+        super(BernoulliAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden,
                  W=None, bhid=None, bvis=None)
         
     
@@ -208,8 +199,8 @@ class BernoulliAutoEncoder(AutoEncoder):
         """ Compute the reconstruction error over the mini-batched input
         taking into account a certain level of corruption of the input """
         
-        x_corrupted = AutoEncoder.get_corrupted_input(self.x, corruption_level)
-        y = AutoEncoder.get_hidden_values(x_corrupted)
+        x_corrupted = super(BernoulliAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
+        y = super(BernoulliAutoEncoder,self).get_hidden_values(x_corrupted)
         z = self.get_reconstructed_input(y)
         
         # Use the cross entropy loss
@@ -231,7 +222,7 @@ class BernoulliAutoEncoder(AutoEncoder):
 class GaussianAutoEncoder(AutoEncoder):
         
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None, loss='xent', decoder='sigmoid'):
+                 W=None, bhid=None, bvis=None):
         """
             
         A de-noising AutoEncoder with Gaussian visible units
@@ -279,7 +270,7 @@ class GaussianAutoEncoder(AutoEncoder):
         
         
         """        
-        super(AutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
+        super(GaussianAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
             
     
     def get_reconstructed_input(self, hidden):
@@ -289,8 +280,8 @@ class GaussianAutoEncoder(AutoEncoder):
     def get_cost_updates(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input
        taking into account a certain level of corruption of the input """
-        x_corrupted = AutoEncoder.get_corrupted_input(self.x, corruption_level)
-        y = AutoEncoder.get_hidden_values(x_corrupted)
+        x_corrupted = super(GaussianAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
+        y = super(GaussianAutoEncoder,self).get_hidden_values(x_corrupted)
         z = self.get_reconstructed_input(y)
         
         # Take the sum over columns
