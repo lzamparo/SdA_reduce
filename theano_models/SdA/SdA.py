@@ -267,7 +267,10 @@ class SdA(object):
             for item in mod_updates:
                 param, grad_update = item
                 print "param is: " + param.name
-                print "grad update is:" + str(grad_update)
+                print "grad update is:" + theano.pp(grad_update)
+            
+            # Debugging 
+            print "cost is: " + theano.pp(cost)
                 
             # compile the theano function
             fn = theano.function(inputs=[index,
