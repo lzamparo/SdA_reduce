@@ -122,7 +122,7 @@ class AutoEncoder(object):
     
     def __setstate__(self, state):
         """ Set the state of this dA from values returned from a deserialization process like unpickle. """
-        W, b, b_prime, n_visible, n_hidden, loss = state
+        W, b, b_prime, n_visible, n_hidden = state
         self.W = shared(value=W, name='W')
         self.b = shared(value=b, name = 'bvis')
         self.b_prime = shared(value=b_prime, name= 'bhid')
