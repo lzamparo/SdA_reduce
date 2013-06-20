@@ -103,7 +103,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight
     print '... fine-tuning the model'    
 
     # early-stopping parameters
-    patience = 200 * n_train_batches  # look as this many batches regardless
+    patience = 300 * n_train_batches  # look as this many batches regardless
     patience_increase = 2.  # wait this much longer when a new best is
                             # found
     improvement_threshold = 0.995  # a relative improvement of this much is
@@ -180,7 +180,9 @@ if __name__ == '__main__':
         
     # Parse command line args
     parser = OptionParser()
-    parser.add_option("-d", "--dir", dest="dir", help="output directory")   
+    parser.add_option("-d", "--dir", dest="dir", help="base output directory")
+    parser.add_option("-e", "--pretrain_experiment", dest="experiment", help="directory name containing pre-trained pkl files for this experiment (below the base directory)")
+    parser.add_option("-x", "--output_extension", dest="extension", help="output directory name below the base, named for this finetuning experiment")
     parser.add_option("-p","--firstrestorefile",dest = "pr_file", help = "Restore the first model from this pickle file", default=None)
     parser.add_option("-q","--secondrestorefile",dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
@@ -193,7 +195,7 @@ if __name__ == '__main__':
     args = manager.list()
     args.append({})
     shared_args = args[0]
-    shared_args['dir'] = options.dir
+    shared_args['dir'] = os.path.join(options.dir,options.extension)
     shared_args['input'] = options.inputfile
     shared_args['offset'] = options.offset
     args[0] = shared_args
@@ -212,14 +214,14 @@ if __name__ == '__main__':
          
     # Determine where to load & save the first model
     parts = os.path.split(options.dir)
-    pkl_load_file = os.path.join(parts[0],'pretrain_pkl_files',options.pr_file)
-    pkl_save_file = os.path.join(parts[0],'finetune_pkl_files', options.pr_file)
+    pkl_load_file = os.path.join(parts[0],'pretrain_pkl_files',options.experiment,options.pr_file)
+    pkl_save_file = os.path.join(parts[0],'finetune_pkl_files',options.extension,options.pr_file)
     p_args['restore'] = pkl_load_file
     p_args['save'] = pkl_save_file
    
     # Determine where to load & save the second model
-    pkl_load_file = os.path.join(parts[0],'pretrain_pkl_files',options.qr_file)
-    pkl_save_file = os.path.join(parts[0],'finetune_pkl_files', options.qr_file)
+    pkl_load_file = os.path.join(parts[0],'pretrain_pkl_files',options.experiment,options.qr_file)
+    pkl_save_file = os.path.join(parts[0],'finetune_pkl_files',options.extension,options.qr_file)
     q_args['restore'] = pkl_load_file
     q_args['save'] = pkl_save_file
 
