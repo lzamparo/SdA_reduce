@@ -131,7 +131,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight
             if (iter + 1) % validation_frequency == 0:
                 validation_losses = validate_model()
                 this_validation_loss = numpy.mean(validation_losses)
-                print >> output_file, ('epoch %i, minibatch %i/%i, validation error %f %%' %
+                print >> output_file, ('epoch %i, minibatch %i/%i, validation error %f ' %
                       (epoch, minibatch_index + 1, n_train_batches,
                        this_validation_loss))
 

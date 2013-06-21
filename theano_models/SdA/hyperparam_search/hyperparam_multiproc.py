@@ -84,13 +84,10 @@ def pretrain(shared_args, private_args, num_epochs=50, batch_size=20):
     arch_list = shared_args_dict['arch']
     corruption_list = [float(shared_args_dict['corruption']) for i in arch_list]
     arch_list = shared_args_dict['arch']
-    dA_losses = ['xent' for i in arch_list]
-    dA_losses[0] = 'squared'
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
           hidden_layers_sizes=arch_list,
-          corruption_levels = corruption_list,
-          dA_losses=dA_losses,              
-          n_outs=3)    
+          corruption_levels = corruption_list,              
+          n_outs=-1)    
     
 
     #########################
@@ -148,11 +145,11 @@ if __name__ == '__main__':
     shared_args = args[0]
     shared_args['dir'] = options.dir
     shared_args['input'] = options.inputfile
-    shared_args['corruption'] = 0.1
+    shared_args['corruption'] = 0.15
     shared_args['momentum'] = 0.
-    shared_args['weight_decay'] = 0.0001
-    shared_args['learning_rate'] = 0.01
-    shared_args['arch'] = [800, 700, 300, 50]
+    shared_args['weight_decay'] = 0.
+    shared_args['learning_rate'] = 0.005
+    shared_args['arch'] = [900, 900, 300, 50] 
     shared_args['offset'] = options.offset
     args[0] = shared_args
     
