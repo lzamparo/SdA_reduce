@@ -104,7 +104,7 @@ def calculate_offsets(arrays_list):
     chunk_names = [item.name for item in arrays_list]
     chunk_sizes = [item.shape[0] for item in arrays_list]
     offset_dict = {}
-    
+    # figure out how to calculate the offsets from the sizes
     
     return chunk_names, offset_dict
     
