@@ -169,7 +169,7 @@ class SdA(object):
         
         else:
             self.finetune_cost = self.reconstruction_error(self.x)
-            
+            self.output = self.encode(self.x)
             self.errors = self.reconstruction_error(self.x)
             
             
@@ -188,7 +188,7 @@ class SdA(object):
         for dA in self.dA_layers[::-1]:
             X_prime = dA.get_reconstructed_input(X_prime)
         return X_prime
-         
+             
     
     def reconstruction_error(self, X):
         """ Calculate the reconstruction error. Take a matrix of 
@@ -203,6 +203,20 @@ class SdA(object):
         L = T.sum((X - Z) **2, axis = 1)
         return T.mean(L)
             
+    def encode(self,X):
+        """ Given data X, provide the symbolic computation of X_prime, by 
+        passing X forward through to the top (lowest dimensional) layer of 
+        the SdA 
+        
+        :type X: theano.tensor.TensorType
+        :param X: Shared variable that contains data 
+                  to be pushed through the SdA (i.e reconstructed)
+        """
+        X_prime = X
+        for dA in self.dA_layers:
+            X_prime = dA.get_hidden_values(X_prime) 
+            
+        return X_prime    
 
     def pretraining_functions(self, train_set_x, batch_size):
         ''' Generates a list of functions, each of them implementing one
@@ -325,6 +339,21 @@ class SdA(object):
 
         return train_fn, valid_score        
     
+    def build_encoding_functions(self, dataset):
+        ''' Generates a function `encode` that feeds the data forward 
+        through the layers of the SdA and results in a lower dimensional
+        output, which is the representation of the highest layer.
+
+        :type datasets: theano.tensor.TensorType
+        :param datasets: A T.dmatrix of datapoints to be fed through the SdA
+                         
+        '''
+
+        encode_fn = theano.function(inputs=[start,end],
+              outputs=self.encode,
+              givens={self.x: dataset[start:end]})
+        return encode_fn
+    
     
     def __getstate__(self):
         """ Pickle this SdA by returning the number of layers, list of sigmoid layers and list of dA layers. """
@@ -397,7 +426,8 @@ class SdA(object):
             self.reconstruct_loglayer(n_outs)
         else:
             self.finetune_cost = self.reconstruction_error(self.x)
-            self.errors = self.reconstruction_error(self.x)        
+            self.errors = self.reconstruction_error(self.x)
+            self.output = self.encode(self.x)
 
             
     def reconstruct_loglayer(self, n_outs = 10):
