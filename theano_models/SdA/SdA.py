@@ -76,6 +76,7 @@ class SdA(object):
         
         # allocate symbolic variables for the data
         self.x = T.matrix('x')  # the training input
+        self.x_prime = T.matrix('X_prime') # the encoded output of the highest layer
         
         if n_outs > 0:
             self.y = T.ivector('y')  # the labels (if present) are presented as 1D vector of
@@ -215,8 +216,9 @@ class SdA(object):
         X_prime = X
         for dA in self.dA_layers:
             X_prime = dA.get_hidden_values(X_prime) 
-            
-        return X_prime    
+        
+        self.x_prime = X_prime
+        return self.x_prime    
 
     def pretraining_functions(self, train_set_x, batch_size):
         ''' Generates a list of functions, each of them implementing one
@@ -376,6 +378,7 @@ class SdA(object):
         self.params = []
         self.sigmoid_layers = mlp_layers_list
         self.x = T.matrix('x')  # symbolic input for the training data
+        self.x_prime = T.matrix('X_prime') # symbolic output for the top layer dA
         
         numpy_rng = np.random.RandomState(123)
         theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
