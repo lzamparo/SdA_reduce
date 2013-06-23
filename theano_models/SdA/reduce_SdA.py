@@ -21,7 +21,9 @@ from SdA import SdA
 
 from extract_datasets import extract_unlabeled_chunkrange, store_unlabeled_byarray
 from load_shared import load_data_unlabeled
-from tables import openFile
+from tables import openFile, Filters
+
+
 
 from datetime import datetime
 
