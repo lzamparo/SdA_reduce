@@ -16,7 +16,7 @@ import numpy
 
 from extract_datasets import extract_unlabeled_chunkrange, store_unlabeled_byarray
 from load_shared import load_data_unlabeled
-from tables import openFile
+from tables import openFile, Filters 
 
 from datetime import datetime
 
@@ -108,7 +108,7 @@ def calculate_offsets(arrays_list):
     # calculate the offsets for each data chunk
     end_pts = numpy.add.accumulate(chunk_sizes)
     start_pts = numpy.subtract(end_pts,chunk_sizes)
-    for i in xrange(len(summed_sizes):
+    for i in xrange(len(end_pts):
         offset_dict[i] = (start_pts[i],end_pts[i])
         
     return chunk_names, offset_dict
