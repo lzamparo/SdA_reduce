@@ -122,6 +122,7 @@ if __name__ == '__main__':
     model_name = re.compile(".*?_([\d_]+).pkl")    
     arch = extract_arch(options.pr_file,model_name)
     
+    parts = os.path.split(output_dir)
     restore_file = os.path.join(parts[0],'finetune_pkl_files',options.extension,options.pr_file)
     
     feedforward_SdA(output_dir, input_file, arch, restore_file)
