@@ -355,7 +355,7 @@ class SdA(object):
         end = T.lscalar('end')
 
         encode_fn = theano.function(inputs=[start,end],
-              outputs=self.encode,
+              outputs=self.output,
               givens={self.x: dataset[start:end]})
         return encode_fn
     
