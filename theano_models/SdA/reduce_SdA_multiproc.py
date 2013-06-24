@@ -83,7 +83,7 @@ def feedforward_SdA(shared_args,private_args):
     for i in xrange(len(arrays_list)):
         start,end = offsets[i]
         reduced_data = encode_fn(start=start,end=end)
-        store_unlabeled_byarray(h5file, arrays_group, zlib_filters, chunk_names[i], reduced_data.get_value())
+        store_unlabeled_byarray(h5file, arrays_group, zlib_filters, chunk_names[i], reduced_data)
         
     # tidy up    
     end_time = time.clock()
