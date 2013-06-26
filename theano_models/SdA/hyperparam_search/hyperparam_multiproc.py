@@ -148,7 +148,7 @@ if __name__ == '__main__':
     shared_args['corruption'] = 0.15
     shared_args['momentum'] = 0.
     shared_args['weight_decay'] = 0.
-    shared_args['learning_rate'] = 0.005
+    shared_args['learning_rate'] = 0.0005
     shared_args['arch'] = [900, 900, 300, 50] 
     shared_args['offset'] = options.offset
     args[0] = shared_args
