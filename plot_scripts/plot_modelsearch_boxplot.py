@@ -1,5 +1,5 @@
 """ Process all the model training output files in the given directory
-and produce a ranking of top 10 models based on per-layer results.
+and produce a boxplot on per-layer results.
 
 Files names look like this: stacked_denoising_autoencoder_800-900-300-50.2013-05-31.08:57:06.721435
 
@@ -13,7 +13,7 @@ import sys, re, os
 import numpy as np
 from collections import OrderedDict
 
-from pylab import savefig, figure, boxplot, xticks, xlabel, ylabel, title
+from pylab import savefig, figure, boxplot, xticks, xlabel, ylabel, title, text
 
 
 # Extract the model name from each filename.
@@ -35,6 +35,7 @@ def extract_cost(line):
 input_dir = sys.argv[1]
 
 # read a list of all files in the directory that match model output files
+currdir = os.getcwd()
 os.chdir(input_dir)
 model_files = os.listdir(".")
 
@@ -84,20 +85,30 @@ for layer in results.keys():
         minval = min(val_list)
         results[layer][model] = minval
 
+# Convert the results[layer].values() lists into a list 
+# of lists, discarding extreme values that will skew the y-axis range
+data = []
+for layer in results:
+    vals = [i for i in results[layer].values() if int(i) < 1100]
+    data.append(vals)   
 
-# At this point, find the top 5 scoring models in each of the dicts
-# Also, compute some order statistics to qualify this list: max, min
+# Plot a series of boxplots for each layer
+fig = figure(1)
+boxplot(data, notch=True)
+labels = ('0', '1', '2', '3')
+xticks(range(1,5),labels, rotation=0)
+xlabel('Layer')
+ylabel('Reconstruction Error')
+title('Model-search over pre-training of 4-layer SdA')
 
-print "...Finding top 5 scoring results in each layer"
-for layer in results.keys():
-    d = results[layer]
-    sorted_layer_results = sorted(d.items(), key=lambda t: t[1])
-    sl_max = max(results[layer].values())
-    sl_min = min(results[layer].values())
-    print "Number of models: " + str(len(sorted_layer_results))
-    print "Max, min, mean for layer " + layer + ": " + str(sl_max) + " , " + str(sl_min) + " , " + str(np.mean(results[layer].values()))
-    print "Top five archs for layer " + layer
-    for i in range(0,5):
-        model, score = sorted_layer_results[i]
-        print str(i) + ": " + model + " , " + str(score)
-        
+# Annotate text with (min, mean, max) stats
+layer_stats = []
+for layer in results:
+    minval = round(np.min(results[layer].values()),1)
+    meanval = round(np.mean(results[layer].values()),1)
+    maxval = round(np.max(results[layer].values()),1)
+    vals = (minval,meanval,maxval)
+    text(float(layer)+0.55, float(vals[0]-35), str(vals), fontsize=10)
+
+os.chdir(currdir)
+savefig("pretraining.pdf", dpi=100, format="pdf")
