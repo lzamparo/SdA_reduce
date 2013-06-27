@@ -52,9 +52,9 @@ for i in 0 0.1; # corruption
   done
 done 
 
-for i in 0.001 0.005; # learning rate
+for i in 0.001 0.0005; # learning rate
   do
-  for j in 0.01 0.05; # learning rate again
+  for j in 0.0001 0.00005; # learning rate again
     do 
       ((offset++))
       qsub submit_hypersearch_lr.sh -v FIRSTMODEL="$i",SECONDMODEL="$j",OFFSET="$offset"
