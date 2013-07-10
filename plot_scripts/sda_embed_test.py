@@ -19,8 +19,10 @@ op.add_option("--h5file",
               dest="inputfile", help="Read data labels from this hdf5 file.")
 op.add_option("--reduced",
               dest="reduceddata", help="Read the SdA reduced data from this hdf5 file.")
+op.add_option("--size",
+              dest="size", help="Use this many chunks of labeled data for the test.")
 op.add_option("--iters",
-              dest="iters", type="int", help="Do this many iterations of k-means clustering")
+              dest="iters", type="int", help="Do this many iterations of k-means clustering.")
 op.add_option("--outputdir",
               dest="outputdir", help="Write output matrix to the specified directory.")
 
