@@ -4,7 +4,7 @@
 # N.B: PBS lines are interpreted by qsub.  Change these defaults as 
 # required
 #
-#PBS -l nodes=1:ppn=8,walltime=3:00:00
+#PBS -l nodes=1:ppn=8,walltime=2:00:00
 #PBS -N plot_plis
 
 # Run the job
