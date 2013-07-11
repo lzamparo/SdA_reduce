@@ -7,7 +7,7 @@ import sys
 
 import numpy as np
 from tables import *
-from utils.extract_datasets import extract_labeled_chunkrange, extract_unlabeled_chunkrange
+from extract_datasets import extract_labeled_chunkrange, extract_unlabeled_chunkrange
 
 # Display progress logs on stdout
 logging.basicConfig(level=logging.INFO,
