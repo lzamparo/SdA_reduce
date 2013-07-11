@@ -20,7 +20,7 @@ op.add_option("--h5file",
 op.add_option("--reduced",
               dest="reduceddata", help="Read the SdA reduced data from this hdf5 file.")
 op.add_option("--size",
-              dest="size", help="Use this many chunks of labeled data for the test.")
+              dest="size", type="int", help="Use this many chunks of labeled data for the test.")
 op.add_option("--iters",
               dest="iters", type="int", help="Do this many iterations of k-means clustering.")
 op.add_option("--outputdir",
@@ -38,9 +38,9 @@ reduced_data_file = openFile(opts.reduceddata, mode = "r", title = "SdA reduced 
 arrays_list = reduced_data_file.listNodes("/recarrays", classname='Array')
 
 # Load the reduced data from a different file
-X_reduced = extract_unlabeled_chunkrange(reduced_data_file, len(arrays_list))
+X_reduced = extract_unlabeled_chunkrange(reduced_data_file, opts.size)
 # Extract some of the dataset from the datafile
-X_garb, labels = extract_labeled_chunkrange(datafile, len(arrays_list))
+X_ignore, labels = extract_labeled_chunkrange(datafile, opts.size)
 
 true_k =  np.unique(labels[:,0]).shape[0]
 
@@ -48,8 +48,10 @@ true_k =  np.unique(labels[:,0]).shape[0]
 datafile.close()
 reduced_data_file.close()
 
-# make sure we're dealing with the same number of labels as 
-assert(labels.shape[0] == X_reduced.shape[0])
+# make sure we're dealing with the same number of labels as data points
+num_pts = labels.shape[0]
+X_data = X_reduced[0:num_pts,:]
+assert(labels.shape[0] == X_data.shape[0])
 
 ###############################################################################
 
@@ -59,7 +61,7 @@ SdA_results = np.zeros((1,opts.iters))
     
 for j in range(0,opts.iters,1):
     km = KMeans(k=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)         
-    km.fit(X_reduced)
+    km.fit(X_data)
     
     print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)        
     SdA_results[0,j] = metrics.homogeneity_score(labels[:,0], km.labels_)
