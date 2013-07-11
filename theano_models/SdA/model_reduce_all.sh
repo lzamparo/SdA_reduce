@@ -10,6 +10,6 @@ do
     let prev=$i-1
     first=${arr[$i]}
     second=${arr[$prev]}
-    qsub submit_finetune_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second"
+    qsub submit_reduce_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second"
     sleep 5   
 done
