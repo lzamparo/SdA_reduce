@@ -1,5 +1,8 @@
 """ Plot the line graph with standard deviations of each of the algorithms for dimensionality reduction, as produced by the *_embed_test.py scripts """
 
+import matplotlib as mpl
+mpl.use('pdf')	# needed so that you can plot in a batch job with no X server (undefined $DISPLAY) problems
+
 import numpy as np
 import pylab as P
 from optparse import OptionParser
@@ -12,7 +15,7 @@ op.add_option("--lle",
 op.add_option("--iso",
               dest="isoinput", help="Read ISOMAP data input from this file.")
 op.add_option("--output",
-              dest="outfile", help="Write the EPS figure to this file.")
+              dest="outfile", help="Write the pdf figure to this file.")
 (opts, args) = op.parse_args()
 
 # Load the data matrices
