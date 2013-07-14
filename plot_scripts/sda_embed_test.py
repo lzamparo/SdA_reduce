@@ -1,7 +1,7 @@
 from sklearn import metrics
 from sklearn.cluster import KMeans
 
-import logging, os
+import logging, os, re
 from optparse import OptionParser
 import sys
 
@@ -17,8 +17,10 @@ logging.basicConfig(level=logging.INFO,
 op = OptionParser()
 op.add_option("--h5file",
               dest="inputfile", help="Read data labels from this hdf5 file.")
-op.add_option("--reduced",
-              dest="reduceddata", help="Read the SdA reduced data from this hdf5 file.")
+op.add_option("--reducedbasedir",
+              dest="basedir", help="Base input directory for all reduced data files.")
+op.add_option("--reducedfile",
+              dest="reducedfile", help="Read the reduced data from this file.")
 op.add_option("--size",
               dest="size", type="int", help="Use this many chunks of labeled data for the test.")
 op.add_option("--iters",
@@ -34,8 +36,25 @@ np.random.seed(0)
 ###############################################################################
 # Load a training set from the given .h5 file
 datafile = openFile(opts.inputfile, mode = "r", title = "Data is stored here")
-reduced_data_file = openFile(opts.reduceddata, mode = "r", title = "SdA reduced data stored here")
+
+# Load the reduced data from the base + name
+reduced_file_path = os.path.join(opts.basedir,opts.reducedfile)
+#debug
+print "read from: " + reduced_file_path
+reduced_data_file = openFile(reduced_file_path, mode = "r", title = "SdA reduced data stored here")
 arrays_list = reduced_data_file.listNodes("/recarrays", classname='Array')
+
+# Extract model name
+model_name = re.compile("reduce_SdA.([\d_]+).*")  
+match = model_regex.match(opts.reducedfile)
+if match is not None:    
+        this_model = match.groups()[0]
+        # debug
+        print "Extracted model name: " + this_model
+else:
+        print "Could not extract model name from this file"
+        sys.exit()
+
 
 # Load the reduced data from a different file
 X_reduced = extract_unlabeled_chunkrange(reduced_data_file, opts.size)
@@ -68,7 +87,7 @@ for j in range(0,opts.iters,1):
         
 
 # Save the data to a file
-outfile = os.path.join(opts.outputdir,"sda_embed_output.npy")
+outfile = os.path.join(opts.outputdir,this_model + ".npy")
 f = open(outfile, 'w')
 np.save(f, SdA_results)
 f.close()
