@@ -72,6 +72,10 @@ num_pts = labels.shape[0]
 X_data = X_reduced[0:num_pts,:]
 assert(labels.shape[0] == X_data.shape[0])
 
+#debug
+print "Got here successfully, should be good to go"
+sys.exit()
+
 ###############################################################################
 
 # Build the output array

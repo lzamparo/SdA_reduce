@@ -8,7 +8,7 @@ len=${#arr[*]}
 for((i=0; i<=$len; i+=1 ))
 do
     infile=${arr[$i]}
-    echo submit_sda_et.sh -v REDUCEDFILE="$infile"
+    qsub submit_sda_et.sh -v REDUCEDFILE="$infile"
     sleep 5   
 done
 
