@@ -46,7 +46,7 @@ print "...Finding top 10 models by mean homogeneity score"
 print "Top ten archs: " 
 
 sorted_layer_results = sorted(results.items(), key=lambda t: t[1], reverse=True)
-for i in range(0,10):
+for i in range(0,20):
     model, score = sorted_layer_results[i]
     print str(i) + ": " + model + " , " + str(score)
     

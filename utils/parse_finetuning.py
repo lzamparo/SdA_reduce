@@ -1,5 +1,5 @@
 """ Process all the model finetuning output files in the given directory
-and produce a ranking of top 10 models based on reconstruction error.
+and produce a ranking of top 20 models based on reconstruction error.
 
 Files names look like this: finetune_sda_900_500_100_50.2013-06-16.02:25:26.981658
 
@@ -73,7 +73,7 @@ print "...Finding top 10 scoring results"
 print "Top ten archs: " 
 
 sorted_layer_results = sorted(results.items(), key=lambda t: t[1])
-for i in range(0,10):
+for i in range(0,20):
     model, score = sorted_layer_results[i]
     print str(i) + ": " + model + " , " + str(score)
     
