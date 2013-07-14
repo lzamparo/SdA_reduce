@@ -39,9 +39,9 @@ P.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMA
 
 P.xlim(0,6)
 P.ylim(0,0.45)
-P.title('Average homogenaity for K = 3')
+P.title('Average homogeneity for K = 3')
 P.xlabel('Dimensions')
-P.ylabel('Average Homogenaity')
+P.ylabel('Average Homogeneity')
 locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
 P.xticks(locs,['',50,40,30,20,10])
 P.legend(loc = 3)    # legend lower left
