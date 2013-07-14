@@ -39,8 +39,6 @@ datafile = openFile(opts.inputfile, mode = "r", title = "Data is stored here")
 
 # Load the reduced data from the base + name
 reduced_file_path = os.path.join(opts.basedir,opts.reducedfile)
-#debug
-print "read from: " + reduced_file_path
 reduced_data_file = openFile(reduced_file_path, mode = "r", title = "SdA reduced data stored here")
 arrays_list = reduced_data_file.listNodes("/recarrays", classname='Array')
 
@@ -49,8 +47,6 @@ model_regex = re.compile("reduce_SdA.([\d_]+).*")
 match = model_regex.match(opts.reducedfile)
 if match is not None:    
         this_model = match.groups()[0]
-        # debug
-        print "Extracted model name: " + this_model
 else:
         print "Could not extract model name from this file"
         sys.exit()
@@ -72,9 +68,6 @@ num_pts = labels.shape[0]
 X_data = X_reduced[0:num_pts,:]
 assert(labels.shape[0] == X_data.shape[0])
 
-#debug
-print "Got here successfully, should be good to go"
-sys.exit()
 
 ###############################################################################
 
