@@ -45,7 +45,7 @@ reduced_data_file = openFile(reduced_file_path, mode = "r", title = "SdA reduced
 arrays_list = reduced_data_file.listNodes("/recarrays", classname='Array')
 
 # Extract model name
-model_name = re.compile("reduce_SdA.([\d_]+).*")  
+model_regex = re.compile("reduce_SdA.([\d_]+).*")  
 match = model_regex.match(opts.reducedfile)
 if match is not None:    
         this_model = match.groups()[0]
