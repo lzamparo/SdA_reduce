@@ -64,13 +64,13 @@ ax.annotate('SdA Top 5', xy=(1, 0.435), xytext=(6, 0.425),
             arrowprops=dict(facecolor='black', shrink=0.05),
             )
 
-ax.xlim(0,6)
-ax.ylim(0,0.45)
-ax.title('Average homogeneity for K = 3')
-ax.xlabel('Dimensions')
-ax.ylabel('Average Homogeneity')
+P.xlim(0,6)
+P.ylim(0,0.45)
+P.title('Average homogeneity for K = 3')
+P.xlabel('Dimensions')
+P.ylabel('Average Homogeneity')
 locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
-ax.xticks(locs,['',50,40,30,20,10])
-ax.legend(loc = 3)    # legend lower left
+P.xticks(locs,['',50,40,30,20,10])
+P.legend(loc = 3)    # legend lower left
 
 P.savefig(opts.outfile, dpi=100, format="pdf")
