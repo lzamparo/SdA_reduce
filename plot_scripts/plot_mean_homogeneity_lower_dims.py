@@ -59,7 +59,7 @@ for model in top5:
     model_results = np.load(input_npy)
     sda_top5.append(np.mean(model_results))
 
-ax.plot([1,1,1,1,1],sda_top5,'y*',label="SdA",markersize=8)
+ax.plot([1,1,1,1,1],sda_top5,'y*',label="SdA",markersize=10)
 
 
 offsetbox = TextArea("SdA Top 5", minimumdescent=False)
