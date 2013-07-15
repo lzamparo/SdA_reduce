@@ -63,10 +63,10 @@ ax.plot([1,1,1,1,1],sda_top5,'y*')
 
 
 offsetbox = TextArea("SdA Top 5", minimumdescent=False)
-xy = (1, 0.44)
+xy = (1, 0.435)
 
 ab = AnnotationBbox(offsetbox, xy,
-                    xybox=(1.02, xy[1]),
+                    xybox=(0.8, xy[1]),
                     xycoords='data',
                     boxcoords=("axes fraction", "data"),
                     box_alignment=(0.,0.5),
