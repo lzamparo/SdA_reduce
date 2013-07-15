@@ -3,6 +3,8 @@
 import matplotlib as mpl
 mpl.use('pdf')	# needed so that you can plot in a batch job with no X server (undefined $DISPLAY) problems
 
+from matplotlib.offsetbox import TextArea, AnnotationBbox
+
 import numpy as np
 import pylab as P
 import os
@@ -59,10 +61,17 @@ for model in top5:
 
 ax.plot([1,1,1,1,1],sda_top5,'y*')
 
-# annotate the gold stars
-ax.annotate('SdA Top 5', xy=(1, 0.435), xytext=(6, 0.425),
-            arrowprops=dict(facecolor='black', shrink=0.05),
-            )
+
+offsetbox = TextArea("SdA Top 5", minimumdescent=False)
+xy = (1, 0.44)
+
+ab = AnnotationBbox(offsetbox, xy,
+                    xybox=(1.02, xy[1]),
+                    xycoords='data',
+                    boxcoords=("axes fraction", "data"),
+                    box_alignment=(0.,0.5),
+                    arrowprops=dict(arrowstyle="->"))
+ax.add_artist(ab)
 
 P.xlim(0,6)
 P.ylim(0,0.45)
