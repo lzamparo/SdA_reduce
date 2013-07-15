@@ -5,6 +5,7 @@ mpl.use('pdf')	# needed so that you can plot in a batch job with no X server (un
 
 import numpy as np
 import pylab as P
+import os
 from optparse import OptionParser
 
 op = OptionParser()
@@ -14,6 +15,8 @@ op.add_option("--lle",
               dest="lleinput", help="Read LLE data input from this file.")
 op.add_option("--iso",
               dest="isoinput", help="Read ISOMAP data input from this file.")
+op.add_option("--sda",
+              dest="sdainput", help="Read SdA models data input from this file.")
 op.add_option("--output",
               dest="outfile", help="Write the pdf figure to this file.")
 (opts, args) = op.parse_args()
@@ -39,6 +42,21 @@ x = np.arange(1,6,1)
 P.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1.5, fmt='--o')
 P.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
 P.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
+
+# Add in the top 5 performing SdA models
+#0: 1000_700_400_50 , 0.492122026616
+#1: 700_500_300_50 , 0.43154219181
+#2: 700_700_100_50 , 0.428561885442
+#3: 1000_600_300_50 , 0.400669383048
+#4: 700_900_100_50 , 0.39662856001
+sda_top5 = []
+top5 = ['1000_700_400_50','700_500_300_50','700_700_100_50','1000_600_300_50','700_900_100_50']
+for model in top5:
+    input_npy = os.path.join(opts.sdainput,model + ".npy")
+    model_results = np.load(input_npy)
+    sda_top5.append(np.mean(model_results))
+
+P.plot([1,1,1,1,1],sda_top5,'y*')
 
 P.xlim(0,6)
 P.ylim(0,0.45)
