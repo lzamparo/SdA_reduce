@@ -1,5 +1,6 @@
 from sklearn import metrics
 from sklearn.cluster import KMeans
+from sklearn.mixture import GMM
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import scale
 
@@ -57,8 +58,8 @@ datafile.close()
 
 # Build the output arrays
 cells = opts.high / opts.step
-pca_results = np.zeros((cells,opts.iters))
-
+pca_km_results = np.zeros((cells,opts.iters))
+pca_gmm_results = np.zeros((cells,opts.iters))
 
 pca = PCA(n_components=opts.high)
 D = scale(X[:,0:612])
@@ -73,15 +74,21 @@ for i in dimension_list:
     
     for j in range(0,opts.iters,1):
         km = KMeans(k=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  
+        gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=100)
         #print "Clustering Isomap data with %s" % km        
         km.fit(X_pca[:,0:(i-1)])
-        
-        print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)        
-        pca_results[index,j] = metrics.homogeneity_score(labels[:,0], km.labels_)
+        gaussmix.fit(X_pca[:,0:(i-1)])
+        gaussmix_labels = gaussmix.predict(X_pca[:,0:(i-1)])
+        print "K-means homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)
+        print "Gaussian mixture homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], gaussmix_labels)
+        pca_km_results[index,j] = metrics.homogeneity_score(labels[:,0], km.labels_)
+        pca_gmm_results[index,j] = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
+         
         
 # Take the mean across runs?
 #pca_means = pca_results.mean(axis=1)
 
 # Save the data to a file:
 #np.savetxt("pca_results.txt", pca_means)
-np.save(opts.outputfile, pca_results)
+np.save(opts.outputfile + "kmeans", pca_km_results)
+np.save(opts.outputfile + "gmm", pca_gmm_results)
