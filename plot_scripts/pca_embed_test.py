@@ -90,5 +90,5 @@ for i in dimension_list:
 
 # Save the data to a file:
 #np.savetxt("pca_results.txt", pca_means)
-np.save(opts.outputfile + "kmeans", pca_km_results)
-np.save(opts.outputfile + "gmm", pca_gmm_results)
+np.save(opts.outputfile + "_kmeans", pca_km_results)
+np.save(opts.outputfile + "_gmm", pca_gmm_results)
