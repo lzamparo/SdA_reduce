@@ -78,7 +78,7 @@ for i in dimension_list:
         #print "Clustering Isomap data with %s" % km       
         km.fit(X_iso)
         gaussmix.fit(X_iso)
-        gaussmix_labels = gaussmix.predict(X_lle)
+        gaussmix_labels = gaussmix.predict(X_iso)
         
         print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)        
         print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], gaussmix_labels)

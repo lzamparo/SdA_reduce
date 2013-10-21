@@ -1,5 +1,6 @@
 from sklearn import metrics
 from sklearn.cluster import KMeans
+from sklearn.mixture import GMM
 
 import logging, os, re
 from optparse import OptionParser
@@ -72,19 +73,27 @@ assert(labels.shape[0] == X_data.shape[0])
 ###############################################################################
 
 # Build the output array
-SdA_results = np.zeros((1,opts.iters))
-
+SdA_kmeans_results = np.zeros((1,opts.iters))
+SdA_gmm_results = np.zeros((1,opts.iters))
     
 for j in range(0,opts.iters,1):
-    km = KMeans(k=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)         
-    km.fit(X_data)
-    
-    print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)        
-    SdA_results[0,j] = metrics.homogeneity_score(labels[:,0], km.labels_)
+        km = KMeans(n_clusters=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)         
+        km.fit(X_data)
+        gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=100)
+        gaussmix.fit(X_data)
+        gaussmix_labels = gaussmix.predict(X_data)        
+        print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_) 
+        print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], gaussmix_labels)
         
+        SdA_kmeans_results[0,j] = metrics.homogeneity_score(labels[:,0], km.labels_)
+        SdA_gmm_results[0,j] = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
 
 # Save the data to a file
-outfile = os.path.join(opts.outputdir,this_model + ".npy")
-f = open(outfile, 'w')
-np.save(f, SdA_results)
+kmeans_outfile = os.path.join(opts.outputdir,this_model + "kmeans.npy")
+gmm_outfile = os.path.join(opts.outputdir,this_model + "gmm.npy")
+f = open(kmeans_outfile, 'w')
+np.save(f, SdA_kmeans_results)
+f.close()
+f = open(gmm_outfile,'w')
+np.save(f, SdA_gmm_results)
 f.close()
