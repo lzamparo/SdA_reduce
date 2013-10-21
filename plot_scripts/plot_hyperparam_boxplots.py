@@ -13,7 +13,7 @@ import sys, re, os
 import numpy as np
 from collections import OrderedDict
 
-from pylab import savefig, figure, boxplot, xticks, xlabel, ylabel, title, subplot
+from pylab import savefig, figure, boxplot, xticks, xlabel, ylabel, title, subplot, tight_layout
 
 # Extract the parameter name, value from each filename.
 # Value can be in the last two parts of the match.groups() list, if it is in scientific notation.
@@ -113,8 +113,8 @@ for layer in results.keys():
             
 print "...Plot the four panels"
 
-subplot_codes = {'0': 411, '1': 412, '2': 421, '3': 422}
-y_labels = {'0': 'Reconstruction for Layer 0', '1': 'Reconstruction for Layer 1', '2': 'Reconstruction for Layer 2', '3': 'Reconstruction for Layer 3'}
+subplot_codes = {'0': 221, '1': 222, '2': 223, '3': 224}
+y_labels = {'0': 'Layer 0', '1': 'Layer 1', '2': 'Layer 2', '3': 'Layer 3'}
 
 figure(1)
 
@@ -133,10 +133,12 @@ for layer in results.keys():
     boxplot(data, notch=True)
     labels = ('lr', 'mom', 'cpt', 'wd')
     xticks(range(1,5),labels, rotation=0)
-    xlabel('Hyper-parameter')
-    ylabel(y_labels[layer])
+    
+    xlabel('Hyper-parameter',fontsize=11)
+    ylabel(y_labels[layer],fontsize=11)
 
 os.chdir(currdir)
+tight_layout()
 savefig("hyperparams.pdf", dpi=100, format="pdf")
 
 
