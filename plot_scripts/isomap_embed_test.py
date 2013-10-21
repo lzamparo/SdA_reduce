@@ -1,5 +1,6 @@
 from sklearn import metrics
 from sklearn.cluster import KMeans
+from sklearn.mixture import GMM
 from sklearn.preprocessing import scale
 from sklearn.manifold import Isomap
 
@@ -57,7 +58,8 @@ datafile.close()
 
 # Build the output arrays
 cells = opts.high / opts.step
-isomap_results = np.zeros((cells,opts.iters))
+isomap_kmeans_results = np.zeros((cells,opts.iters))
+isomap_gmm_results = np.zeros((cells,opts.iters))
 
 D = scale(X[:,0:612])
 
@@ -72,17 +74,21 @@ for i in dimension_list:
      
     for j in range(0,opts.iters,1):
         km = KMeans(n_clusters=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  
-        
+        gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=100)
         #print "Clustering Isomap data with %s" % km       
         km.fit(X_iso)
+        gaussmix.fit(X_iso)
+        gaussmix_labels = gaussmix.predict(X_lle)
         
         print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)        
-        isomap_results[index,j] = metrics.homogeneity_score(labels[:,0], km.labels_)
-        
+        print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], gaussmix_labels)
+        isomap_kmeans_results[index,j] = metrics.homogeneity_score(labels[:,0], km.labels_)
+        isomap_gmm_results[index,j] = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
         
 # Take the mean across runs?
 #isomap_means = isomap_results.mean(axis=1)
 
 # Save the data to a file:
 #np.savetxt("pca_results.txt", isomap_results)
-np.save(opts.outputfile,isomap_results)
+np.save(opts.outputfile+ "_kmeans",isomap_kmeans_results)
+np.save(opts.outputfile+ "_gmm",isomap_gmm_results)
