@@ -11,7 +11,7 @@ from time import time
 
 import numpy as np
 from tables import *
-from utils.extract_datasets import extract_labeled_chunkrange
+from extract_datasets import extract_labeled_chunkrange
 
 # Display progress logs on stdout
 logging.basicConfig(level=logging.INFO,
