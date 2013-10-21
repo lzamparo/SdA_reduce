@@ -70,7 +70,7 @@ n_neighbors = 20
 dimension_list = range(opts.low, opts.high + 1, opts.step)
 for i in dimension_list:
     index = (i / opts.step) - 1 
-    X_iso = Isomap(n_neighbors, out_dim=i).fit_transform(D)
+    X_iso = Isomap(n_neighbors, n_components=i).fit_transform(D)
      
     for j in range(0,opts.iters,1):
         km = KMeans(n_clusters=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  
