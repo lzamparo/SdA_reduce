@@ -73,7 +73,7 @@ for i in dimension_list:
     index = (i / opts.step) - 1    
     
     for j in range(0,opts.iters,1):
-        km = KMeans(k=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  
+        km = KMeans(n_clusters=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  
         gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=100)
         #print "Clustering Isomap data with %s" % km        
         km.fit(X_pca[:,0:(i-1)])

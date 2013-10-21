@@ -73,7 +73,7 @@ for i in dimension_list:
     X_lle = clf.fit_transform(D)
     
     for j in range(0,opts.iters,1):
-        km = KMeans(k=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  
+        km = KMeans(n_clusters=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  
         #print "Clustering LLE data with %s" % km
         
         km.fit(X_lle)
