@@ -88,11 +88,11 @@ ax.plot([1,1,1,1,1],sda_top5,'y*',label="SdA",markersize=10)
 
 P.xlim(0,6)
 P.ylim(0,0.50)
-P.title('Average homogeneity for 3 component Gaussian mixture model test')
-P.xlabel('Dimensions')
+P.title('3-component Gaussian mixture model test')
+P.xlabel('Dimension of the Data')
 P.ylabel('Average Homogeneity')
 locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
 P.xticks(locs,['',50,40,30,20,10])
-P.legend(loc = 3)    # legend lower left
+P.legend(loc = 7)    # legend centre right
 
 P.savefig(opts.outfile, dpi=100, format="pdf")
