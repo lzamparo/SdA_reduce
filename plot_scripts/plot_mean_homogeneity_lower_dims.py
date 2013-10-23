@@ -93,6 +93,6 @@ P.xlabel('Dimension of the Data')
 P.ylabel('Average Homogeneity')
 locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
 P.xticks(locs,['',50,40,30,20,10])
-P.legend(loc = 7)    # legend centre right
+P.legend(loc = 7,numpoints=1,fontsize=10)    # legend centre right
 
 P.savefig(opts.outfile, dpi=100, format="pdf")
