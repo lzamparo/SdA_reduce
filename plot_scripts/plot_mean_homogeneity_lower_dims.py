@@ -64,8 +64,8 @@ ax.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOM
 #4: 1000_700_400_50gmm , 0.417046781346
 
 sda_top5 = []
-kmeans_top5 = ['1000_700_400_50','700_500_300_50','700_700_100_50','1000_600_300_50','700_900_100_50']
-gmm_top5 = ['700_700_100_50','1000_700_200_50','1000_600_300_50','800_900_400_50','1000_700_400_50']
+kmeans_top5 = ['1000_700_400_50kmeans','700_500_300_50kmeans','700_700_100_50kmeans','1000_600_300_50kmeans','700_900_100_50kmeans']
+gmm_top5 = ['700_700_100_50gmm','1000_700_200_50gmm','1000_600_300_50gmm','800_900_400_50gmm','1000_700_400_50gmm']
 
 for model in gmm_top5:
     input_npy = os.path.join(opts.sdainput,model + ".npy")
