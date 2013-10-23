@@ -75,20 +75,20 @@ for model in gmm_top5:
 ax.plot([1,1,1,1,1],sda_top5,'y*',label="SdA",markersize=10)
 
 
-offsetbox = TextArea("SdA Top 5", minimumdescent=False)
-xy = (1, 0.432)
+#offsetbox = TextArea("SdA Top 5", minimumdescent=False)
+#xy = (1, 0.432)
 
-ab = AnnotationBbox(offsetbox, xy,
-                    xybox=(0.85, xy[1]),
-                    xycoords='data',
-                    boxcoords=("axes fraction", "data"),
-                    box_alignment=(0.,0.5),
-                    arrowprops=dict(arrowstyle="->"))
-ax.add_artist(ab)
+#ab = AnnotationBbox(offsetbox, xy,
+#                    xybox=(0.85, xy[1]),
+#                    xycoords='data',
+#                    boxcoords=("axes fraction", "data"),
+#                    box_alignment=(0.,0.5),
+#                    arrowprops=dict(arrowstyle="->"))
+#ax.add_artist(ab)
 
 P.xlim(0,6)
-P.ylim(0,0.45)
-P.title('Average homogeneity for K = 3')
+P.ylim(0,0.50)
+P.title('Average homogeneity for 3 component Gaussian mixture model test')
 P.xlabel('Dimensions')
 P.ylabel('Average Homogeneity')
 locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
