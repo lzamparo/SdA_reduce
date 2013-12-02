@@ -82,8 +82,8 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
         os.chdir(current_dir)
     else:
         print '... building the model'
-        arch_list_str = private_args['arch'].split("-")
-        arch_list = [int(item) for item in arch_list_str]
+        arch_list = get_arch_list(private_args)
+        
         corruption_list = [shared_args_dict['corruption'] for i in arch_list]
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=arch_list,
@@ -135,7 +135,25 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
     output_file.close()        
+
+
+
+def get_arch_list(private_args):
+    """ Grab the string representation of the model architecture, put each layer element in a list
     
+        :type private_args: dict
+        :param private_args: argument dictionary for the given models
+    
+    """
+    arch_str = private_args['arch']
+    arch_str_canonical = arch_str.replace('_','-')
+    arch_list_str = arch_str_canonical.split("-")
+    arch_list = [int(item) for item in arch_list_str]
+    if len(arch_list) > 1:
+        return arch_list
+    else:
+        errormsg = 'architecture is improperly specified : ' + arch_list[0] 
+        raise ValueError(errormsg)
     
 
 if __name__ == '__main__':
