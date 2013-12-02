@@ -14,9 +14,9 @@
 
 # Run the job
 
-# To make substitutions from a higher up script: -a $FIRSTMODEL -b $SECONDMODEL -o $OFFSET
+# To make substitutions from a higher up script: -a $FIRSTMODEL -b $SECONDMODEL -o $OFFSET -d $OUTDIRSUFFIX
 cd $PBS_O_WORKDIR
-python pretrain_SdA_multiproc.py -d "${SCRATCH}/gpu_models/SdA/pretrain_output/batch_100_size_25ch_mom_0.8_wd_0.00001_lr_0.005" -c 0.10 -a $FIRSTMODEL -b $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET
+python pretrain_SdA_multiproc.py -d "${SCRATCH}/gpu_models/SdA/pretrain_output/$OUTDIRSUFFIX" -c 0.10 -a $FIRSTMODEL -b $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET
 
 
 
