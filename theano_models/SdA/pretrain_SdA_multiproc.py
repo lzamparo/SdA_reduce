@@ -179,7 +179,7 @@ if __name__ == '__main__':
     shared_args['dir'] = options.dir
     shared_args['input'] = options.inputfile
     shared_args['momentum'] = 0.8
-    shared_args['weight_decay'] = 0.00001
+    shared_args['weight_decay'] = 0.0
     shared_args['learning_rate'] = 0.005    
     shared_args['corruption'] = options.corruption
     shared_args['offset'] = options.offset
