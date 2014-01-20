@@ -20,7 +20,7 @@ do
     let prev=$i-1
     first="${modelList[$i]}$outputLayer"
     second="${modelList[$prev]}$outputLayer"
-    echo submit_pretrain_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer"
+    qsub submit_pretrain_gravity.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer"
     ((offset+=5))
     sleep 5
     
