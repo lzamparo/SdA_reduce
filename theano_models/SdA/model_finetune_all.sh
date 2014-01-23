@@ -2,7 +2,7 @@
 
 # Batch qsub submission script for model search over SdA layer sizes 
 
-arr=(`ls $SCRATCH/gpu_models/SdA/pretrain_pkl_files/30/`)
+arr=(`ls $SCRATCH/gpu_models/SdA/pretrain_pkl_files/20/`)
 offset=0
 len=${#arr[*]}
 
