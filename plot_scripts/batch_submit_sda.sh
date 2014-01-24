@@ -2,7 +2,7 @@
 
 # Batch qsub submission script to calculate homogeneity test results for each reduced data file 
 
-arr=(`ls $SCRATCH/gpu_models/SdA/reduced_data/batch_1000_size_25ch_mom_0.8_wd_0.00001_lr_0.005/`)
+arr=(`ls $SCRATCH/gpu_models/SdA/reduced_data/40`)
 len=${#arr[*]}
 
 for((i=0; i<=$len; i+=1 ))
