@@ -2,7 +2,7 @@
 
 # Batch qsub submission script to produce reduced data for each model of SdA
 
-arr=(`ls $SCRATCH/gpu_models/SdA/finetune_pkl_files/20/`)
+arr=(`ls $SCRATCH/gpu_models/SdA/finetune_pkl_files/10/`)
 len=${#arr[*]}
 
 for((i=1; i<=$len; i+=2 ))
