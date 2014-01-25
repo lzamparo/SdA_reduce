@@ -9,4 +9,4 @@
 
 # Run the job
 cd $PBS_O_WORKDIR
-python sda_embed_test.py --h5file "${SCRATCH}/sm_rep1_data/sample.h5" --reducedbasedir "${SCRATCH}/gpu_models/SdA/reduced_data/40/" --reducedfile $REDUCEDFILE --size 3 --iters 5 --outputdir "${SCRATCH}/figures/setdata/40/" 
+python sda_embed_test.py --h5file "${SCRATCH}/sm_rep1_data/sample.h5" --reducedbasedir "${SCRATCH}/gpu_models/SdA/reduced_data/30/" --reducedfile $REDUCEDFILE --size 3 --iters 5 --outputdir "${SCRATCH}/figures/setdata/40/" 
