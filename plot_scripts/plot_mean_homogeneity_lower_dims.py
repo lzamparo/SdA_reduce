@@ -13,6 +13,7 @@ import pylab as P
 import os
 from optparse import OptionParser
 from parse_homogeneity_results import return_top, parse_dir
+import pdb
 
 op = OptionParser()
 op.add_option("--pca",
@@ -63,6 +64,7 @@ dims_list = [i for i in dims_list if i.endswith('0')]
 sda_results = []
 
 for i, dim in enumerate(dims_list):
+    pdb.set_trace()
     parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'gmm'))
     results_dict = return_top(parsed_vals,n)
     sda_results.append(results_dict.values())
