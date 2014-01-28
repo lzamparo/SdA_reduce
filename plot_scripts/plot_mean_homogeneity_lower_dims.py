@@ -40,6 +40,9 @@ lle_std = lle.std(axis = 1)
 isomap_means = isomap.mean(axis = 1)
 isomap_std = isomap.std(axis = 1)
 
+# Compare the top n models for SdA against PCA, LLE, ISOMAP
+n = 5
+
 ####################  GMM test ####################
 
 # Plot the mean for each results matrix with standard deviation bars
@@ -58,7 +61,7 @@ dims_list = [i for i in dims_list if i.endswith('0')]
 # dive in and extract the top n models (n = 5) from each dim
 # fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
 sda_results = []
-n = 5
+
 
 for dim, i in enumerate(dims_list):
     parsed_vals = parse_dir(os.path.join(opts.sdainput,dim,'gmm'))
@@ -96,7 +99,6 @@ dims_list = [i for i in dims_list if i.endswith('0')]
 # dive in and extract the top n models (n = 20) from each dim
 # fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
 sda_results = []
-n = 20
 
 for dim, i in enumerate(dims_list):
     parsed_vals = parse_dir(os.path.join(opts.sdainput,dim,'kmeans'))
