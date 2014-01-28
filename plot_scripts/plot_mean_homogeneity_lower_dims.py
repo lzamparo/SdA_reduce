@@ -62,9 +62,8 @@ dims_list = [i for i in dims_list if i.endswith('0')]
 # fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
 sda_results = []
 
-
 for dim, i in enumerate(dims_list):
-    parsed_vals = parse_dir(os.path.join(opts.sdainput,dim,'gmm'))
+    parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'gmm'))
     results_dict = return_top(parsed_vals,n)
     sda_results.append(results_dict.values())
     x_vals = np.ones((n,),dtype=np.int) * (i + 1)
@@ -101,7 +100,7 @@ dims_list = [i for i in dims_list if i.endswith('0')]
 sda_results = []
 
 for dim, i in enumerate(dims_list):
-    parsed_vals = parse_dir(os.path.join(opts.sdainput,dim,'kmeans'))
+    parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'kmeans'))
     results_dict = return_top(parsed_vals,n)
     sda_results.append(results_dict.values())
     x_vals = np.ones((n,),dtype=np.int) * (i + 1)
