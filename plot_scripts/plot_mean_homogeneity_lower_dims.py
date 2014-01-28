@@ -44,6 +44,13 @@ isomap_std = isomap.std(axis = 1)
 # Compare the top n models for SdA against PCA, LLE, ISOMAP
 n = 5
 
+# read all dimension folders below opts.sdainput
+# plot the points in order of highest to lowest dimension, hence the sort & reverse.
+dims_list = os.listdir(opts.sdainput)
+dims_list = [i for i in dims_list if i.endswith('0')]
+dims_list.sort()
+dims_list.reverse()
+
 ####################  GMM test ####################
 
 # Plot the mean for each results matrix with standard deviation bars
@@ -55,22 +62,17 @@ ax.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1
 ax.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
 ax.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
 
-# read all dimension folders below opts.sdainput
-dims_list = os.listdir(opts.sdainput)
-dims_list = [i for i in dims_list if i.endswith('0')]
-
 # dive in and extract the top n models (n = 5) from each dim
 # fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
 sda_results = []
 
 for i, dim in enumerate(dims_list):
-    pdb.set_trace()
     parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'gmm'))
     results_dict = return_top(parsed_vals,n)
     labels, scores= [list(t) for t in zip(*results_dict)]
     sda_results.append(scores)
     x_vals = np.ones((n,),dtype=np.int) * (i + 1)
-    ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA",markersize=10)
+    ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA" if i == 0 else "_no_legend",markersize=9)
 
 P.xlim(0,6)
 P.ylim(0,0.50)
@@ -94,10 +96,6 @@ ax.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1
 ax.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
 ax.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
 
-# read all dimension folders below opts.sdainput
-dims_list = os.listdir(opts.sdainput)
-dims_list = [i for i in dims_list if i.endswith('0')]
-
 # dive in and extract the top n models (n = 20) from each dim
 # fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
 sda_results = []
@@ -108,7 +106,7 @@ for i, dim in enumerate(dims_list):
     labels, scores= [list(t) for t in zip(*results_dict)]
     sda_results.append(scores)
     x_vals = np.ones((n,),dtype=np.int) * (i + 1)
-    ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA",markersize=10)
+    ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA" if i == 0 else "_no_legend",markersize=9)
 
 P.xlim(0,6)
 P.ylim(0,0.50)
@@ -117,6 +115,8 @@ P.xlabel('Dimension of the Data')
 P.ylabel('Average Homogeneity')
 locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
 P.xticks(locs,['',50,40,30,20,10])
+
+
 P.legend(loc = 7,numpoints=1)    # legend centre right
 outfile = opts.outfile + ".kmeans.pdf"
 P.savefig(opts.outfile, dpi=100, format="pdf")
