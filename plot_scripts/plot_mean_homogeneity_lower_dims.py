@@ -1,6 +1,6 @@
 """ Plot the line graph with standard deviations of each of the algorithms for dimensionality reduction, as produced by the *_embed_test.py scripts 
 
-N.B: the top 5 models list is hard-coded within, one list for k-means and one list for gmm with tied covariance.  Specify which top 5 list to use in the script.
+Writes two pdf files to the outfile prefix: .gmm.pdf and .kmeans.pdf, depending on the clustering model used to measure homogeneity.
 """
 
 import matplotlib as mpl
@@ -12,6 +12,7 @@ import numpy as np
 import pylab as P
 import os
 from optparse import OptionParser
+from parse_homogeneity_results import return_top, parse_dir
 
 op = OptionParser()
 op.add_option("--pca",
@@ -21,9 +22,9 @@ op.add_option("--lle",
 op.add_option("--iso",
               dest="isoinput", help="Read ISOMAP data input from this file.")
 op.add_option("--sda",
-              dest="sdainput", help="Read SdA models data input from this directory.")
+              dest="sdainput", help="Read SdA models data input below this directory.")
 op.add_option("--output",
-              dest="outfile", help="Write the pdf figure to this file.")
+              dest="outfile", help="Write the pdf figures to this file prefix.")
 (opts, args) = op.parse_args()
 
 # Load the data matrices
@@ -39,6 +40,7 @@ lle_std = lle.std(axis = 1)
 isomap_means = isomap.mean(axis = 1)
 isomap_std = isomap.std(axis = 1)
 
+####################  GMM test ####################
 
 # Plot the mean for each results matrix with standard deviation bars
 fig = P.figure()
@@ -49,42 +51,21 @@ ax.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1
 ax.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
 ax.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
 
-# Top 5 performing SdA models for K-means
-#0: 1000_700_400_50 , 0.492122026616
-#1: 700_500_300_50 , 0.43154219181
-#2: 700_700_100_50 , 0.428561885442
-#3: 1000_600_300_50 , 0.400669383048
-#4: 700_900_100_50 , 0.39662856001
+# read all dimension folders below opts.sdainput
+dims_list = os.listdir(opts.sdainput)
+dims_list = [i for i in dims_list if i.endswith('0')]
 
-# Top 5 performing SdA models for GMM with tied covariance
-#0: 700_700_100_50gmm , 0.480118285194
-#1: 1000_700_200_50gmm , 0.461788142347
-#2: 1000_600_300_50gmm , 0.441925445624
-#3: 800_900_400_50gmm , 0.423992655379
-#4: 1000_700_400_50gmm , 0.417046781346
+# dive in and extract the top n models (n = 5) from each dim
+# fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
+sda_results = []
+n = 5
 
-sda_top5 = []
-kmeans_top5 = ['1000_700_400_50kmeans','700_500_300_50kmeans','700_700_100_50kmeans','1000_600_300_50kmeans','700_900_100_50kmeans']
-gmm_top5 = ['700_700_100_50gmm','1000_700_200_50gmm','1000_600_300_50gmm','800_900_400_50gmm','1000_700_400_50gmm']
-
-for model in gmm_top5:
-    input_npy = os.path.join(opts.sdainput,model + ".npy")
-    model_results = np.load(input_npy)
-    sda_top5.append(np.mean(model_results))
-
-ax.plot([1,1,1,1,1],sda_top5,'y*',label="SdA",markersize=10)
-
-
-#offsetbox = TextArea("SdA Top 5", minimumdescent=False)
-#xy = (1, 0.432)
-
-#ab = AnnotationBbox(offsetbox, xy,
-#                    xybox=(0.85, xy[1]),
-#                    xycoords='data',
-#                    boxcoords=("axes fraction", "data"),
-#                    box_alignment=(0.,0.5),
-#                    arrowprops=dict(arrowstyle="->"))
-#ax.add_artist(ab)
+for dim, i in enumerate(dims_list):
+    parsed_vals = parse_dir(os.path.join(opts.sdainput,dim,'gmm'))
+    results_dict = return_top(parsed_vals,n)
+    sda_results.append(results_dict.values())
+    x_vals = np.ones((n,),dtype=np.int) * (i + 1)
+    ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA",markersize=10)
 
 P.xlim(0,6)
 P.ylim(0,0.50)
@@ -95,4 +76,42 @@ locs, labels = P.xticks()   # get the xtick location and labels, re-order them s
 P.xticks(locs,['',50,40,30,20,10])
 P.legend(loc = 7,numpoints=1)    # legend centre right
 
+outfile = opts.outfile + ".gmm.pdf"
+P.savefig(outfile, dpi=100, format="pdf")
+
+####################  K-means test ####################
+
+fig = P.figure()
+ax = fig.add_subplot(111)
+
+x = np.arange(1,6,1)
+ax.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1.5, fmt='--o')
+ax.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
+ax.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
+
+# read all dimension folders below opts.sdainput
+dims_list = os.listdir(opts.sdainput)
+dims_list = [i for i in dims_list if i.endswith('0')]
+
+# dive in and extract the top n models (n = 20) from each dim
+# fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
+sda_results = []
+n = 20
+
+for dim, i in enumerate(dims_list):
+    parsed_vals = parse_dir(os.path.join(opts.sdainput,dim,'kmeans'))
+    results_dict = return_top(parsed_vals,n)
+    sda_results.append(results_dict.values())
+    x_vals = np.ones((n,),dtype=np.int) * (i + 1)
+    ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA",markersize=10)
+
+P.xlim(0,6)
+P.ylim(0,0.50)
+P.title('3-component K-means mixture model test')
+P.xlabel('Dimension of the Data')
+P.ylabel('Average Homogeneity')
+locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
+P.xticks(locs,['',50,40,30,20,10])
+P.legend(loc = 7,numpoints=1)    # legend centre right
+outfile = opts.outfile + ".kmeans.pdf"
 P.savefig(opts.outfile, dpi=100, format="pdf")
