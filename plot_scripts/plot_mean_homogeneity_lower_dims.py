@@ -119,4 +119,4 @@ P.xticks(locs,['',50,40,30,20,10])
 
 P.legend(loc = 7,numpoints=1)    # legend centre right
 outfile = opts.outfile + ".kmeans.pdf"
-P.savefig(opts.outfile, dpi=100, format="pdf")
+P.savefig(outfile, dpi=100, format="pdf")
