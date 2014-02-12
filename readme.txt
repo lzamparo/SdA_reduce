@@ -1,8 +1,17 @@
-This project is an unsupervised algorithm for characterizing cell populations in high content screening experiments.  The project is a pipeline in two parts.  The first part performs dimensionality reduction by SdA (Stacked de-noising Autoencoder).  The second part fits a DP mixture model to a randomly sampled subset of the data.  
+SdA_reduce is an algorithm for performing dimensionality reduction.  The model used to do the redution is a Stacked de-noising Autoencoder (see: http://bit.ly/1fYYjZO).  It is not as simple to use or as quick to train and apply as existing alternatives such as PCA, but there are advantages to be gained from applying a bit more work and computing power (see: http://bit.ly/1aUVfAr)
 
-The screen data is stored in $SCRATCH/sm_rep1_data, and is drawn from the following 
-location on bc:
-/home/morphology/Morphology/Images/Screens_Rad52/1_Primary_Screens/1and2_SM_and_SMPhleo/RAD52GH_HTA2mCN_can1RPL39prtdTU_Rep1/Batches/Batch2_2011_05_11_Phleo0h_ProducingTiffsForNuclearMorphology_IPA_0p002_20Smooth20Suppress_15and40
+The algorithm has four main steps:
+
+(1) Unsupervised model search: given the number of layers and range of layer sizes, perform a model search, training the parameters of each layer sequentially.
+
+(2) Hyper-parameter tuning: perform a grid search over hyper-parameter values using the pre-trainined models.
+
+(3) Model fine-tuning: fine-tune each model by minimizing the reconstruction error, using the hyper-parameter values and pre-trained models.
+
+(4) Reduce: compute the low-dimensional representation of new data using the fine-tuned models.
+
+
+
 
 
 
