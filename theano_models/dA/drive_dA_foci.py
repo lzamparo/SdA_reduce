@@ -4,6 +4,7 @@ import numpy
 import theano
 import theano.tensor as T
 from AutoEncoder import AutoEncoder
+from AutoEncoder import ReluAutoEncoder
 from theano.tensor.shared_randomstreams import RandomStreams
 
 from extract_datasets import extract_labeled_chunkrange
@@ -17,7 +18,7 @@ from datetime import datetime
 from optparse import OptionParser
 
 
-def drive_dA(learning_rate=0.01, training_epochs=50,
+def drive_dA(learning_rate=0.001, training_epochs=50,
              batch_size=20):
     """
         This dA is driven with foci data
@@ -74,7 +75,7 @@ def drive_dA(learning_rate=0.01, training_epochs=50,
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
     da = AutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
-            n_visible=n_cols, n_hidden=800, loss='squared')
+            n_visible=n_cols, n_hidden=800)
 
     cost, updates = da.get_cost_updates(corruption_level=0.,
                                         learning_rate=learning_rate)
@@ -114,8 +115,8 @@ def drive_dA(learning_rate=0.01, training_epochs=50,
     rng = numpy.random.RandomState(123)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
  
-    da = AutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
-                n_visible=n_cols, n_hidden=800, loss='squared')    
+    da = ReluAutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
+                n_visible=n_cols, n_hidden=800)    
 
     cost, updates = da.get_cost_updates(corruption_level=float(options.corruption),
                                         learning_rate=learning_rate)
