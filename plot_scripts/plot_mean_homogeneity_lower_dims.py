@@ -64,11 +64,11 @@ dims_list = [i for i in dims_list if i.endswith('0')]
 sda_results = []
 
 for i, dim in enumerate(dims_list):
-    pdb.set_trace()
     parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'gmm'))
     results_dict = return_top(parsed_vals,n)
     labels, scores= [list(t) for t in zip(*results_dict)]
     sda_results.append(scores)
+    pdb.set_trace()
     x_vals = np.ones((n,),dtype=np.int) * (i + 1)
     ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA",markersize=10)
 
