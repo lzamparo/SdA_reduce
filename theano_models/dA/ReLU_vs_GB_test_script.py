@@ -39,7 +39,7 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     """
     parser = OptionParser()
     parser.add_option("-d", "--dir", dest="dir", help="test output directory")
-    parser.add_option("-c", "--corruption", dest="corruption", help="use this amount of corruption for the denoising AE", type="float32")
+    parser.add_option("-c", "--corruption", dest="corruption", help="use this amount of corruption for the denoising AE", type="float")
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the hdf5 filename as an absolute pathname")
     (options, args) = parser.parse_args()    
 
