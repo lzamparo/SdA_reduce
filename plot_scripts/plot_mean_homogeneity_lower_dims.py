@@ -71,6 +71,7 @@ for i, dim in enumerate(dims_list):
     results_dict = return_top(parsed_vals,n)
     labels, scores= [list(t) for t in zip(*results_dict)]
     sda_results.append(scores)
+    pdb.set_trace()
     x_vals = np.ones((n,),dtype=np.int) * (i + 1)
     ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA" if i == 0 else "_no_legend",markersize=9)
 
