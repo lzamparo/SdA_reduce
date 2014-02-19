@@ -117,8 +117,11 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     # Build the ReLU dA
     ##########
     output_filename = "relu_da." + "corruption_" + corruptn + "_" + day + "." + hour
-    output_file = open(output_filename,'w')
     
+    current_dir = os.getcwd()    
+    os.chdir(options.dir)    
+    output_file = open(output_filename,'w')
+    os.chdir(current_dir)
     print >> output_file, "Run on " + str(datetime.now())     
     
     rng = numpy.random.RandomState(123)
