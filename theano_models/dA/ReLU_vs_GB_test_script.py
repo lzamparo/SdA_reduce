@@ -50,7 +50,7 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     day = str(today.date())
     hour = str(today.time())
     corruptn = str(options.corruption)
-    output_filename = "gb_da." + "corruption_" + corruptn + "." + day + "." + hour
+    output_filename = "gb_da." + "corruption_" + corruptn + "_" + day + "." + hour
     output_file = open(output_filename,'w')
     
     print >> output_file, "Run on " + str(datetime.now())    
@@ -75,7 +75,7 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     # Build the GaussianBernoulli dA #
     ##################################
 
-    rng = numpy.random.RandomState(123)
+    rng = numpy.random.RandomState(2345)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
 
     da = GaussianAutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
@@ -107,7 +107,7 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
 
     training_time = (end_time - start_time)
 
-    print >> output_file, ('The 0 corruption code for file ' +
+    print >> output_file, ('The ' + str(options.corruption) + ' corruption code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((training_time) / 60.))    
     
@@ -124,7 +124,7 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     os.chdir(current_dir)
     print >> output_file, "Run on " + str(datetime.now())     
     
-    rng = numpy.random.RandomState(123)
+    rng = numpy.random.RandomState(6789)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
  
     da = ReluAutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
@@ -156,7 +156,7 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
 
     training_time = (end_time - start_time)
 
-    print >> output_file, ('The ' + str(options.corruption) + '% corruption code for file ' +
+    print >> output_file, ('The ' + str(options.corruption) + ' corruption code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((training_time) / 60.))
 
