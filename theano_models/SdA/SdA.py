@@ -7,7 +7,7 @@ from theano import shared
 
 from mlp.logistic_sgd import LogisticRegression
 from mlp.hidden_layer import HiddenLayer
-from dA.AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder
+from dA.AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder, ReluAutoEncoder
 
 class SdA(object):
     """Stacked denoising auto-encoder class (SdA)
@@ -96,20 +96,17 @@ class SdA(object):
         for i in xrange(self.n_layers):
             
             # the size of the input is either the number of hidden units of
-            # the layer below or the input size if we are on the first layer
-            if i == 0:
-                input_size = n_ins
-            else:
-                input_size = hidden_layers_sizes[i - 1]
-
+            # the layer below or the input size if we are on the first layer.  
             # the input to this layer is either the activation of the hidden
             # layer below or the input of the SdA if you are on the first
-            # layer
+            # layer            
             if i == 0:
+                input_size = n_ins
                 layer_input = self.x
             else:
+                input_size = hidden_layers_sizes[i - 1]
                 layer_input = self.sigmoid_layers[-1].output
-
+            
             sigmoid_layer = HiddenLayer(rng=numpy_rng,
                                         input=layer_input,
                                         n_in=input_size,
@@ -144,7 +141,7 @@ class SdA(object):
             self.params.extend(dA_layer.params)            
             
 
-        # Keep track of parameter updates, so we may use momentum updates
+        # Keep track of parameter updates, so we may use momentum 
         for param in self.params:
             init = np.zeros(param.get_value(borrow=True).shape,
                             dtype=theano.config.floatX)
