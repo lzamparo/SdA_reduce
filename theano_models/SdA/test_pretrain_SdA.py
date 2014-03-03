@@ -4,7 +4,6 @@ import cPickle
 import theano
 import theano.tensor as T
 from mlp.logistic_sgd import LogisticRegression
-from mlp.hidden_layer import HiddenLayer
 from dA.AutoEncoder import AutoEncoder
 from SdA import SdA
 
@@ -43,7 +42,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     today = datetime.today()
     day = str(today.date())
     hour = str(today.time())
-    output_filename = "test_pickled_stacked_denoising_autoencoder_pretrain." + day + "." + hour
+    output_filename = "test_pickled_sda_pretrain." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
     print >> output_file, "Run on " + str(datetime.now())    
@@ -65,7 +64,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=[850, 400, 50],
               corruption_levels = [0.1,0.1,0.1],
-              n_outs=3, dA_losses=['squared','xent','xent'])
+              n_outs=3, layer_types=['ReLU','ReLU','ReLU'])
 
     #########################
     # PRETRAINING THE MODEL #
@@ -112,6 +111,17 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     f = file(options.savefile, 'rb')
     pickled_sda = cPickle.load(f)
     f.close()    
+    
+    
+    # Test that the W-matrices and biases for the dA layers in sda are all close to the W-matrices 
+    # and biases freshly unpickled
+    for i in xrange(pickled_sda.n_layers):
+        pickled_dA_params = pickled_sda.dA_layers[i].get_params()
+        sda_dA_params = sda.dA_layers[i].get_params()
+        if not numpy.allclose(pickled_dA_params[0].get_value(), sda_dA_params[0].get_value()):
+            print >> output_file, ("numpy says that Ws in layer %i are not close" % (i))
+        if not numpy.allclose(pickled_dA_params[1].get_value(), sda_dA_params[1].get_value()):
+            print >> output_file, ("numpy says that the biases in layer %i are not close" % (i))      
 
     # Regenerate the list of pretraining functions for the pickled SdA
     pretraining_fns = pickled_sda.pretraining_functions(train_set_x=train_set_x,
@@ -145,16 +155,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
                           os.path.split(__file__)[1] +
                           ' was %.2fm to go through the remaining %i epochs' % (((end_time - start_time) / 60.), (num_epochs / 2)))
     
-    # Test that the W-matrices and biases for the dA layers are all close to the W-matrices 
-    # and biases for the MLP layers
-    for i in xrange(pickled_sda.n_layers):
-        dA_params = pickled_sda.dA_layers[i].get_params()
-        MLP_params = pickled_sda.sigmoid_layers[i].get_params()
-    
-        if not numpy.allclose(dA_params[0].get_value(), MLP_params[0].get_value()):
-            print >> output_file, ("numpy says that Ws in layer %i are not close" % (i))
-        if not numpy.allclose(dA_params[1].get_value(), MLP_params[1].get_value()):
-            print >> output_file, ("numpy says that the biases in layer %i are not close" % (i))  
+
     
     output_file.close()   
     
@@ -177,7 +178,7 @@ def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     today = datetime.today()
     day = str(today.date())
     hour = str(today.time())
-    output_filename = "test_unpickled_stacked_denoising_autoencoder_pretrain." + day + "." + hour
+    output_filename = "test_unpickled_sda_pretrain." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
     print >> output_file, "Run on " + str(datetime.now())    
