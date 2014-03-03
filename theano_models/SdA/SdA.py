@@ -68,7 +68,7 @@ class SdA(object):
 
         # Sanity checks on parameter list sizes
         assert self.n_layers > 0
-        assert len(hidden_layers_sizes) == len(corruption_levels) == len(layer_types)                                                                        layer_input)
+        assert len(hidden_layers_sizes) == len(corruption_levels) == len(layer_types)                                                                        
 
         if not theano_rng:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
