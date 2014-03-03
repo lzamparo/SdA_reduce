@@ -188,6 +188,7 @@ class BernoulliAutoEncoder(AutoEncoder):
         """        
         super(BernoulliAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden,
                  W=None, bhid=None, bvis=None)
+        self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)
         
     
     def get_reconstructed_input(self, hidden):
@@ -270,7 +271,7 @@ class GaussianAutoEncoder(AutoEncoder):
         
         """        
         super(GaussianAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
-            
+        self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)    
     
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
@@ -351,7 +352,7 @@ class ReluAutoEncoder(AutoEncoder):
         
         """        
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
-            
+        self.output = T.maximum(T.dot(input, self.W) + self.b, 0)    
     
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """

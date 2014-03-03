@@ -6,7 +6,6 @@ from theano.tensor.shared_randomstreams import RandomStreams
 from theano import shared
 
 from mlp.logistic_sgd import LogisticRegression
-from mlp.hidden_layer import HiddenLayer
 from dA.AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder, ReluAutoEncoder
 
 class SdA(object):
@@ -17,13 +16,11 @@ class SdA(object):
     the dA at layer `i+1`. The first layer dA gets as input the input of
     the SdA, and the hidden layer of the last dA represents the output.
     
-    Note that after pretraining, the SdA is dealt with as a normal MLP,
-    the dAs are only used to initialize the weights.
     """
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=-1,
-                 corruption_levels=[0.1, 0.1]):
+                 corruption_levels=[0.1, 0.1], layer_types=['ReLU','ReLU']):
         """ This class is made to support a variable number of layers
 
         :type numpy_rng: numpy.random.RandomState
@@ -47,16 +44,18 @@ class SdA(object):
         
         :type log_top: boolean
         :param log_top: True if a logistic regression layer should be stacked
-        on top of all the other layers
+                        on top of all the other layers
 
         :type corruption_levels: list of float
         :param corruption_levels: amount of corruption to use for each
                                   layer
                                   
-                                                            
+        :type layer_types: list of string
+        :param layer_types: each entry specifies the AutoEncoder sub-class to
+                            instatiate for each layer.
+                                                                       
         """
 
-        self.sigmoid_layers = []
         self.dA_layers = []
         self.params = []
         
@@ -69,7 +68,7 @@ class SdA(object):
 
         # Sanity checks on parameter list sizes
         assert self.n_layers > 0
-        assert len(hidden_layers_sizes) == len(corruption_levels)
+        assert len(hidden_layers_sizes) == len(corruption_levels) == len(layer_input)                                                                        layer_input)
 
         if not theano_rng:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
@@ -82,16 +81,9 @@ class SdA(object):
             self.y = T.ivector('y')  # the labels (if present) are presented as 1D vector of
                                      # [int] labels
 
-        # The SdA is both an MLP and a stacked dA model: when 
-        # constructing each sigmoidal layer we also construct a
-        # denoising autoencoder that shares weights with that layer.
-        #
-        # During pre-training we will train these autoencoders (which will
-        # lead to chainging the weights of the MLP as well).
-        #
-        # During fine-tunining we will finish training the SdA by doing 
-        # SGD on larger batches of data to minimize reconstruction 
-        # error, as was done in [Salakhutdinov & Hinton, Science 2006].
+        
+        # Build each layer dynamically 
+        layer_classes = {'Gaussian': GaussianAutoEncoder, 'Bernoulli': BernoulliAutoEncoder, 'ReLU': ReluAutoEncoder}
         
         for i in xrange(self.n_layers):
             
@@ -105,39 +97,16 @@ class SdA(object):
                 layer_input = self.x
             else:
                 input_size = hidden_layers_sizes[i - 1]
-                layer_input = self.sigmoid_layers[-1].output
-            
-            sigmoid_layer = HiddenLayer(rng=numpy_rng,
-                                        input=layer_input,
-                                        n_in=input_size,
-                                        n_out=int(hidden_layers_sizes[i]),
-                                        activation=T.nnet.sigmoid)
-            
-            # add the layer to our list of layers
-            self.sigmoid_layers.append(sigmoid_layer)
+                layer_input = self.dA_layers[-1].output
 
-            # Build and stack the dA layer
-            if i == 0:
-                dA_layer = GaussianAutoEncoder(numpy_rng=numpy_rng,
+            # Call the appropriate dA subclass constructor
+            dA_layer = layer_classes[layer_types[i]].__init__(numpy_rng=numpy_rng,
                             theano_rng=theano_rng,
                             input=layer_input,
                             n_visible=input_size,
-                            n_hidden=int(hidden_layers_sizes[i]),
-                            W=sigmoid_layer.W,
-                            bhid=sigmoid_layer.b)
-            else:
-                dA_layer = BernoulliAutoEncoder(numpy_rng=numpy_rng,
-                            theano_rng=theano_rng,
-                            input=layer_input,
-                            n_visible=input_size,
-                            n_hidden=int(hidden_layers_sizes[i]),
-                            W=sigmoid_layer.W,
-                            bhid=sigmoid_layer.b)                
+                            n_hidden=int(hidden_layers_sizes[i]))         
                 
             self.dA_layers.append(dA_layer)
-            
-            # We are going to only declare that the parameters of the
-            # dA_layers are parameters of the SdA, for momentum update reasons
             self.params.extend(dA_layer.params)            
             
 
@@ -151,7 +120,7 @@ class SdA(object):
 
         if n_outs > 0:
             self.logLayer = LogisticRegression(
-                             input=self.sigmoid_layers[-1].output,
+                             input=self.dA_layers[-1].output,
                              n_in=hidden_layers_sizes[-1], n_out=n_outs)
     
             self.params.extend(self.logLayer.params)
@@ -359,26 +328,26 @@ class SdA(object):
     
     def __getstate__(self):
         """ Pickle this SdA by returning the number of layers, list of sigmoid layers and list of dA layers. """
-        return (self.n_layers, self.n_outs, self.sigmoid_layers, self.dA_layers, self.corruption_levels)
+        return (self.n_layers, self.n_outs, self.dA_layers, self.corruption_levels)
     
     def __setstate__(self, state):
-        """ Unpickle an SdA model by restoring the lists of both MLP hidden layers and dA layers.  
-        Reconstruct both MLP and stacked dA aspects of an unpickled SdA model.  The input should be provided to 
-        the initial layer, and the input of layer i+1 is set to the output of layer i. 
-        Fill up the self.params list with the parameter sets of the MLP list. """
+        """ Unpickle an SdA model by restoring the list of dA layers.  
+        The input should be provided to the initial layer, and the input of layer i+1 is set to the output of layer i. 
+        Fill up the self.params list with the parameter sets of the dA list. """
         
-        (layers, n_outs, mlp_layers_list, dA_layers_list, corruption_levels) = state
+        (layers, n_outs, dA_layers_list, corruption_levels) = state
         self.n_layers = layers
         self.n_outs = n_outs
         self.corruption_levels = corruption_levels
         self.dA_layers = []
         self.params = []
-        self.sigmoid_layers = mlp_layers_list
         self.x = T.matrix('x')  # symbolic input for the training data
         self.x_prime = T.matrix('X_prime') # symbolic output for the top layer dA
         
         numpy_rng = np.random.RandomState(123)
         theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
+        
+        layer_classes = {'Gaussian': GaussianAutoEncoder, 'Bernoulli': BernoulliAutoEncoder, 'ReLU': ReluAutoEncoder}
            
         for i in xrange(self.n_layers):
             
@@ -388,29 +357,19 @@ class SdA(object):
             if i == 0:
                 layer_input = self.x
             else:
-                layer_input = self.sigmoid_layers[i-1].output
-                
-            self.sigmoid_layers[i].reconstruct_state(layer_input)
+                layer_input = self.dA_layers[i-1].output
             
-            if i == 0:
+            layer_type = dA_layers_list[i].__class__.__name__
+            
                 # Rebuild the dA layer from scratch, explicitly tying the W,bhid params to those from the sigmoid layer
-                dA_layer = GaussianAutoEncoder(numpy_rng=numpy_rng,
-                            theano_rng=theano_rng,
-                            input=layer_input,
-                            n_visible=dA_layers_list[i].n_visible,
-                            n_hidden=dA_layers_list[i].n_hidden,
-                            W=self.sigmoid_layers[i].W,
-                            bhid=self.sigmoid_layers[i].b,
-                            bvis=dA_layers_list[i].b_prime)
-            else:
-                dA_layer = BernoulliAutoEncoder(numpy_rng=numpy_rng,
-                            theano_rng=theano_rng,
-                            input=layer_input,
-                            n_visible=dA_layers_list[i].n_visible,
-                            n_hidden=dA_layers_list[i].n_hidden,
-                            W=self.sigmoid_layers[i].W,
-                            bhid=self.sigmoid_layers[i].b,
-                            bvis=dA_layers_list[i].b_prime) 
+            dA_layer = layer_classes[layer_type](numpy_rng=numpy_rng,
+                        theano_rng=theano_rng,
+                        input=layer_input,
+                        n_visible=dA_layers_list[i].n_visible,
+                        n_hidden=dA_layers_list[i].n_hidden,
+                        W=dA_layers_list[i].W,
+                        bhid=dA_layers_list[i].b,
+                        bvis=dA_layers_list[i].b_prime) 
                 
             self.dA_layers.append(dA_layer)
             self.params.extend(self.dA_layers[i].params)
@@ -437,8 +396,8 @@ class SdA(object):
         """ Reconstruct a logistic layer on top of a previously trained SdA """
         # We now need to add a logistic layer on top of the MLP
         self.logLayer = LogisticRegression(
-                         input=self.sigmoid_layers[-1].output,
-                         n_in=self.sigmoid_layers[-1]._outsize, n_out=n_outs)
+                         input=self.dA_layers[-1].output,
+                         n_in=self.dA_layers[-1].n_hidden, n_out=n_outs)
 
         self.params.extend(self.logLayer.params)
         # construct a function that implements one step of finetunining
