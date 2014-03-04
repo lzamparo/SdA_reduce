@@ -100,7 +100,7 @@ class SdA(object):
                 layer_input = self.dA_layers[-1].output
 
             # Call the appropriate dA subclass constructor
-            dA_layer = layer_classes[layer_types[i]].__init__(numpy_rng=numpy_rng,
+            dA_layer = layer_classes[layer_types[i]].class_from_values(numpy_rng=numpy_rng,
                             theano_rng=theano_rng,
                             input=layer_input,
                             n_visible=input_size,
@@ -138,7 +138,7 @@ class SdA(object):
             self.finetune_cost = self.reconstruction_error(self.x)
             self.output = self.encode(self.x)
             self.errors = self.reconstruction_error(self.x)
-            
+                    
             
     def reconstruct_input(self, X):
         """ Given data X, provide the symbolic computation of  

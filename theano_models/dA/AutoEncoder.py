@@ -190,6 +190,12 @@ class BernoulliAutoEncoder(AutoEncoder):
                  W=None, bhid=None, bvis=None)
         self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)
         
+    @classmethod
+    def class_from_values(cls, *args, **kwargs):
+        """ This constructor is intended for dynamically constructing a dA layer subclass"""
+        #TODO: arg checking in args, kwargs here?  args should just have numpy_rng, kwargs the rest.
+        return cls(args,kwargs)        
+    
     
     def get_reconstructed_input(self, hidden):
         """ Compute the reconstructed input given the hidden rep'n """
@@ -272,6 +278,12 @@ class GaussianAutoEncoder(AutoEncoder):
         """        
         super(GaussianAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
         self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)    
+
+    @classmethod
+    def class_from_values(cls, *args, **kwargs):
+        """ This constructor is intended for dynamically constructing a dA layer subclass"""
+        #TODO: arg checking in args, kwargs here?  args should just have numpy_rng, kwargs the rest.
+        return cls(args,kwargs)        
     
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
@@ -352,8 +364,14 @@ class ReluAutoEncoder(AutoEncoder):
         
         """        
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
-        self.output = T.maximum(T.dot(input, self.W) + self.b, 0)    
-    
+        self.output = T.maximum(T.dot(input, self.W) + self.b, 0)
+        
+    @classmethod
+    def class_from_values(cls, *args, **kwargs):
+        """ This constructor is intended for dynamically constructing a dA layer subclass"""
+        #TODO: arg checking in args, kwargs here?  args should just have numpy_rng, kwargs the rest.
+        return cls(args,kwargs)        
+
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
         return T.dot(hidden, self.W_prime) + self.b_prime
