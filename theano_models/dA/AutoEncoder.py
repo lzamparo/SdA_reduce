@@ -43,17 +43,24 @@ class AutoEncoder(object):
                              architecture; if dA should be standalone set this to None
             
                 """        
+        
+        # numpy_rng may be a one-element tuple if this method is called via class_from_values.
+        if isinstance(numpy_rng, tuple):
+            my_numpy_rng = numpy_rng[0]
+        else:
+            my_numpy_rng = numpy_rng
+        
         self.n_visible = n_visible
         self.n_hidden = n_hidden
         
         # create a Theano random generator that gives symbolic random values
         if not theano_rng :
-            theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
+            theano_rng = RandomStreams(my_numpy_rng.randint(2 ** 30))        
         
         # Pick initial values for W, bvis, bhid based on some formula given by 
         # the Theano dudes.        
         if not W:      
-            initial_W = np.asarray(numpy_rng.uniform(
+            initial_W = np.asarray(my_numpy_rng.uniform(
                 low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
                 high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
                 size = (n_visible, n_hidden)), dtype = config.floatX)
