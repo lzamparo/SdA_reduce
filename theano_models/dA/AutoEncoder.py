@@ -6,8 +6,8 @@ import pdb
 
 class AutoEncoder(object):
         
-    def __init__(self, kwargs={'numpy_rng': None, "theano_rng": None, 'input': None, 'n_visible': 784, 'n_hidden': 500, 
-                 'W': None, 'bhid': None, 'bvis': None}):
+    def __init__(self, numpy_rng=None, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
+                 W=None, bhid=None, bvis=None):
         """
             
             A de-noising AutoEncoder class from theano tutorials.  While the constructor 
@@ -45,37 +45,40 @@ class AutoEncoder(object):
             
                 """        
         
-        self.n_visible = kwargs['n_visible']
-        self.n_hidden = kwargs['n_hidden']
+        self.n_visible = n_visible
+        self.n_hidden = n_hidden
+        
+        if numpy_rng is None:
+            raise AssertionError("numpy_rng cannot be unspecified in AutoEncoder.__init__")
         
         # create a Theano random generator that gives symbolic random values
-        if kwargs['theano_rng'] is not None:
-            theano_rng = RandomStreams(kwargs['numpy_rng'].randint(2 ** 30))        
+        if theano_rng is not None:
+            theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
         
         # Pick initial values for W, bvis, bhid based on some formula given by 
         # the Theano dudes.        
-        if kwargs["W"] is None:      
-            initial_W = np.asarray(kwargs['numpy_rng'].uniform(
-                low = -4 * np.sqrt(6. / (kwargs['n_hidden'] + kwargs['n_visible'])),
-                high = 4 * np.sqrt(6. / (kwargs['n_hidden'] + kwargs['n_visible'])),
-                size = (kwargs['n_visible'], kwargs['n_hidden'])), dtype = config.floatX)
+        if W is None:      
+            initial_W = np.asarray(numpy_rng.uniform(
+                low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
+                high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
+                size = (n_visible, n_hidden)), dtype = config.floatX)
             W = shared(value=initial_W, name='W')
         
         # Bias of the visible units    
-        if not kwargs['bvis']:
-            bvis = shared(value=np.zeros(kwargs['n_visible'],
+        if not bvis:
+            bvis = shared(value=np.zeros(n_visible,
                                             dtype = config.floatX), name = 'bvis')
             self.b_prime = bvis
         else:
-            self.b_prime = kwargs['bvis']
+            self.b_prime = bvis
             
         # Bias of the hidden units    
-        if not kwargs['bhid']:
-            bhid = shared(value=np.zeros(kwargs['n_hidden'],
+        if not bhid:
+            bhid = shared(value=np.zeros(n_hidden,
                                          dtype = config.floatX), name = 'bhid')
             self.b = bhid
         else:
-            self.b = kwargs['bhid']
+            self.b = bhid
             
         self.W = W
         
@@ -84,11 +87,11 @@ class AutoEncoder(object):
         
         self.theano_rng = theano_rng         
         
-        if kwargs['input'] is None:
+        if input is None:
             self.x = T.dmatrix(name='input')
                        
         else:
-            self.x = kwargs['input']
+            self.x = input
             
         self.params = [self.W, self.b, self.b_prime]
         
