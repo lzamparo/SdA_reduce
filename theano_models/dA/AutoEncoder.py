@@ -2,6 +2,7 @@ import numpy as np
 import theano.tensor as T
 from theano import shared, config
 from theano.tensor.shared_randomstreams import RandomStreams
+import pdb
 
 class AutoEncoder(object):
         
@@ -375,8 +376,13 @@ class ReluAutoEncoder(AutoEncoder):
         
     @classmethod
     def class_from_values(cls, *args, **kwargs):
-        """ This constructor is intended for dynamically constructing a dA layer subclass"""
-        #TODO: arg checking in args, kwargs here?  args should just have numpy_rng, kwargs the rest.
+        """ This constructor is intended for dynamically constructing a dA layer subclass 
+            Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
+        """
+        pdb.set_trace()
+        #numpy_rng, theano_rng = 
+        #input =  
+        #n_visible, n_hidden = 
         return cls(args,kwargs)        
 
     def get_reconstructed_input(self, hidden):
