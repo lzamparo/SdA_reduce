@@ -6,11 +6,11 @@ import pdb
 
 class AutoEncoder(object):
         
-    def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None):
+    def __init__(self, kwargs={'numpy_rng': None, "theano_rng": None, 'input': None, 'n_visible': 784, 'n_hidden': 500, 
+                 'W': None, 'bhid': None, 'bvis': None}):
         """
             
-            A de-noising AutoEncoder class from theano tutorials
+            A de-noising AutoEncoder class from theano tutorials.  While the constructor 
                 :type numpy_rng: numpy.random.RandomState
                 :param numpy_rng: number random generator used to generate weights
             
@@ -45,53 +45,50 @@ class AutoEncoder(object):
             
                 """        
         
-        # numpy_rng may be a one-element tuple if this method is called via class_from_values.
-        if isinstance(numpy_rng, tuple):
-            my_numpy_rng = numpy_rng[0]
-        else:
-            my_numpy_rng = numpy_rng
-        
-        self.n_visible = n_visible
-        self.n_hidden = n_hidden
+        self.n_visible = kwargs['n_visible']
+        self.n_hidden = kwargs['n_hidden']
         
         # create a Theano random generator that gives symbolic random values
-        if not theano_rng :
-            theano_rng = RandomStreams(my_numpy_rng.randint(2 ** 30))        
+        if kwargs['theano_rng'] is not None:
+            theano_rng = RandomStreams(kwargs['numpy_rng'].randint(2 ** 30))        
         
         # Pick initial values for W, bvis, bhid based on some formula given by 
         # the Theano dudes.        
-        if not W:      
-            initial_W = np.asarray(my_numpy_rng.uniform(
-                low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
-                high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
-                size = (n_visible, n_hidden)), dtype = config.floatX)
+        if kwargs["W"] is None:      
+            initial_W = np.asarray(kwargs['numpy_rng'].uniform(
+                low = -4 * np.sqrt(6. / (kwargs['n_hidden'] + kwargs['n_visible'])),
+                high = 4 * np.sqrt(6. / (kwargs['n_hidden'] + kwargs['n_visible'])),
+                size = (kwargs['n_visible'], kwargs['n_hidden'])), dtype = config.floatX)
             W = shared(value=initial_W, name='W')
-            
-        if not bvis:
-            bvis = shared(value=np.zeros(n_visible,
+        
+        # Bias of the visible units    
+        if not kwargs['bvis']:
+            bvis = shared(value=np.zeros(kwargs['n_visible'],
                                             dtype = config.floatX), name = 'bvis')
-        if not bhid:
-            bhid = shared(value=np.zeros(n_hidden,
+            self.b_prime = bvis
+        else:
+            self.b_prime = kwargs['bvis']
+            
+        # Bias of the hidden units    
+        if not kwargs['bhid']:
+            bhid = shared(value=np.zeros(kwargs['n_hidden'],
                                          dtype = config.floatX), name = 'bhid')
+            self.b = bhid
+        else:
+            self.b = kwargs['bhid']
             
         self.W = W
-        
-        # Bias of the hidden units
-        self.b = bhid
-        
-        # Bias of the visible units
-        self.b_prime = bvis 
         
         # Tie the weights of the decoder to the encoder
         self.W_prime = self.W.T
         
         self.theano_rng = theano_rng         
         
-        if input == None:
+        if kwargs['input'] is None:
             self.x = T.dmatrix(name='input')
                        
         else:
-            self.x = input
+            self.x = kwargs['input']
             
         self.params = [self.W, self.b, self.b_prime]
         
@@ -380,10 +377,7 @@ class ReluAutoEncoder(AutoEncoder):
             Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
         """
         pdb.set_trace()
-        #numpy_rng, theano_rng = 
-        #input =  
-        #n_visible, n_hidden = 
-        return cls(args,kwargs)        
+        return cls(kwargs)        
 
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
