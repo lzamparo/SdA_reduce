@@ -52,7 +52,7 @@ class AutoEncoder(object):
             raise AssertionError("numpy_rng cannot be unspecified in AutoEncoder.__init__")
         
         # create a Theano random generator that gives symbolic random values
-        if theano_rng not None:
+        if theano_rng is None:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
         
         # Pick initial values for W, bvis, bhid based on some formula given by 
