@@ -2,7 +2,7 @@ import numpy as np
 import theano.tensor as T
 from theano import shared, config
 from theano.tensor.shared_randomstreams import RandomStreams
-import pdb
+
 
 class AutoEncoder(object):
         
@@ -44,7 +44,7 @@ class AutoEncoder(object):
                              architecture; if dA should be standalone set this to None
             
                 """        
-        pdb.set_trace()
+        
         self.n_visible = n_visible
         self.n_hidden = n_hidden
         
@@ -52,7 +52,7 @@ class AutoEncoder(object):
             raise AssertionError("numpy_rng cannot be unspecified in AutoEncoder.__init__")
         
         # create a Theano random generator that gives symbolic random values
-        if theano_rng is not None:
+        if theano_rng not None:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
         
         # Pick initial values for W, bvis, bhid based on some formula given by 
@@ -200,9 +200,10 @@ class BernoulliAutoEncoder(AutoEncoder):
         
     @classmethod
     def class_from_values(cls, *args, **kwargs):
-        """ This constructor is intended for dynamically constructing a dA layer subclass"""
-        #TODO: arg checking in args, kwargs here?  args should just have numpy_rng, kwargs the rest.
-        return cls(args,kwargs)        
+        """ This constructor is intended for dynamically constructing a dA layer subclass 
+            Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
+        """
+        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
     
     
     def get_reconstructed_input(self, hidden):
@@ -289,9 +290,10 @@ class GaussianAutoEncoder(AutoEncoder):
 
     @classmethod
     def class_from_values(cls, *args, **kwargs):
-        """ This constructor is intended for dynamically constructing a dA layer subclass"""
-        #TODO: arg checking in args, kwargs here?  args should just have numpy_rng, kwargs the rest.
-        return cls(args,kwargs)        
+        """ This constructor is intended for dynamically constructing a dA layer subclass 
+            Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
+        """
+        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
     
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
@@ -372,7 +374,6 @@ class ReluAutoEncoder(AutoEncoder):
         
         """ 
         
-        pdb.set_trace()
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
         self.output = T.maximum(T.dot(input, self.W) + self.b, 0)
         
@@ -381,7 +382,6 @@ class ReluAutoEncoder(AutoEncoder):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
             Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
         """
-        pdb.set_trace()
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
 
     def get_reconstructed_input(self, hidden):
