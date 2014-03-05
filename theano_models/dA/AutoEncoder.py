@@ -44,7 +44,7 @@ class AutoEncoder(object):
                              architecture; if dA should be standalone set this to None
             
                 """        
-        
+        pdb.set_trace()
         self.n_visible = n_visible
         self.n_hidden = n_hidden
         
@@ -370,7 +370,9 @@ class ReluAutoEncoder(AutoEncoder):
             Currently defined values are 'sigmoid' for sigmoid, 'linear' for linear. 
         
         
-        """        
+        """ 
+        
+        pdb.set_trace()
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
         self.output = T.maximum(T.dot(input, self.W) + self.b, 0)
         
@@ -380,7 +382,7 @@ class ReluAutoEncoder(AutoEncoder):
             Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
         """
         pdb.set_trace()
-        return cls(kwargs)        
+        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
 
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
