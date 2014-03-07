@@ -85,9 +85,12 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
         arch_list = get_arch_list(private_args)
         
         corruption_list = [shared_args_dict['corruption'] for i in arch_list]
+        unit_list = ['ReLU' for i in arch_list]
+        
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=arch_list,
-              corruption_levels = corruption_list,             
+              corruption_levels = corruption_list,
+              layer_types=unit_list,
               n_outs=-1)
 
     #########################
@@ -154,6 +157,8 @@ def get_arch_list(private_args):
     else:
         errormsg = 'architecture is improperly specified : ' + arch_list[0] 
         raise ValueError(errormsg)
+
+    
     
 
 if __name__ == '__main__':
