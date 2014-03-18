@@ -4,7 +4,7 @@
 
 # Submit 3 layer jobs
 
-three_arr=(`ls $SCRATCH/gpu_tests/SdA_results/3_layer/pretrain_pkl_files/40/`)
+three_arr=(`ls $SCRATCH/gpu_tests/SdA_results/3_layers/pretrain_pkl_files/40/`)
 offset=0
 len=${#three_arr[*]}
 
@@ -25,7 +25,7 @@ done
 
 # Submit 5 layer jobs
 
-five_arr=(`ls $SCRATCH/gpu_tests/SdA_results/5_layer/pretrain_pkl_files/40/`)
+five_arr=(`ls $SCRATCH/gpu_tests/SdA_results/5_layers/pretrain_pkl_files/40/`)
 offset=0
 len=${#five_arr[*]}
 
