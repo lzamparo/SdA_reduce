@@ -351,11 +351,8 @@ class ReluAutoEncoder(AutoEncoder):
         # ReLU units require a different weight matrix initialization scheme
         initial_W = np.asarray(np.random.normal(loc=0.01, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
         W = shared(value=initial_W, name='W')        
-        init_b_hid = np.ones(shape, dtype=config.floatX)
-        bvis = shared(value=np.ones(n_visible,
-                                                    dtype = config.floatX), name = 'bvis')
-        bhid = shared(value=np.ones(n_hidden,
-                                                    dtype = config.floatX), name = 'bhid')
+        bvis = shared(value=np.ones(n_visible, dtype = config.floatX), name = 'bvis')
+        bhid = shared(value=np.ones(n_hidden, dtype = config.floatX), name = 'bhid')
         
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
         self.output = T.maximum(T.dot(input, self.W) + self.b, 0)
