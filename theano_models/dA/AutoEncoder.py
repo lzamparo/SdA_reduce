@@ -8,9 +8,8 @@ class AutoEncoder(object):
         
     def __init__(self, numpy_rng=None, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
                  W=None, bhid=None, bvis=None):
-        """
-            
-            A de-noising AutoEncoder class from theano tutorials.  While the constructor 
+        """ A de-noising AutoEncoder class from theano tutorials.  
+        
                 :type numpy_rng: numpy.random.RandomState
                 :param numpy_rng: number random generator used to generate weights
             
@@ -30,18 +29,15 @@ class AutoEncoder(object):
             
                 :type W: theano.tensor.TensorType
                 :param W: Theano variable pointing to a set of weights that should be
-                          shared belong the dA and another architecture; if dA should
-                          be standalone set this to None
-            
+                      shared Theano variables connecting the visible and hidden layers.
+                      
                 :type bhid: theano.tensor.TensorType
                 :param bhid: Theano variable pointing to a set of biases values (for
-                             hidden units) that should be shared belong dA and another
-                             architecture; if dA should be standalone set this to None
+                             hidden units).
             
                 :type bvis: theano.tensor.TensorType
                 :param bvis: Theano variable pointing to a set of biases values (for
-                             visible units) that should be shared belong dA and another
-                             architecture; if dA should be standalone set this to None
+                             visible units).
             
                 """        
         
@@ -56,8 +52,11 @@ class AutoEncoder(object):
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
         
         # Pick initial values for W, bvis, bhid based on some formula given by 
-        # the Theano dudes.        
-        if W is None:      
+        # a paper by Glorot and Bengio (AISTATS2010).        
+        # N.B. this is only appropriate for sigmoid or tanh units.  ReLU units won't work well 
+        # here since many of them will be < 0 and thus shut off.
+        
+        if W is None:
             initial_W = np.asarray(numpy_rng.uniform(
                 low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
                 high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
@@ -179,18 +178,16 @@ class BernoulliAutoEncoder(AutoEncoder):
         
             :type W: theano.tensor.TensorType
             :param W: Theano variable pointing to a set of weights that should be
-                      shared belong the dA and another architecture; if dA should
-                      be standalone set this to None
+                      shared Theano variables connecting the visible and hidden layers.
+                      
         
             :type bhid: theano.tensor.TensorType
             :param bhid: Theano variable pointing to a set of biases values (for
-                         hidden units) that should be shared belong dA and another
-                         architecture; if dA should be standalone set this to None
+                         hidden units).
         
             :type bvis: theano.tensor.TensorType
             :param bvis: Theano variable pointing to a set of biases values (for
-                         visible units) that should be shared belong dA and another
-                         architecture; if dA should be standalone set this to None
+                         visible units).
         
         
         """        
@@ -261,27 +258,16 @@ class GaussianAutoEncoder(AutoEncoder):
         
             :type W: theano.tensor.TensorType
             :param W: Theano variable pointing to a set of weights that should be
-                      shared belong the dA and another architecture; if dA should
-                      be standalone set this to None
+                      shared Theano variables connecting the visible and hidden layers.
+                      
         
             :type bhid: theano.tensor.TensorType
             :param bhid: Theano variable pointing to a set of biases values (for
-                         hidden units) that should be shared belong dA and another
-                         architecture; if dA should be standalone set this to None
+                         hidden units).
         
             :type bvis: theano.tensor.TensorType
             :param bvis: Theano variable pointing to a set of biases values (for
-                         visible units) that should be shared belong dA and another
-                         architecture; if dA should be standalone set this to None
-                         
-            :type loss: string
-            :param loss: specify the type of loss function to use when computing the loss
-            in get_cost_updates(...).  Currently defined values are 'xent' for cross-entropy, 
-            'squared' for squared error.
-            
-            :type decoder: string
-            :param decoder: specify the decoding function to use when computing get_cost_updates(...).  
-            Currently defined values are 'sigmoid' for sigmoid, 'linear' for linear. 
+                         visible units). 
         
         
         """        
@@ -349,30 +335,27 @@ class ReluAutoEncoder(AutoEncoder):
         
             :type W: theano.tensor.TensorType
             :param W: Theano variable pointing to a set of weights that should be
-                      shared belong the dA and another architecture; if dA should
-                      be standalone set this to None
+                      shared Theano variables connecting the visible and hidden layers.
+                      
         
             :type bhid: theano.tensor.TensorType
             :param bhid: Theano variable pointing to a set of biases values (for
-                         hidden units) that should be shared belong dA and another
-                         architecture; if dA should be standalone set this to None
+                         hidden units).
         
             :type bvis: theano.tensor.TensorType
             :param bvis: Theano variable pointing to a set of biases values (for
-                         visible units) that should be shared belong dA and another
-                         architecture; if dA should be standalone set this to None
-                         
-            :type loss: string
-            :param loss: specify the type of loss function to use when computing the loss
-            in get_cost_updates(...).  Currently defined values are 'xent' for cross-entropy, 
-            'squared' for squared error.
-            
-            :type decoder: string
-            :param decoder: specify the decoding function to use when computing get_cost_updates(...).  
-            Currently defined values are 'sigmoid' for sigmoid, 'linear' for linear. 
-        
+                         visible units).
         
         """ 
+        
+        # ReLU units require a different weight matrix initialization scheme
+        initial_W = np.asarray(np.random.normal(loc=0.01, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
+        W = shared(value=initial_W, name='W')        
+        init_b_hid = np.ones(shape, dtype=config.floatX)
+        bvis = shared(value=np.ones(n_visible,
+                                                    dtype = config.floatX), name = 'bvis')
+        bhid = shared(value=np.ones(n_hidden,
+                                                    dtype = config.floatX), name = 'bhid')
         
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
         self.output = T.maximum(T.dot(input, self.W) + self.b, 0)
