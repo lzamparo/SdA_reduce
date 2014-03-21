@@ -106,8 +106,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     # Set the learning rates and corruption levels.  
     # First rate should be much smaller due to the Gaussian visible units.
     corruption_levels = sda.corruption_levels
-    learning_rates = [pretrain_lr * 10. for i in arch_list]
-    learning_rates[0] = pretrain_lr
+    learning_rates = [pretrain_lr for i in arch_list]
     
     for i in xrange(sda.n_layers):       
                 

@@ -241,9 +241,9 @@ class SdA(object):
                 
             # compile the theano function
             fn = theano.function(inputs=[index,
-                              theano.Param(corruption_level, default=0.2),
-                              theano.Param(learning_rate, default=0.1),
-                              theano.Param(momentum, default=0.),
+                              theano.Param(corruption_level, default=0.15),
+                              theano.Param(learning_rate, default=0.001),
+                              theano.Param(momentum, default=0.8),
                               theano.Param(weight_decay, default=0.)],
                                  outputs=cost,
                                  updates=mod_updates,
