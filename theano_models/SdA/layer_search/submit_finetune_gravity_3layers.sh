@@ -5,7 +5,7 @@
 # required
 #
 #PBS -l nodes=1:ppn=12:gpus=2,walltime=12:00:00
-#PBS -N FineTuneStackedAutoencoder
+#PBS -N FineTuneStackedAutoencoder$FIRSTMODEL|$SECONDMODEL
 #PBS -q gravity
 
 # Load theano modules

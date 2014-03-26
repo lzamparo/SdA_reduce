@@ -79,6 +79,8 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight
 
     # compute number of minibatches for training, validation and testing
     n_train_batches, n_features = train_set_x.get_value(borrow=True).shape
+    #DEBUG
+    print >> output_file, "batches, features are: " + str(n_train_batches) + ", " + str(n_features)
     n_train_batches /= batch_size
     
     # numpy random generator
@@ -95,6 +97,10 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight
 
     # get the training, validation function for the model
     datasets = (train_set_x,valid_set_x)
+    
+    #DEBUG
+    print '... arch for this model is ' + private_args['arch']
+    
     print '... getting the finetuning functions'
     train_fn, validate_model = sda.build_finetune_functions_reconstruction(
                 datasets=datasets, batch_size=batch_size,
