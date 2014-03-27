@@ -85,12 +85,12 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
         arch_list = get_arch_list(private_args)
         
         corruption_list = [shared_args_dict['corruption'] for i in arch_list]
-        unit_list = ['ReLU' for i in arch_list]
+        layer_types = parse_layer_type(shared_args_dict['layertype'], len(arch_list))
         
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=arch_list,
               corruption_levels = corruption_list,
-              layer_types=unit_list,
+              layer_types=layer_types,
               n_outs=-1)
 
     #########################
@@ -157,7 +157,35 @@ def get_arch_list(private_args):
         errormsg = 'architecture is improperly specified : ' + arch_list[0] 
         raise ValueError(errormsg)
 
+def parse_layer_type(layer_str, num_layers):
+    """ Return a list of strings identifying the types of layers to use when constructing this model.  
+    Acceptable configurations are: 
+        'Gaussian': for a Gaussian-Bernoulli SdA
+        'Bernoulli': for a purely Bernoulli SdA
+        'ReLU': for a ReLU SdA
     
+    :type layer_str: string
+    :param layer_str: the string representation of the layer type
+        
+    :type num_layers: int
+    :param num_layers: number of layers
+    """
+    if layer_str is 'Bernoulli':
+        layers = ['Bernoulli' for i in xrange(num_layers)]
+        return layers
+    
+    else if layer_str is 'Gaussian':
+        layers = ['Bernoulli' for i in xrange(num_layers)]
+        layers[0] = layer_str
+        return layers
+    
+    else if layer_str is 'ReLU':
+        layers = ['ReLU' for i in xrange(num_layers)]
+        return layers
+    
+    else:
+        errormsg = 'incompatible layer type specified : ' + layer_str
+        raise ValueError(errormsg)
     
 
 if __name__ == '__main__':
@@ -172,6 +200,7 @@ if __name__ == '__main__':
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")    
     parser.add_option("-a", "--firstarch", dest="p_arch", default = "", help="dash separated list to specify the first architecture of the SdA.  E.g: -a 850-400-50")
     parser.add_option("-b", "--secondarch", dest="q_arch", default = "", help="dash separated list to specify the second architecture of the SdA.")
+    parser.add_option("-l", "--layertype", dest="layer_type", default = "Gaussian", help="specify the type of SdA layer activations to use.  Acceptable values are 'Gaussian', 'Bernoulli', 'ReLU'.")
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -187,6 +216,7 @@ if __name__ == '__main__':
     shared_args['learning_rate'] = 0.005    
     shared_args['corruption'] = options.corruption
     shared_args['offset'] = options.offset
+    shared_args['layertype'] = options.layer_type
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes
