@@ -80,8 +80,10 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight
     # compute number of minibatches for training, validation and testing
     n_train_batches, n_features = train_set_x.get_value(borrow=True).shape
     #DEBUG
-    print >> output_file, "batches, features are: " + str(n_train_batches) + ", " + str(n_features)
+    print >> output_file, "elements, features are: " + str(n_train_batches) + ", " + str(n_features)
     n_train_batches /= batch_size
+    
+    print >> output_file, "number of training batches: " + str(n_train_batches)
     
     # numpy random generator
     numpy_rng = numpy.random.RandomState(89677)

@@ -56,33 +56,29 @@ class AutoEncoder(object):
         # N.B. this is only appropriate for sigmoid or tanh units.  ReLU units won't work well 
         # here since many of them will be < 0 and thus shut off.
         
-        if W is None:
+        if not W:
             initial_W = np.asarray(numpy_rng.uniform(
                 low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
                 high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
                 size = (n_visible, n_hidden)), dtype = config.floatX)
             W = shared(value=initial_W, name='W')
         
+        self.W = W
+        # Tie the weights of the decoder to the encoder
+        self.W_prime = self.W.T        
+
         # Bias of the visible units    
         if not bvis:
             bvis = shared(value=np.zeros(n_visible,
                                             dtype = config.floatX), name = 'bvis')
-            self.b_prime = bvis
-        else:
-            self.b_prime = bvis
+            
+        self.b_prime = bvis
             
         # Bias of the hidden units    
         if not bhid:
             bhid = shared(value=np.zeros(n_hidden,
                                          dtype = config.floatX), name = 'bhid')
-            self.b = bhid
-        else:
-            self.b = bhid
-            
-        self.W = W
-        
-        # Tie the weights of the decoder to the encoder
-        self.W_prime = self.W.T
+        self.b = bhid
         
         self.theano_rng = theano_rng         
         
@@ -346,7 +342,7 @@ class ReluAutoEncoder(AutoEncoder):
             :param bvis: Theano variable pointing to a set of biases values (for
                          visible units).
         
-        """ 
+        """        
         
         # ReLU units require a different weight matrix initialization scheme
         initial_W = np.asarray(np.random.normal(loc=0.01, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
@@ -355,7 +351,7 @@ class ReluAutoEncoder(AutoEncoder):
         bhid = shared(value=np.ones(n_hidden, dtype = config.floatX), name = 'bhid')
         
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
-        self.output = T.maximum(T.dot(input, self.W) + self.b, 0)
+        self.output = T.maximum(T.dot(self.W, input) + self.b, 0)
         
     @classmethod
     def class_from_values(cls, *args, **kwargs):

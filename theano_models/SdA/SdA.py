@@ -278,6 +278,9 @@ class SdA(object):
         n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
         n_valid_batches /= batch_size
         
+        #DEBUG
+        print "...number of validation batches: " + str(n_valid_batches)
+        
         index = T.lscalar('index')  # index to a [mini]batch     
         
         # compute the gradients with respect to the model parameters
@@ -294,7 +297,7 @@ class SdA(object):
               updates=updates,
               givens={
                 self.x: train_set_x[index * batch_size:
-                                    (index + 1) * batch_size]})
+                                    (index + 1) * batch_size]}, mode='DebugMode')
 
         valid_score_i = theano.function([index], self.errors,
               givens={
@@ -312,8 +315,8 @@ class SdA(object):
         through the layers of the SdA and results in a lower dimensional
         output, which is the representation of the highest layer.
 
-        :type datasets: theano.tensor.TensorType
-        :param datasets: A T.dmatrix of datapoints to be fed through the SdA
+        :type dataset: theano.tensor.TensorType
+        :param dataset: A T.dmatrix of datapoints to be fed through the SdA
                          
         '''
 
