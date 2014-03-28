@@ -93,9 +93,17 @@ class SdA(object):
             # layer below or the input of the SdA if you are on the first
             # layer            
             if i == 0:
+                #DEBUG
+                print "... SdA first layer being set up:"
+                print "... n_ins " + str(n_ins)
+                print "... layer_input" + str(self.x)
                 input_size = n_ins
                 layer_input = self.x
             else:
+                #DEBUG
+                print "... SdA " + str(i) + " layer being set up:"
+                print "... input_size " + str(hidden_layers_sizes[i - 1])
+                print "... layer_input " + str(self.dA_layers[-1].output)
                 input_size = hidden_layers_sizes[i - 1]
                 layer_input = self.dA_layers[-1].output
 

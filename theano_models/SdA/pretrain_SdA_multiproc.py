@@ -87,6 +87,11 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
         corruption_list = [shared_args_dict['corruption'] for i in arch_list]
         layer_types = parse_layer_type(shared_args_dict['layertype'], len(arch_list))
         
+        #DEBUG
+        for i in xrange(len(arch_list)):
+            print "...layer type for " + str(i) + " layer " + str(layer_types[i])
+            print "...size of layer " + str(i) + " layer " + str(arch_list[i])
+        
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=arch_list,
               corruption_levels = corruption_list,
