@@ -170,16 +170,16 @@ def parse_layer_type(layer_str, num_layers):
     :type num_layers: int
     :param num_layers: number of layers
     """
-    if layer_str is 'Bernoulli':
+    if layer_str == 'Bernoulli':
         layers = ['Bernoulli' for i in xrange(num_layers)]
         return layers
     
-    elif layer_str is 'Gaussian':
+    elif layer_str == 'Gaussian':
         layers = ['Bernoulli' for i in xrange(num_layers)]
         layers[0] = layer_str
         return layers
     
-    elif layer_str is 'ReLU':
+    elif layer_str == 'ReLU':
         layers = ['ReLU' for i in xrange(num_layers)]
         return layers
     
@@ -200,7 +200,7 @@ if __name__ == '__main__':
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")    
     parser.add_option("-a", "--firstarch", dest="p_arch", default = "", help="dash separated list to specify the first architecture of the SdA.  E.g: -a 850-400-50")
     parser.add_option("-b", "--secondarch", dest="q_arch", default = "", help="dash separated list to specify the second architecture of the SdA.")
-    parser.add_option("-l", "--layertype", dest="layer_type", default = "Gaussian", help="specify the type of SdA layer activations to use.  Acceptable values are 'Gaussian', 'Bernoulli', 'ReLU'.")
+    parser.add_option("-l", "--layertype", dest="layer_type", type="string", default = "Gaussian", help="specify the type of SdA layer activations to use.  Acceptable values are 'Gaussian', 'Bernoulli', 'ReLU'.")
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
