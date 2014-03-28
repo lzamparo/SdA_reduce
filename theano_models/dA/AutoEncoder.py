@@ -196,6 +196,10 @@ class BernoulliAutoEncoder(AutoEncoder):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
             Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
         """
+        #DEBUG:
+        print "Bernoulli constructor class_from_values ... n_visible " + str(kwargs['n_visible'])
+        print "Bernoulli constructor class_from_values ... n_hidden " + str(kwargs['n_hidden'])
+        print "Bernoulli constructor class_from_values ... input " + str(kwargs['input'])        
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
     
     
@@ -275,6 +279,10 @@ class GaussianAutoEncoder(AutoEncoder):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
             Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
         """
+        #DEBUG:
+        print "Gaussian constructor class_from_values ... n_visible " + str(kwargs['n_visible'])
+        print "Gaussian constructor class_from_values ... n_hidden " + str(kwargs['n_hidden'])
+        print "Gaussian constructor class_from_values ... input " + str(kwargs['input'])        
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
     
     def get_reconstructed_input(self, hidden):
@@ -351,13 +359,17 @@ class ReluAutoEncoder(AutoEncoder):
         bhid = shared(value=np.ones(n_hidden, dtype = config.floatX), name = 'bhid')
         
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
-        self.output = T.maximum(T.dot(self.W, input) + self.b, 0)
+        self.output = T.maximum(T.dot(input, self.W) + self.b, 0)
         
     @classmethod
     def class_from_values(cls, *args, **kwargs):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
             Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
         """
+        #DEBUG:
+        print "ReLU constructor class_from_values ... n_visible " + str(kwargs['n_visible'])
+        print "ReLU constructor class_from_values ... n_hidden " + str(kwargs['n_hidden'])
+        print "ReLU constructor class_from_values ... input " + str(kwargs['input'])
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
 
     def get_reconstructed_input(self, hidden):
@@ -366,13 +378,13 @@ class ReluAutoEncoder(AutoEncoder):
     
     def get_hidden_values(self,input):
         """ Apply ReLu elementwise to the input """
-        return T.maximum(T.dot(self.W, input) + self.b, 0)
+        return T.maximum(T.dot(input, self.W) + self.b, 0)
     
     def get_cost_updates(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input
        taking into account a certain level of corruption of the input """
         x_corrupted = super(ReluAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
-        y = super(ReluAutoEncoder,self).get_hidden_values(x_corrupted)
+        y = self.get_hidden_values(x_corrupted)
         z = self.get_reconstructed_input(y)
         
         # Take the sum over columns
