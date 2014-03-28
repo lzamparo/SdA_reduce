@@ -174,12 +174,12 @@ def parse_layer_type(layer_str, num_layers):
         layers = ['Bernoulli' for i in xrange(num_layers)]
         return layers
     
-    else if layer_str is 'Gaussian':
+    elif layer_str is 'Gaussian':
         layers = ['Bernoulli' for i in xrange(num_layers)]
         layers[0] = layer_str
         return layers
     
-    else if layer_str is 'ReLU':
+    elif layer_str is 'ReLU':
         layers = ['ReLU' for i in xrange(num_layers)]
         return layers
     
