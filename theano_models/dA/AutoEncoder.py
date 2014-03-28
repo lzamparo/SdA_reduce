@@ -373,8 +373,8 @@ class ReluAutoEncoder(AutoEncoder):
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
 
     def get_reconstructed_input(self, hidden):
-        """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
-        return T.dot(hidden, self.W_prime) + self.b_prime
+        """ Use a ReLU decoder to compute the reconstructed input given the hidden rep'n """
+        return T.maximum(T.dot(hidden, self.W_prime) + self.b_prime, 0)
     
     def get_hidden_values(self,input):
         """ Apply ReLu elementwise to the input """
