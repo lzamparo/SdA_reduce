@@ -305,7 +305,7 @@ class SdA(object):
               updates=updates,
               givens={
                 self.x: train_set_x[index * batch_size:
-                                    (index + 1) * batch_size]}, mode='DebugMode')
+                                    (index + 1) * batch_size]})
 
         valid_score_i = theano.function([index], self.errors,
               givens={
