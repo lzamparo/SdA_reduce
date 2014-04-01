@@ -20,7 +20,7 @@ from tables import openFile
 
 from datetime import datetime
 
-def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0005, batch_size=100): 
+def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001, batch_size=100): 
     """ Pretrain an SdA model for the given number of training epochs.  The model is either initialized from 
     scratch, or is reconstructed from a previously pickled model.
 
@@ -218,7 +218,7 @@ if __name__ == '__main__':
     shared_args['input'] = options.inputfile
     shared_args['momentum'] = 0.8
     shared_args['weight_decay'] = 0.0
-    shared_args['learning_rate'] = 0.0005    
+    shared_args['learning_rate'] = 0.0001    
     shared_args['corruption'] = options.corruption
     shared_args['offset'] = options.offset
     shared_args['layertype'] = options.layer_type
