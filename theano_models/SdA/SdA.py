@@ -298,7 +298,20 @@ class SdA(object):
         updates = []
         for param, gparam in zip(self.params, gparams):
             updates.append((param, param - gparam * learning_rate))
+            
+        
+        # modify the updates to account for the momentum smoothing and weight decay regularization
+        mod_updates = []
+        for param, grad_update in updates:
+            if param in self.updates:
+                last_update = self.updates[param]
+                delta = momentum * last_update - weight_decay * learning_rate * param - learning_rate * grad_update
+                mod_updates.append((param, param + delta))
+                mod_updates.append((last_update, delta))
+            else:               
+                mod_updates.append((param, grad_update))        
                     
+
 
         train_fn = theano.function(inputs=[index],
               outputs=self.finetune_cost,
