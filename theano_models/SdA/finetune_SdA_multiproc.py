@@ -20,7 +20,7 @@ from tables import openFile
 
 from datetime import datetime
 
-def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight_decay = 0.0001, finetuning_epochs=500,
+def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.3, weight_decay = 0.0001, finetuning_epochs=500,
              batch_size=1000): 
     """ Finetune and validate a pre-trained SdA for the given number of training epochs.
     Batch size and finetuning epochs default values are picked to roughly match the reported values
