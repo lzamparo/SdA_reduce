@@ -337,6 +337,40 @@ class SdA(object):
         return encode_fn
     
     
+    def test_gradient(self,dataset,index=1,batch_size=1):
+        ''' Return a Theano function that will evaluate
+        the gradient wrt some points sampled from the provided dataset) 
+        
+        Example provided by http://deeplearning.net/software/theano/tutorial/gradients.html#tutcomputinggrads
+        x = T.dmatrix('x')
+        s = T.sum(1 / (1 + T.exp(-x)))
+        gs = T.grad(s, x)
+        dlogistic = function([x], gs)
+        dlogistic([[0, 1], [-1, -2]])
+        
+        :type dataset: theano.tensor.TensorType
+        :param dataset: A T.dmatrix of datapoints, should be a shared variable.
+        
+        :type index: int
+        :param index: identifies the start of the gradient test batch of data, a subset of dataset.
+        
+        :type batch_size: int
+        :param batch_size: size of the test batch.
+        
+        '''
+        # compute number of minibatches for training, validation and testing
+        n_batches = dataset.get_value(borrow=True).shape[0]
+        n_batches /= batch_size
+                
+        index_val = T.lscalar('gtestindex')  # index to a [mini]batch     
+                
+        # compute the gradients with respect to the model parameters
+        gparams = T.grad(self.finetune_cost, self.params) 
+        
+        # create a function to evaluate the gradient on the batch at index
+        eval_grad = theano.function(inputs=[index_val], outputs=gparams, givens= {self.x: dataset[index_val * batch_size: (index_val + 1) * batch_size]})    
+        return eval_grad
+        
     def __getstate__(self):
         """ Pickle this SdA by returning the number of layers, list of sigmoid layers and list of dA layers. """
         return (self.n_layers, self.n_outs, self.dA_layers, self.corruption_levels)
@@ -404,7 +438,10 @@ class SdA(object):
             self.errors = self.reconstruction_error(self.x)
             self.output = self.encode(self.x)
 
-            
+   
+#################### Legacy code below: logistic layer top for SdA that were intended for dual MLP
+#################### and the associated supervised fine-tuning function.
+        
     def reconstruct_loglayer(self, n_outs = 10):
         """ Reconstruct a logistic layer on top of a previously trained SdA """
         # We now need to add a logistic layer on top of the MLP

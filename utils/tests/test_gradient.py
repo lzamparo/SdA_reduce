@@ -1,8 +1,3 @@
-""" SdA finetuning script that uses two GPUs, one per sub-process,
-via the Python multiprocessing module.  """
-
-
-# These imports will not trigger any theano GPU binding, so are safe to sit here.
 from multiprocessing import Process, Manager
 from optparse import OptionParser
 import os, re
@@ -13,39 +8,14 @@ import sys
 import time
 
 import numpy
+from scipy.linalg import norm
 
 from extract_datasets import extract_unlabeled_chunkrange
 from load_shared import load_data_unlabeled
 from tables import openFile
 
-from datetime import datetime
-
-def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight_decay = 0.0001, finetuning_epochs=500,
-             batch_size=1000): 
-    """ Finetune and validate a pre-trained SdA for the given number of training epochs.
-    Batch size and finetuning epochs default values are picked to roughly match the reported values
-    of Hinton & Salakhtudinov.
-    
-    :type finetune_lr: float
-    :param finetune_lr: learning rate used in the finetune stage
-    (factor for the stochastic gradient)
-
-    :type momentum: float
-    :param momentum: the weight given to the previous update when 
-    calculating the present update to the weights
-    
-    :type weight_decay: float
-    :param weight_decay: the degree to which updates are degraded in each update.  
-    Acts as a regularizer against large weights.
-
-    :type finetuning_epochs: int
-    :param finetuning_epochs: number of epoch to do finetuning
-    
-    :type batch_size: int
-    :param batch_size: size of the mini-batches
-    
-    """
-    
+def test_gradient_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight_decay = 0.0001, finetuning_epochs=5,
+             batch_size=1000):
     # Import sandbox.cuda to bind the specified GPU to this subprocess
     # then import the remaining theano and model modules.
     import theano.sandbox.cuda
@@ -58,7 +28,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight
     from SdA import SdA    
     
     shared_args_dict = shared_args[0]
-    
+        
     current_dir = os.getcwd()    
     os.chdir(shared_args_dict['dir'])
     today = datetime.today()
@@ -98,84 +68,52 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight
     ########################
 
     # get the training, validation function for the model
-    datasets = (train_set_x,valid_set_x)
+    datasets = (train_set_x,valid_set_x)    
     
-    #DEBUG
-    print '... arch for this model is ' + private_args['arch']
-    
-    print '... getting the finetuning functions'
     train_fn, validate_model = sda.build_finetune_functions_reconstruction(
-                datasets=datasets, batch_size=batch_size,
-                learning_rate=finetune_lr)
-
-    print '... fine-tuning the model'    
-
-    # early-stopping parameters
-    patience = 300 * n_train_batches  # look as this many batches regardless
-    patience_increase = 2.  # wait this much longer when a new best is
-                            # found
-    improvement_threshold = 0.995  # a relative improvement of this much is
-                                   # considered significant
-    validation_frequency = min(n_train_batches, patience / 2)
-                                  # go through this many
-                                  # minibatches before checking the network
-                                  # on the validation set; 
-                                  # every epoch in this case
-
-    best_params = None
-    best_validation_loss = numpy.inf
+                    datasets=datasets, batch_size=batch_size,
+                    learning_rate=finetune_lr)    
+    
+    # validate every epoch for testing
+    validation_frequency = 1
+    
     start_time = time.clock()
-
+    
     done_looping = False
-    epoch = 0
-
+    epoch = 0 
+    
     while (epoch < finetuning_epochs) and (not done_looping):
-        epoch = epoch + 1
-        
-        for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost = train_fn(minibatch_index)
-            iter = (epoch - 1) * n_train_batches + minibatch_index
-
-            if (iter + 1) % validation_frequency == 0:
-                validation_losses = validate_model()
-                this_validation_loss = numpy.mean(validation_losses)
-                print >> output_file, ('epoch %i, minibatch %i/%i, validation error %f ' %
-                      (epoch, minibatch_index + 1, n_train_batches,
-                       this_validation_loss))
-
-                # if we got the best validation score until now
-                if this_validation_loss < best_validation_loss:
-
-                    # improve patience if loss improvement is good enough
-                    if (this_validation_loss < best_validation_loss *
-                        improvement_threshold):
-                        patience = max(patience, iter * patience_increase)
-
-                    # save best validation score and iteration number
-                    best_validation_loss = this_validation_loss
-                    best_iter = iter
+            epoch = epoch + 1
+            
+            for minibatch_index in xrange(n_train_batches):
+                minibatch_avg_cost = train_fn(minibatch_index)
+                iter = (epoch - 1) * n_train_batches + minibatch_index
+    
+                if (iter + 1) % validation_frequency == 0:
+                    validation_losses = validate_model()
+                    this_validation_loss = numpy.mean(validation_losses)
+                    print >> output_file, ('epoch %i, minibatch %i/%i, validation error %f ' %
+                          (epoch, minibatch_index + 1, n_train_batches,
+                           this_validation_loss))
+    
+                    # DEBUG: test the gradient at some batch value
+                    # Arbitrarily picking the first 100 points in the validation set.
+                    eval_grad = sda.test_gradient(valid_set_x)
+                    grad_vals = [eval_grad(i) for i in xrange(1000)]        
+                    grad_vals_frob = [norm(A) for A in grad_vals]    
+                    grad_vald_one = [norm(A, ord='1') for A in grad_vals]
+                    print >> output_file, ('Norm of gradient vals: mean Frobenius %f , mean Max %f' %
+                                          (numpy.mean(grad_vals_frob),numpy.mean(grad_vals_one)))                    
                     
-                    # save best model that achieved this best loss    
-                    print >> output_file, 'Pickling the model...'          
-                    f = file(private_args['save'], 'wb')
-                    cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
-                    f.close()                    
-                    
-
-            if patience <= iter:
-                done_looping = True
-                break
-
     end_time = time.clock()
     print >> output_file, (('Optimization complete with best validation score of %f ') %
-                 (best_validation_loss))
-    print >> output_file, ('The training code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.2fm' % ((end_time - start_time) / 60.))    
-
-    output_file.close()        
+                     (best_validation_loss))
+    print >> output_file, ('The training code for file ' + os.path.split(__file__)[1] +
+                              ' ran for %.2fm' % ((end_time - start_time) / 60.)) 
     
-
+    output_file.close()
+    
+    
 def extract_arch(filename, model_regex):
     ''' Return the model architecture of this filename
     Modle filenames look like SdA_1000_500_100_50.pkl'''
@@ -234,11 +172,9 @@ if __name__ == '__main__':
     q_args['save'] = pkl_save_file
 
     # Run both sub-processes
-    p = Process(target=finetune_SdA, args=(args,p_args,))
-    q = Process(target=finetune_SdA, args=(args,q_args,))
+    p = Process(target=test_gradient_SdA, args=(args,p_args,))
+    q = Process(target=test_gradient_SdA, args=(args,q_args,))
     p.start()
     q.start()
     p.join()
     q.join()
-
-    
