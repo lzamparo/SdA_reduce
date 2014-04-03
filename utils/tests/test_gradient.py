@@ -14,6 +14,8 @@ from extract_datasets import extract_unlabeled_chunkrange
 from load_shared import load_data_unlabeled
 from tables import openFile
 
+from datetime import datetime
+
 def test_gradient_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, weight_decay = 0.0001, finetuning_epochs=5,
              batch_size=1000):
     # Import sandbox.cuda to bind the specified GPU to this subprocess
