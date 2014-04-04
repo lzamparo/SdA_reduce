@@ -58,6 +58,7 @@ class SdA(object):
 
         self.dA_layers = []
         self.params = []
+        self.layer_types = layer_types
         
         # Keep track of previous parameter updates so we can use momentum
         self.updates = {}
@@ -373,17 +374,18 @@ class SdA(object):
         
     def __getstate__(self):
         """ Pickle this SdA by returning the number of layers, list of sigmoid layers and list of dA layers. """
-        return (self.n_layers, self.n_outs, self.dA_layers, self.corruption_levels)
+        return (self.n_layers, self.n_outs, self.dA_layers, self.corruption_levels, self.layer_types)
     
     def __setstate__(self, state):
         """ Unpickle an SdA model by restoring the list of dA layers.  
         The input should be provided to the initial layer, and the input of layer i+1 is set to the output of layer i. 
         Fill up the self.params list with the parameter sets of the dA list. """
         
-        (layers, n_outs, dA_layers_list, corruption_levels) = state
+        (layers, n_outs, dA_layers_list, corruption_levels, layer_types) = state
         self.n_layers = layers
         self.n_outs = n_outs
         self.corruption_levels = corruption_levels
+        self.layer_types = layer_types
         self.dA_layers = []
         self.params = []
         self.x = T.matrix('x')  # symbolic input for the training data
@@ -406,10 +408,8 @@ class SdA(object):
             else:
                 layer_input = self.dA_layers[i-1].output
             
-            layer_type = dA_layers_list[i].__class__.__name__
-            
-                # Rebuild the dA layer from scratch, explicitly tying the W,bhid params to those from the sigmoid layer
-            dA_layer = layer_classes[layer_type](numpy_rng=numpy_rng,
+            # Rebuild the dA layer from scratch
+            dA_layer = layer_classes[layer_types[i]](numpy_rng=numpy_rng,
                         theano_rng=theano_rng,
                         input=layer_input,
                         n_visible=dA_layers_list[i].n_visible,
