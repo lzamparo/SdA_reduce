@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Batch qsub submission script for pre-training 3,5 layer models with architectures specified in the following lists 
-# with a given final layer size parameter.
+# with a given final layer size parameter, layer types
 
 offset=0
 
@@ -19,6 +19,8 @@ fiveLayerModelList=(700_800_700_100_ 1000_850_700_200_ 1000_800_600_300_ 800_850
 
 outputLayer=$1
 
+layerType=$2
+
 len=${#threeLayerModelList[*]}
 
 for((i=1; i<=$len; i+=2 ))
@@ -26,7 +28,7 @@ do
     let prev=$i-1
     first="${threeLayerModelList[$i]}$outputLayer"
     second="${threeLayerModelList[$prev]}$outputLayer"
-    qsub submit_pretrain_gravity_3layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer"
+    qsub submit_pretrain_gravity_3layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer",LAYERTYPES="$layerType"
     ((offset+=5))
     sleep 5
     
@@ -43,7 +45,7 @@ do
     let prev=$i-1
     first="${fiveLayerModelList[$i]}$outputLayer"
     second="${fiveLayerModelList[$prev]}$outputLayer"
-    qsub submit_pretrain_gravity_5layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer"
+    qsub submit_pretrain_gravity_5layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer",LAYERTYPES="$layerType"
     ((offset+=5))
     sleep 5
     
