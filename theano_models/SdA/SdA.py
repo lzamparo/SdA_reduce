@@ -396,7 +396,7 @@ class SdA(object):
         
         # N.B: keys for this dict differ than those in the constructor, since the strings 
         # returned by dA_layers_list[i].__class__.__name__ are class names.
-        layer_classes = {'GaussianAutoEncoder': GaussianAutoEncoder, 'BernoulliAutoEncoder': BernoulliAutoEncoder, 'ReluAutoEncoder': ReluAutoEncoder}
+        layer_classes = {'Gaussian': GaussianAutoEncoder, 'Bernoulli': BernoulliAutoEncoder, 'ReLU': ReluAutoEncoder}
            
         for i in xrange(self.n_layers):
             
