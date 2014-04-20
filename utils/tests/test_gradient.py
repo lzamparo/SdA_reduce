@@ -101,7 +101,7 @@ def test_gradient_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, w
                     # DEBUG: test the gradient at some batch value
                     # Arbitrarily picking the first 100 points in the validation set.
                     eval_grad = sda.test_gradient(valid_set_x)
-                    grad_vals = [eval_grad(i) for i in xrange(1000)]        
+                    grad_vals = [eval_grad(i) for i in xrange(100)]        
                     grad_vals_frob = [norm(A) for A in grad_vals]    
                     grad_vald_one = [norm(A, ord='1') for A in grad_vals]
                     print >> output_file, ('Norm of gradient vals: mean Frobenius %f , mean Max %f' %
