@@ -36,7 +36,7 @@ def test_gradient_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, w
     today = datetime.today()
     day = str(today.date())
     hour = str(today.time())   
-    output_filename = "finetune_sda_" + private_args['arch'] + "." + day + "." + hour
+    output_filename = "test_gradient_SdA_" + private_args['arch'] + "." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
     print >> output_file, "Run on " + str(datetime.now())    
@@ -163,15 +163,11 @@ if __name__ == '__main__':
     # Determine where to load & save the first model
     parts = os.path.split(options.dir)
     pkl_load_file = os.path.join(parts[0],'pretrain_pkl_files',options.experiment,options.pr_file)
-    pkl_save_file = os.path.join(parts[0],'finetune_pkl_files',options.extension,options.pr_file)
     p_args['restore'] = pkl_load_file
-    p_args['save'] = pkl_save_file
    
     # Determine where to load & save the second model
     pkl_load_file = os.path.join(parts[0],'pretrain_pkl_files',options.experiment,options.qr_file)
-    pkl_save_file = os.path.join(parts[0],'finetune_pkl_files',options.extension,options.qr_file)
     q_args['restore'] = pkl_load_file
-    q_args['save'] = pkl_save_file
 
     # Run both sub-processes
     p = Process(target=test_gradient_SdA, args=(args,p_args,))
