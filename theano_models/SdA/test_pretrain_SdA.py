@@ -62,7 +62,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, lr_decay = 0.98, batch_si
     print '... building the model'
     
     # Set the initial value of the learning rate
-    learning_rate = theano.shared(np.asarray(pretrain_lr, 
+    learning_rate = theano.shared(numpy.asarray(pretrain_lr, 
                                              dtype=theano.config.floatX))
     
     # Function to decrease the learning rate
@@ -206,7 +206,7 @@ def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10, lr_decay
     n_train_batches, n_features = train_set_x.get_value(borrow=True).shape
     n_train_batches /= batch_size    
     
-    learning_rate = theano.shared(np.asarray(pretrain_lr, 
+    learning_rate = theano.shared(numpy.asarray(pretrain_lr, 
                                              dtype=theano.config.floatX))
     
     # Unpickle the SdA
