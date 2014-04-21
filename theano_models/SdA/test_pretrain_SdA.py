@@ -21,7 +21,7 @@ import time
 from datetime import datetime
 from optparse import OptionParser
 
-def test_pickled_SdA(num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_size=10):
+def test_pickled_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, batch_size=20):
     """
     
     Pretrain an SdA model for the given number of training epochs.  The model is either initialized from scratch, or 
@@ -72,9 +72,9 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_s
                     updates={learning_rate: learning_rate * lr_decay})    
 
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
-              hidden_layers_sizes=[1000, 1000, 50],
-              corruption_levels = [0.25,0.25,0.25],
-              layer_types=['ReLU','ReLU','ReLU'])
+              hidden_layers_sizes=[1000, 50],
+              corruption_levels = [0.25, 0.25],
+              layer_types=['ReLU','ReLU'])
 
     #########################
     # PRETRAINING THE MODEL #
@@ -92,7 +92,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_s
     print '... pre-training the model'
     start_time = time.clock()
     ## Pre-train layer-wise
-    corruption_levels = [float(options.corruption), float(options.corruption), float(options.corruption)]
+    corruption_levels = [float(options.corruption), float(options.corruption)]
     for i in xrange(sda.n_layers):
         
         for epoch in xrange(num_epochs / 2):
@@ -130,19 +130,19 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_s
     # and biases freshly unpickled
     for i in xrange(pickled_sda.n_layers):
         pickled_dA_params = pickled_sda.dA_layers[i].get_params()
-        sda_dA_params = sda.dA_layers[i].get_params()
-        if not numpy.allclose(pickled_dA_params[0].get_value(), sda_dA_params[0].get_value()):
+        fresh_dA_params = sda.dA_layers[i].get_params()
+        if not numpy.allclose(pickled_dA_params[0].get_value(), fresh_dA_params[0].get_value()):
             print >> output_file, ("numpy says that Ws in layer %i are not close" % (i))
-            print >> output_file, "Norm for pickled_dA " + pickled_dA_params[0].name  + ": " 
+            print >> output_file, "Norm for pickled dA " + pickled_dA_params[0].name  + ": " 
             print >> output_file, norm(pickled_dA_params[0].get_value())
-            print >> output_file, "Norm for sda " + sda_dA_params[0].name + ": " 
-            print >> output_file, norm(sda_dA_params[0].get_value())
-        if not numpy.allclose(pickled_dA_params[1].get_value(), sda_dA_params[1].get_value()):
+            print >> output_file, "Norm for fresh dA " + fresh_dA_params[0].name + ": " 
+            print >> output_file, norm(fresh_dA_params[0].get_value())
+        if not numpy.allclose(pickled_dA_params[1].get_value(), fresh_dA_params[1].get_value()):
             print >> output_file, ("numpy says that the biases in layer %i are not close" % (i))
-            print >> output_file, "Norm for pickled_dA " + pickled_dA_params[1].name + ": " 
+            print >> output_file, "Norm for pickled dA " + pickled_dA_params[1].name + ": " 
             print >> output_file, norm(pickled_dA_params[1].get_value())
-            print >> output_file, "Norm for sda " + sda_dA_params[1].name + ": " 
-            print >> output_file, norm(sda_dA_params[1].get_value())            
+            print >> output_file, "Norm for fresh dA " + fresh_dA_params[1].name + ": " 
+            print >> output_file, norm(fresh_dA_params[1].get_value())            
 
     # Regenerate the list of pretraining functions for the pickled SdA
     pretraining_fns = pickled_sda.pretraining_functions(train_set_x=train_set_x,
@@ -275,6 +275,6 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()        
     
     test_pickled_SdA()
-    test_unpickled_SdA()
+    #test_unpickled_SdA()
     
     
