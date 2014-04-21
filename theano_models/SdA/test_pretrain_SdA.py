@@ -19,7 +19,7 @@ import time
 from datetime import datetime
 from optparse import OptionParser
 
-def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
+def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, lr_decay = 0.98, batch_size=10):
     """
     
     Pretrain an SdA model for the given number of training epochs.  The model is either initialized from scratch, or 
@@ -60,10 +60,18 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     # numpy random generator
     numpy_rng = numpy.random.RandomState(89677)
     print '... building the model'
+    
+    # Set the initial value of the learning rate
+    learning_rate = theano.shared(np.asarray(pretrain_lr, 
+                                             dtype=theano.config.floatX))
+    
+    # Function to decrease the learning rate
+    decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
+                    updates={learning_rate: learning_rate * lr_decay})    
 
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
-              hidden_layers_sizes=[850, 400, 50],
-              corruption_levels = [0.1,0.1,0.1],
+              hidden_layers_sizes=[1000, 1000, 50],
+              corruption_levels = [0.25,0.25,0.25],
               layer_types=['ReLU','ReLU','ReLU'])
 
     #########################
@@ -89,10 +97,12 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
             c = []
             for batch_index in xrange(n_train_batches):
                 c.append(pretraining_fns[i](index=batch_index,
-                         corruption=corruption_levels[i],
-                         lr=pretrain_lr))
+                         corruption=corruption_levels[i]))
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
+            print >> output_file, 'Learning rate '
+            print >> output_file, learning_rate.get_value(borrow=True)
+            decay_learning_rate()
 
     end_time = time.clock()
 
@@ -137,18 +147,18 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     ## Pre-train layer-wise
     corruption_levels = [float(options.corruption), float(options.corruption), float(options.corruption)]
     for i in xrange(pickled_sda.n_layers):
-        # pickle the current model, along with the current epoch run
-        # TODO: pickling code here.
         
         for epoch in xrange(num_epochs / 2):
             # go through the training set
             c = []
             for batch_index in xrange(n_train_batches):
                 c.append(pretraining_fns[i](index=batch_index,
-                         corruption=corruption_levels[i],
-                         lr=pretrain_lr))
+                         corruption=corruption_levels[i]))
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
+            decay_learning_rate()
+            print >> output_file, 'Learning rate '
+            print >> output_file, learning_rate.get_value(borrow=True)
 
     end_time = time.clock()    
     print >> output_file, ('Pretraining time for file ' +
@@ -159,7 +169,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     
     output_file.close()   
     
-def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
+def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10, lr_decay = 0.98):
     """ Unpickle an SdA from file, continue pre-training for a given number of epochs.
     
     :type num_epochs: int
@@ -170,6 +180,9 @@ def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
 
     :type batch_size: int
     :param batch_size: train in mini-batches of this size  
+    
+    :type lr_decay: float
+    :param lr_decay: decay the learning rate by this proportion each epoch
     """
     
     current_dir = os.getcwd()    
@@ -193,6 +206,9 @@ def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     n_train_batches, n_features = train_set_x.get_value(borrow=True).shape
     n_train_batches /= batch_size    
     
+    learning_rate = theano.shared(np.asarray(pretrain_lr, 
+                                             dtype=theano.config.floatX))
+    
     # Unpickle the SdA
     print >> output_file, 'Unpickling the model...'
     f = file(options.savefile, 'rb')
@@ -208,19 +224,20 @@ def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10):
     start_time = time.clock()
     ## Pre-train layer-wise
     corruption_levels = [float(options.corruption), float(options.corruption), float(options.corruption)]
-    for i in xrange(pickled_sda.n_layers):
-        # pickle the current model, along with the current epoch run
-        # TODO: pickling code here.
-        
+    
+    for i in xrange(pickled_sda.n_layers):      
         for epoch in xrange(num_epochs / 2):
             # go through the training set
             c = []
             for batch_index in xrange(n_train_batches):
                 c.append(pretraining_fns[i](index=batch_index,
-                         corruption=corruption_levels[i],
-                         lr=pretrain_lr))
+                         corruption=corruption_levels[i]))
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
+            decay_learning_rate()
+            print >> output_file, 'Learning rate '
+            print >> output_file, learning_rate.get_value(borrow=True)            
+            
 
     end_time = time.clock()    
     print >> output_file, ('Pretraining time for file ' +
