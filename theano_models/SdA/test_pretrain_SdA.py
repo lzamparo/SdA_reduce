@@ -133,12 +133,16 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_s
         sda_dA_params = sda.dA_layers[i].get_params()
         if not numpy.allclose(pickled_dA_params[0].get_value(), sda_dA_params[0].get_value()):
             print >> output_file, ("numpy says that Ws in layer %i are not close" % (i))
-            print >> output_file, "Norm for pickled_dA " + pickled_dA_params[0].name  + ": " + norm(pickled_dA_params[0].get_value())
-            print >> output_file, "Norm for sda " + sda_dA_params[0].name + ": " + norm(sda_dA_params[0].get_value())
+            print >> output_file, "Norm for pickled_dA " + pickled_dA_params[0].name  + ": " 
+            print >> output_file, norm(pickled_dA_params[0].get_value())
+            print >> output_file, "Norm for sda " + sda_dA_params[0].name + ": " 
+            print >> output_file, norm(sda_dA_params[0].get_value())
         if not numpy.allclose(pickled_dA_params[1].get_value(), sda_dA_params[1].get_value()):
             print >> output_file, ("numpy says that the biases in layer %i are not close" % (i))
-            print >> output_file, "Norm for pickled_dA " + pickled_dA_params[1].name + ": " + norm(pickled_dA_params[1].get_value())
-            print >> output_file, "Norm for sda " + sda_dA_params[1].name + ": " +norm(sda_dA_params[1].get_value())            
+            print >> output_file, "Norm for pickled_dA " + pickled_dA_params[1].name + ": " 
+            print >> output_file, norm(pickled_dA_params[1].get_value())
+            print >> output_file, "Norm for sda " + sda_dA_params[1].name + ": " 
+            print >> output_file, norm(sda_dA_params[1].get_value())            
 
     # Regenerate the list of pretraining functions for the pickled SdA
     pretraining_fns = pickled_sda.pretraining_functions(train_set_x=train_set_x,
