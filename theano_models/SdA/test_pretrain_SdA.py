@@ -217,6 +217,10 @@ def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10, lr_decay
     learning_rate = theano.shared(numpy.asarray(pretrain_lr, 
                                              dtype=theano.config.floatX))
     
+    # Function to decrease the learning rate
+    decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
+                       updates={learning_rate: learning_rate * lr_decay})     
+    
     # Unpickle the SdA
     print >> output_file, 'Unpickling the model...'
     f = file(options.savefile, 'rb')
