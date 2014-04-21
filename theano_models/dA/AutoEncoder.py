@@ -359,7 +359,7 @@ class ReluAutoEncoder(AutoEncoder):
         bhid = shared(value=np.ones(n_hidden, dtype = config.floatX), name = 'bhid')
         
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
-        self.output = T.maximum(T.dot(input, self.W) + self.b, 0)
+        self.output = T.maximum(T.dot(input, self.W) + self.b, 0.0)
         
     @classmethod
     def class_from_values(cls, *args, **kwargs):
@@ -374,11 +374,11 @@ class ReluAutoEncoder(AutoEncoder):
 
     def get_reconstructed_input(self, hidden):
         """ Use a ReLU decoder to compute the reconstructed input given the hidden rep'n """
-        return T.maximum(T.dot(hidden, self.W_prime) + self.b_prime, 0)
+        return T.maximum(T.dot(hidden, self.W_prime) + self.b_prime, 0.0)
     
     def get_hidden_values(self,input):
         """ Apply ReLu elementwise to the input """
-        return T.maximum(T.dot(input, self.W) + self.b, 0)
+        return T.maximum(T.dot(input, self.W) + self.b, 0.0)
     
     def get_cost_updates(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input

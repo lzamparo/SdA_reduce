@@ -20,7 +20,7 @@ from tables import openFile
 
 from datetime import datetime
 
-def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001, batch_size=100): 
+def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, lr_decay = 0.98, batch_size=50): 
     """ Pretrain an SdA model for the given number of training epochs.  The model is either initialized from 
     scratch, or is reconstructed from a previously pickled model.
 
@@ -29,6 +29,9 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
 
     :type pretrain_lr: float
     :param pretrain_lr: learning rate to be used during pre-training
+    
+    :type lr_decay: float
+    :param lr_decay: exponential decay rate (applied after each epoch) for the learning rate
 
     :type batch_size: int
     :param batch_size: train in mini-batches of this size """
@@ -69,6 +72,10 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
     # numpy random generator
     numpy_rng = numpy.random.RandomState(89677)
     
+    # Set the initial value of the learning rate
+    learning_rate = theano.shared(np.asarray(pretrain_lr, 
+                                             dtype=theano.config.floatX))     
+    
     
     # Check if we can restore from a previously trained model,    
     # otherwise construct a new SdA
@@ -87,10 +94,6 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
         corruption_list = [shared_args_dict['corruption'] for i in arch_list]
         layer_types = parse_layer_type(shared_args_dict['layertype'], len(arch_list))
         
-        #DEBUG
-        for i in xrange(len(arch_list)):
-            print "...layer type for " + str(i) + " layer " + str(layer_types[i])
-            print "...size of layer " + str(i) + " layer " + str(arch_list[i])
         
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=arch_list,
@@ -100,7 +103,8 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
 
     #########################
     # PRETRAINING THE MODEL #
-    #########################
+    #########################    
+    
     print '... getting the pretraining functions'
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size)
@@ -108,10 +112,12 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
     print '... pre-training the model'
     start_time = time.clock()
     
-    # Set the learning rates and corruption levels.  
-    # First rate should be much smaller due to the Gaussian visible units.
+    # Get corruption levels from the SdA.  
     corruption_levels = sda.corruption_levels
-    learning_rates = [pretrain_lr for i in arch_list]
+    
+    # Function to decrease the learning rate
+    decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
+                updates={learning_rate: learning_rate * lr_decay})    
     
     for i in xrange(sda.n_layers):       
                 
@@ -126,6 +132,8 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
                          weight_decay=shared_args_dict["weight_decay"]))
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
+            print >> output_file, learning_rate.get_value(borrow=True)
+            decay_learning_rate()
             
         if private_args.has_key('save'):
             print >> output_file, 'Pickling the model...'

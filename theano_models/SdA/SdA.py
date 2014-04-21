@@ -5,6 +5,7 @@ import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 from theano import shared
 
+from collections import OrderedDict
 from mlp.logistic_sgd import LogisticRegression
 from dA.AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder, ReluAutoEncoder
 
@@ -61,7 +62,7 @@ class SdA(object):
         self.layer_types = layer_types
         
         # Keep track of previous parameter updates so we can use momentum
-        self.updates = {}
+        self.updates = OrderedDict()
         
         self.n_outs = n_outs
         self.corruption_levels = corruption_levels
@@ -195,12 +196,15 @@ class SdA(object):
         self.x_prime = X_prime
         return self.x_prime    
 
-    def pretraining_functions(self, train_set_x, batch_size):
+    def pretraining_functions(self, train_set_x, batch_size, learning_rate):
         ''' Generates a list of functions, each of them implementing one
         step in training the dA corresponding to the layer with same index.
         The function takes a minibatch index, and so training one dA layer
         corresponds to iterating this layer-specific training function in the
         list over all minibatch indexes.
+        
+        N.B: learning_rate should be a theano.shared variable declared in the
+        code driving the (pre)training of this SdA.
 
         :type train_set_x: theano.tensor.TensorType
         :param train_set_x: Shared variable that contains all datapoints used
@@ -208,6 +212,10 @@ class SdA(object):
 
         :type batch_size: int
         :param batch_size: size of a [mini]batch
+        
+        :type learning_rate: float
+        :param learning_rate: the learning rate for pretraining 
+        
 
         '''
 
@@ -215,12 +223,8 @@ class SdA(object):
         index = T.lscalar('index') 
         # % of corruption to use
         corruption_level = T.scalar('corruption')
-        # learning rate to use
-        learning_rate = T.scalar('lr')
         # momentum rate to use
-        momentum = T.scalar('momentum')
-        # weight decay to use
-        weight_decay = T.scalar('weight_decay')  
+        momentum = T.scalar('momentum')  
         
         # number of batches
         n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
@@ -236,24 +240,21 @@ class SdA(object):
             cost, updates = dA.get_cost_updates(corruption_level,learning_rate)
             
             # modify the updates to account for the momentum smoothing and weight decay regularization
-            
-            mod_updates = []
+            mod_updates = OrderedDict()
             for param, grad_update in updates:
                 if param in self.updates:
                     last_update = self.updates[param]
-                    delta = momentum * last_update - weight_decay * learning_rate * param - learning_rate * grad_update
-                    mod_updates.append((param, param + delta))
-                    mod_updates.append((last_update, delta))
+                    delta = momentum * last_update -  (1. - momentum) * learning_rate * grad_update
+                    mod_updates[param] = param + delta
+                    self.updates[param] = delta
                 else:               
-                    mod_updates.append((param, grad_update))
+                    mod_updates[param] = grad_update
             
                 
             # compile the theano function
             fn = theano.function(inputs=[index,
                               theano.Param(corruption_level, default=0.15),
-                              theano.Param(learning_rate, default=0.001),
-                              theano.Param(momentum, default=0.8),
-                              theano.Param(weight_decay, default=0.)],
+                              theano.Param(momentum, default=0.8)], 
                                  outputs=cost,
                                  updates=mod_updates,
                                  givens={self.x: train_set_x[batch_begin:
@@ -287,9 +288,6 @@ class SdA(object):
         n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
         n_valid_batches /= batch_size
         
-        #DEBUG
-        print "...number of validation batches: " + str(n_valid_batches)
-        
         index = T.lscalar('index')  # index to a [mini]batch     
         
         # compute the gradients with respect to the model parameters
@@ -299,7 +297,19 @@ class SdA(object):
         updates = []
         for param, gparam in zip(self.params, gparams):
             updates.append((param, param - gparam * learning_rate))
-                    
+            
+        
+        # modify the updates to account for the momentum smoothing
+        mod_updates = OrderedDict()
+        for param, grad_update in updates:
+            if param in self.updates:
+                last_update = self.updates[param]
+                delta = momentum * last_update -  (1.0 - momemtum)* learning_rate * grad_update
+                mod_updates[param] = param + delta
+                self.updates[param] = delta
+            else:               
+                mod_updates[param] = grad_update        
+                
 
         train_fn = theano.function(inputs=[index],
               outputs=self.finetune_cost,
