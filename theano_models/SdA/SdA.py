@@ -195,12 +195,15 @@ class SdA(object):
         self.x_prime = X_prime
         return self.x_prime    
 
-    def pretraining_functions(self, train_set_x, batch_size):
+    def pretraining_functions(self, train_set_x, batch_size, learning_rate):
         ''' Generates a list of functions, each of them implementing one
         step in training the dA corresponding to the layer with same index.
         The function takes a minibatch index, and so training one dA layer
         corresponds to iterating this layer-specific training function in the
         list over all minibatch indexes.
+        
+        N.B: learning_rate should be a theano.shared variable declared in the
+        code driving the (pre)training of this SdA.
 
         :type train_set_x: theano.tensor.TensorType
         :param train_set_x: Shared variable that contains all datapoints used
@@ -208,6 +211,10 @@ class SdA(object):
 
         :type batch_size: int
         :param batch_size: size of a [mini]batch
+        
+        :type learning_rate: float
+        :param learning_rate: the learning rate for pretraining 
+        
 
         '''
 

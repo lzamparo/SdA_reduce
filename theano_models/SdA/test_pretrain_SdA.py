@@ -79,7 +79,8 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, lr_decay = 0.98, batch_si
     #########################
     print '... getting the pretraining functions'
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
-                                                batch_size=batch_size)
+                                                batch_size=batch_size,
+                                                learning_rate=learning_rate)
 
     #print '... dumping pretraining functions to output file pre pickling'
     #print >> output_file, 'Pretraining functions, pre pickling'
@@ -135,7 +136,8 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.001, lr_decay = 0.98, batch_si
 
     # Regenerate the list of pretraining functions for the pickled SdA
     pretraining_fns = pickled_sda.pretraining_functions(train_set_x=train_set_x,
-                                                    batch_size=batch_size)
+                                                    batch_size=batch_size,
+                                                    learning_rate=learning_rate)
     
     #print '... dumping pretraining functions to output file post unpickling'
     #print >> output_file, 'Pretraining functions, post unpickling'
@@ -218,7 +220,8 @@ def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10, lr_decay
     
     # Train for the remaining 
     pretraining_fns = pickled_sda.pretraining_functions(train_set_x=train_set_x,
-                                                    batch_size=batch_size)
+                                                    batch_size=batch_size,
+                                                    learning_rate=learning_rate)
     
     print >> output_file, 'Resume training...'
     start_time = time.clock()
