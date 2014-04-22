@@ -122,7 +122,7 @@ class AutoEncoder(object):
     
     def get_hidden_values(self, input):
         """ Compute the values of the hidden layer """ 
-        return T.nnet.sigmoid(T.dot(input, self.W) + self.b)
+        raise NotImplementedError(str(type(self))+ " does not implement get_hidden_values.")
     
     def get_reconstructed_input(self, hidden):
         """ Compute the reconstructed input given the hidden rep'n """
@@ -131,7 +131,6 @@ class AutoEncoder(object):
     def get_cost_updates(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input
        taking into account a certain level of corruption of the input """
-       
         raise NotImplementedError(str(type(self))+ " does not implement get_cost_updates.")
         
     
@@ -161,6 +160,21 @@ class AutoEncoder(object):
     def set_input(self, input):
         """ Set the input for an unpickled dA """
         self.x = input
+        
+    def _dropout_from_layer(layer, p):
+        """ Apply masking noise to the hidden (i.e output) layer for this dA.
+        
+        :type layer: theano.shared 
+        :param layer: number random generator used to generate weights
+        
+        :type p: float
+        :param p: proportion of output units to be dropped out """
+        
+        mask = self.theano_rng.binomial(size=layer.shape, n=1, p=1 - p)
+        # According to https://github.com/mdenil/dropout/blob/master/mlp.py:
+        # The cast is important because int * float32 = float64, 
+        # which pulls things off the gpu.  He apparently has not heard of allow.downcast.
+        return layer * T.cast(mask, theano.config.floatX)   
 
 
 class BernoulliAutoEncoder(AutoEncoder):
@@ -220,11 +234,7 @@ class BernoulliAutoEncoder(AutoEncoder):
     def class_from_values(cls, *args, **kwargs):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
             Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
-        """
-        #DEBUG:
-        print "Bernoulli constructor class_from_values ... n_visible " + str(kwargs['n_visible'])
-        print "Bernoulli constructor class_from_values ... n_hidden " + str(kwargs['n_hidden'])
-        print "Bernoulli constructor class_from_values ... input " + str(kwargs['input'])        
+        """   
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
     
     
@@ -313,10 +323,7 @@ class GaussianAutoEncoder(AutoEncoder):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
             Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
         """
-        #DEBUG:
-        print "Gaussian constructor class_from_values ... n_visible " + str(kwargs['n_visible'])
-        print "Gaussian constructor class_from_values ... n_hidden " + str(kwargs['n_hidden'])
-        print "Gaussian constructor class_from_values ... input " + str(kwargs['input'])        
+        
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
     
     def get_reconstructed_input(self, hidden):
@@ -417,18 +424,15 @@ class ReluAutoEncoder(AutoEncoder):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
             Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
         """
-        #DEBUG:
-        print "ReLU constructor class_from_values ... n_visible " + str(kwargs['n_visible'])
-        print "ReLU constructor class_from_values ... n_hidden " + str(kwargs['n_hidden'])
-        print "ReLU constructor class_from_values ... input " + str(kwargs['input'])
+
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
 
     def get_reconstructed_input(self, hidden):
-        """ Use a ReLU decoder to compute the reconstructed input given the hidden rep'n """
-        return T.maximum(T.dot(hidden, self.W_prime) + self.b_prime, 0.0)
+        """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
+        return T.dot(hidden, self.W_prime) + self.b_prime
     
     def get_hidden_values(self,input):
-        """ Apply ReLu elementwise to the input """
+        """ Apply ReLu elementwise to the transformed input """
         return T.maximum(T.dot(input, self.W) + self.b, 0.0)
     
     def get_cost_updates(self, corruption_level, learning_rate):
