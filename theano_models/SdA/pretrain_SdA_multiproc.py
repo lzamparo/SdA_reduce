@@ -107,7 +107,8 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     
     print '... getting the pretraining functions'
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
-                                                batch_size=batch_size)
+                                                batch_size=batch_size,
+                                                learning_rate=learning_rate)
 
     print '... pre-training the model'
     start_time = time.clock()
@@ -127,9 +128,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
             for batch_index in xrange(n_train_batches):
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i],
-                         lr=learning_rates[i],
-                         momentum=shared_args_dict["momentum"],
-                         weight_decay=shared_args_dict["weight_decay"]))
+                         momentum=shared_args_dict["momentum"]))
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             print >> output_file, learning_rate.get_value(borrow=True)
