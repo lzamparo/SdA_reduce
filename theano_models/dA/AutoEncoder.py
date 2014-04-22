@@ -7,7 +7,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 class AutoEncoder(object):
         
     def __init__(self, numpy_rng=None, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None):
+                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None):
         """ A de-noising AutoEncoder class from theano tutorials.  
         
                 :type numpy_rng: numpy.random.RandomState
@@ -38,6 +38,15 @@ class AutoEncoder(object):
                 :type bvis: theano.tensor.TensorType
                 :param bvis: Theano variable pointing to a set of biases values (for
                              visible units).
+                             
+                :type W_name: string
+                :param W_name: name to be assigned to the W matrix.
+            
+                :type bvis_name: string
+                :param bvis_name: name to be assigned to the b vector for the visible units.
+                
+                :type bhid_name: string
+                :param bhid_name: name to be assigned to the b vector for the hidden units.
             
                 """        
         
@@ -51,6 +60,13 @@ class AutoEncoder(object):
         if theano_rng is None:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
         
+        if W_name is None:
+            W_name = 'W'
+        if bvis_name is None:
+            bvis_name = 'bvis'
+        if bhid_name is None:
+            bhid_name = 'bhid'
+        
         # Pick initial values for W, bvis, bhid based on some formula given by 
         # a paper by Glorot and Bengio (AISTATS2010).        
         # N.B. this is only appropriate for sigmoid or tanh units.  ReLU units won't work well 
@@ -61,7 +77,7 @@ class AutoEncoder(object):
                 low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
                 high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
                 size = (n_visible, n_hidden)), dtype = config.floatX)
-            W = shared(value=initial_W, name='W')
+            W = shared(value=initial_W, name=W_name)
         
         self.W = W
         # Tie the weights of the decoder to the encoder
@@ -70,14 +86,14 @@ class AutoEncoder(object):
         # Bias of the visible units    
         if not bvis:
             bvis = shared(value=np.zeros(n_visible,
-                                            dtype = config.floatX), name = 'bvis')
+                                            dtype = config.floatX), name = bvis_name)
             
         self.b_prime = bvis
             
         # Bias of the hidden units    
         if not bhid:
             bhid = shared(value=np.zeros(n_hidden,
-                                         dtype = config.floatX), name = 'bhid')
+                                         dtype = config.floatX), name = bhid_name)
         self.b = bhid
         
         self.theano_rng = theano_rng         
@@ -150,7 +166,7 @@ class AutoEncoder(object):
 class BernoulliAutoEncoder(AutoEncoder):
         
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None):
+                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None):
         """
             
         A de-noising AutoEncoder with [0,1] inputs and hidden values 
@@ -184,11 +200,20 @@ class BernoulliAutoEncoder(AutoEncoder):
             :type bvis: theano.tensor.TensorType
             :param bvis: Theano variable pointing to a set of biases values (for
                          visible units).
+                         
+            :type W_name: string
+            :param W_name: name to be assigned to the W matrix.
+            
+            :type bvis_name: string
+            :param bvis_name: name to be assigned to the bvis vector.
+            
+            :type bhid_name: string
+            :param bhid_name: name to be assigned to the bhid vector.
         
         
         """        
         super(BernoulliAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden,
-                 W=None, bhid=None, bvis=None)
+                 W=None, bhid=None, bvis=None, W_name=W_name, bvis_name=bvis_name, bhid_name=bhid_name)
         self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)
         
     @classmethod
@@ -234,7 +259,7 @@ class BernoulliAutoEncoder(AutoEncoder):
 class GaussianAutoEncoder(AutoEncoder):
         
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None):
+                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None):
         """
             
         A de-noising AutoEncoder with Gaussian visible units
@@ -267,11 +292,20 @@ class GaussianAutoEncoder(AutoEncoder):
         
             :type bvis: theano.tensor.TensorType
             :param bvis: Theano variable pointing to a set of biases values (for
-                         visible units). 
+                         visible units).
+                         
+            :type W_name: string
+            :param W_name: name to be assigned to the W matrix.
+            
+            :type bvis_name: string
+            :param bvis_name: name to be assigned to the bvis vector.
+            
+            :type bhid_name: string
+            :param bhid_name: name to be assigned to the bhid vector.
         
         
         """        
-        super(GaussianAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
+        super(GaussianAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name)
         self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)    
 
     @classmethod
@@ -315,7 +349,7 @@ class GaussianAutoEncoder(AutoEncoder):
     
 class ReluAutoEncoder(AutoEncoder):        
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None):
+                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None):
         """
             
         A de-noising AutoEncoder with ReLu visible units
@@ -349,16 +383,33 @@ class ReluAutoEncoder(AutoEncoder):
             :type bvis: theano.tensor.TensorType
             :param bvis: Theano variable pointing to a set of biases values (for
                          visible units).
+                         
+            :type W_name: string
+            :param W_name: name to be assigned to the W matrix.
+            
+            :type bvis_name: string
+            :param bvis_name: name to be assigned to the bvis vector.
+            
+            :type bhid_name: string
+            :param bhid_name: name to be assigned to the bhid vector.
+            
         
         """        
         
         # ReLU units require a different weight matrix initialization scheme
-        initial_W = np.asarray(np.random.normal(loc=0.01, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
-        W = shared(value=initial_W, name='W')        
-        bvis = shared(value=np.ones(n_visible, dtype = config.floatX), name = 'bvis')
-        bhid = shared(value=np.ones(n_hidden, dtype = config.floatX), name = 'bhid')
+        if W_name is None:
+            W_name = 'W'
+        if bvis_name is None:
+            bvis_name = 'bvis'
+        if bhid_name is None:
+            bhid_name = 'bhid'        
         
-        super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis)
+        initial_W = np.asarray(np.random.normal(loc=0.01, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
+        W = shared(value=initial_W, name=W_name)        
+        bvis = shared(value=np.ones(n_visible, dtype = config.floatX), name = bvis_name)
+        bhid = shared(value=np.ones(n_hidden, dtype = config.floatX), name = bhid_name)
+        
+        super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name)
         self.output = T.maximum(T.dot(input, self.W) + self.b, 0.0)
         
     @classmethod
