@@ -454,9 +454,9 @@ class SdA(object):
                         input=layer_input,
                         n_visible=n_visible,
                         n_hidden=n_hidden,
-                        W=shared(initial=dA_W_list[i],name=w_name),
-                        bhid=shared(initial=dA_bhid_list[i],name=bhid_name),
-                        bvis=shared(initial=dA_bvis_list[i],name=bvis_name)) 
+                        W=shared(value=dA_W_list[i],name=w_name),
+                        bhid=shared(value=dA_bhid_list[i],name=bhid_name),
+                        bvis=shared(value=dA_bvis_list[i],name=bvis_name)) 
                 
             self.dA_layers.append(dA_layer)
             self.params.extend(self.dA_layers[i].params)
