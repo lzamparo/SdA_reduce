@@ -184,7 +184,7 @@ def test_unpickle_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10, lr_decay 
     # Get the training data sample from the input file
     data_set_file = openFile(str(options.inputfile), mode = 'r')
     datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 10)
-    train_set_x = load_data_unlabeled(datafiles)
+    train_set_x = load_data_unlabeled(datafiles, features = (5,20))
     data_set_file.close()
 
     # compute number of minibatches for training, validation and testing
@@ -212,8 +212,9 @@ def test_unpickle_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10, lr_decay 
     
     print >> output_file, 'Resume training...'
     start_time = time.clock()
-    ## Pre-train layer-wise
-    corruption_levels = [float(options.corruption), float(options.corruption), float(options.corruption)]
+    
+    ## Pre-train layer-wise ##
+    corruption_levels = [float(options.corruption), float(options.corruption)]
     
     for i in xrange(pickled_sda.n_layers):      
         for epoch in xrange(num_epochs):
