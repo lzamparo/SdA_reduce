@@ -154,7 +154,7 @@ def test_pickle_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, batch_s
     
     output_file.close()   
     
-def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10, lr_decay = 0.98):
+def test_unpickle_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10, lr_decay = 0.98):
     """ Unpickle an SdA from file, continue pre-training for a given number of epochs.
     
     :type num_epochs: int
@@ -176,7 +176,7 @@ def test_unpickled_SdA(num_epochs=10, pretrain_lr=0.001, batch_size=10, lr_decay
     today = datetime.today()
     day = str(today.date())
     hour = str(today.time())
-    output_filename = "test_unpickled_sda_pretrain." + day + "." + hour
+    output_filename = "test_unpickle_sda_pretrain." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
     print >> output_file, "Run on " + str(datetime.now())    
