@@ -72,7 +72,7 @@ def test_pickle_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, batch_s
                     updates={learning_rate: learning_rate * lr_decay})    
 
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
-              hidden_layers_sizes=[50, 50],
+              hidden_layers_sizes=[5, 5],
               corruption_levels = [0.25, 0.25],
               layer_types=['ReLU','ReLU'])
 
