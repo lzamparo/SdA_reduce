@@ -102,17 +102,17 @@ class SdA(object):
                 layer_input = self.dA_layers[-1].output
 
             # Call the appropriate dA subclass constructor
-            w_name='W_' + str(i)
-            bvis_name='bvis_' + str(i)
-            bhid_name='bhid_' + str(i)
+            w_name = 'W_' + str(i)
+            bvis_name = 'bvis_' + str(i)
+            bhid_name = 'bhid_' + str(i)
             dA_layer = layer_classes[layer_types[i]].class_from_values(numpy_rng=numpy_rng,
                             theano_rng=theano_rng,
                             input=layer_input,
                             n_visible=input_size,
-                            n_hidden=int(hidden_layers_sizes[i],
+                            n_hidden=int(hidden_layers_sizes[i]),
                             W_name=w_name,
                             bvis_name=bvis_name,
-                            bhid_name=bhid_name))         
+                            bhid_name=bhid_name)         
                 
             self.dA_layers.append(dA_layer)
             self.params.extend(dA_layer.params)            
