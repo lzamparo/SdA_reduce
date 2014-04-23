@@ -4,6 +4,7 @@
 *~
 # No data files
 *.gz
-# No error or output files from scinet
+# No error or output files from scinet, or the job_reports directory on scinet
 *.e*
 *.o*
+job_reports
