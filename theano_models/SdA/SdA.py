@@ -381,15 +381,19 @@ class SdA(object):
         return eval_grad
         
     def __getstate__(self):
-        """ Pickle this SdA by returning the number of layers, list of sigmoid layers and list of dA layers. """
-        return (self.n_layers, self.n_outs, self.dA_layers, self.corruption_levels, self.layer_types)
+        """ Pickle this SdA by tupling up the layers, output size, dA param lists, corruption levels and layer types. """
+        W_list = [layer.W.get_value(borrow=True) for layer in self.dA_layers]
+        bhid_list = [layer.b.get_value(borrow=True) for layer in self.dA_layers]
+        bvis_list = [layer.b_prime.get_value(borrow=True) for layer in self.dA_layers]
+        
+        return (self.n_layers, self.n_outs, W_list, bhid_list, bvis_list, self.corruption_levels, self.layer_types)
     
     def __setstate__(self, state):
         """ Unpickle an SdA model by restoring the list of dA layers.  
         The input should be provided to the initial layer, and the input of layer i+1 is set to the output of layer i. 
-        Fill up the self.params list with the parameter sets of the dA list. """
+        Fill up the self.params from the dA params lists. """
         
-        (layers, n_outs, dA_layers_list, corruption_levels, layer_types) = state
+        (layers, n_outs, dA_W_list, dA_bhid_list, dA_bvis_list, corruption_levels, layer_types) = state
         self.n_layers = layers
         self.n_outs = n_outs
         self.corruption_levels = corruption_levels
@@ -416,15 +420,17 @@ class SdA(object):
             else:
                 layer_input = self.dA_layers[i-1].output
             
-            # Rebuild the dA layer from scratch
+            # Rebuild the dA layer from the values provided in layer_types, dA_<param>_lists
+            # (n_visible, n_hidden)
+            n_visible,n_hidden = dA_W_list[i].shape
             dA_layer = layer_classes[layer_types[i]](numpy_rng=numpy_rng,
                         theano_rng=theano_rng,
                         input=layer_input,
-                        n_visible=dA_layers_list[i].n_visible,
-                        n_hidden=dA_layers_list[i].n_hidden,
-                        W=dA_layers_list[i].W,
-                        bhid=dA_layers_list[i].b,
-                        bvis=dA_layers_list[i].b_prime) 
+                        n_visible=n_visible,
+                        n_hidden=n_hidden,
+                        W=shared(initial=dA_W_list[i],name='W_' + str(i)),
+                        bhid=shared(initial=dA_bhid_list[i],name='bhid_' + str(i)),
+                        bvis=shared(initial=dA_bvis_list[i],name='bvis_' + str(i))) 
                 
             self.dA_layers.append(dA_layer)
             self.params.extend(self.dA_layers[i].params)
