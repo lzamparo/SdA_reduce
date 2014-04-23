@@ -423,14 +423,17 @@ class SdA(object):
             # Rebuild the dA layer from the values provided in layer_types, dA_<param>_lists
             # (n_visible, n_hidden)
             n_visible,n_hidden = dA_W_list[i].shape
+            w_name = 'W_' + str(i)
+            bhid_name = 'bhid_' + str(i)
+            bvis_name = 'bvis_' + str(i)
             dA_layer = layer_classes[layer_types[i]](numpy_rng=numpy_rng,
                         theano_rng=theano_rng,
                         input=layer_input,
                         n_visible=n_visible,
                         n_hidden=n_hidden,
-                        W=shared(initial=dA_W_list[i],name='W_' + str(i)),
-                        bhid=shared(initial=dA_bhid_list[i],name='bhid_' + str(i)),
-                        bvis=shared(initial=dA_bvis_list[i],name='bvis_' + str(i))) 
+                        W=shared(initial=dA_W_list[i],name=w_name),
+                        bhid=shared(initial=dA_bhid_list[i],name=bhid_name),
+                        bvis=shared(initial=dA_bvis_list[i],name=bvis_name)) 
                 
             self.dA_layers.append(dA_layer)
             self.params.extend(self.dA_layers[i].params)
