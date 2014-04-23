@@ -119,8 +119,6 @@ def test_pickle_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, batch_s
     cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
     f.close()    
     
-    # Can I print the matrices / vectors here?
-    
     # Unpickle the SdA
     print >> output_file, 'Unpickling the model...'
     f = file(options.savefile, 'rb')
@@ -137,14 +135,22 @@ def test_pickle_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, batch_s
             print >> output_file, ("numpy says that Ws in layer %i are not close" % (i))
             print >> output_file, "Norm for pickled dA " + pickled_dA_params[0].name  + ": " 
             print >> output_file, norm(pickled_dA_params[0].get_value())
+            print >> output_file, "Values for pickled dA " + pickled_dA_params[0].name  + ": " 
+            print >> output_file, numpy.array_repr(pickled_dA_params[0].get_value())
             print >> output_file, "Norm for fresh dA " + fresh_dA_params[0].name + ": " 
             print >> output_file, norm(fresh_dA_params[0].get_value())
+            print >> output_file, "Values for fresh dA " + fresh_dA_params[0].name  + ": " 
+            print >> output_file, numpy.array_repr(fresh_dA_params[0].get_value())            
         if not numpy.allclose(pickled_dA_params[1].get_value(), fresh_dA_params[1].get_value()):
             print >> output_file, ("numpy says that the biases in layer %i are not close" % (i))
             print >> output_file, "Norm for pickled dA " + pickled_dA_params[1].name + ": " 
             print >> output_file, norm(pickled_dA_params[1].get_value())
+            print >> output_file, "Values for pickled dA " + pickled_dA_params[1].name + ": " 
+            print >> output_file, numpy.array_repr(pickled_dA_params[1].get_value())            
             print >> output_file, "Norm for fresh dA " + fresh_dA_params[1].name + ": " 
-            print >> output_file, norm(fresh_dA_params[1].get_value())            
+            print >> output_file, norm(fresh_dA_params[1].get_value())
+            print >> output_file, "Values for fresh dA " + pickled_dA_params[1].name + ": " 
+            print >> output_file, numpy.array_repr(pickled_dA_params[1].get_value())            
     
     output_file.close()   
     
