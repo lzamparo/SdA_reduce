@@ -411,10 +411,19 @@ class ReluAutoEncoder(AutoEncoder):
         if bhid_name is None:
             bhid_name = 'bhid'        
         
-        initial_W = np.asarray(np.random.normal(loc=0.01, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
-        W = shared(value=initial_W, name=W_name)        
-        bvis = shared(value=np.ones(n_visible, dtype = config.floatX), name = bvis_name)
-        bhid = shared(value=np.ones(n_hidden, dtype = config.floatX), name = bhid_name)
+        if W is None:
+            initial_W = np.asarray(np.random.normal(loc=0.01, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
+            W = shared(value=initial_W, name=W_name)   
+            #DEBUG
+            print "ReLU dA constructor: initialized W "
+        if bvis is None:
+            bvis = shared(value=np.ones(n_visible, dtype = config.floatX), name = bvis_name)
+            #DEBUG
+            print "ReLU dA constructor: initialized bvis "            
+        if bhid is None:
+            bhid = shared(value=np.ones(n_hidden, dtype = config.floatX), name = bhid_name)
+            #DEBUG
+            print "ReLU dA constructor: initialized bhid "            
         
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name)
         self.output = T.maximum(T.dot(input, self.W) + self.b, 0.0)
@@ -425,7 +434,10 @@ class ReluAutoEncoder(AutoEncoder):
             Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
         """
 
-        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
+        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'],
+                   n_hidden=kwargs['n_hidden'], W=kwargs['W'],
+                   bhid=kwargs['bhid'], bvis=kwargs['bvis'],
+                   W_name=kwargs['W_name'], bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'])        
 
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """

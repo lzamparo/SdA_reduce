@@ -449,6 +449,11 @@ class SdA(object):
             w_name = 'W_' + str(i)
             bhid_name = 'bhid_' + str(i)
             bvis_name = 'bvis_' + str(i)
+            #DEBUG
+            print "W name: " + w_name
+            print "bhid name: " + bhid_name
+            print "bvis name: " + bvis_name
+            
             dA_layer = layer_classes[layer_types[i]](numpy_rng=numpy_rng,
                         theano_rng=theano_rng,
                         input=layer_input,
