@@ -431,9 +431,24 @@ class ReluAutoEncoder(AutoEncoder):
     @classmethod
     def class_from_values(cls, *args, **kwargs):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
-            Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
+            Args that always get specified through this version of the constructor: 
+                numpy_rng, theano_rng, input, n_visible, n_hidden, W_name, bvis_name, bhid_name.
+            Args that *might* be specified: W, bhid, bvis. 
         """
-
+        keys = kwargs.keys()
+        if 'W' not in keys:
+            kwargs['W'] = None
+            #DEBUG
+            print "class_from_values: W was missing from kwargs"
+        if 'bhid' not in keys:
+            kwargs['bhid'] = None
+            #DEBUG
+            print "class_from_values: bhid was missing from kwargs"
+        if 'bvis' not in keys:
+            kwargs['bvis']=None
+            #DEBUG
+            print "class_from_values: bvis was missing from kwargs"
+            
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'],
                    n_hidden=kwargs['n_hidden'], W=kwargs['W'],
                    bhid=kwargs['bhid'], bvis=kwargs['bvis'],
