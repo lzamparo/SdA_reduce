@@ -269,7 +269,7 @@ class BernoulliAutoEncoder(AutoEncoder):
         taking into account a certain level of corruption of the input """
         
         x_corrupted = super(BernoulliAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
-        y = super(BernoulliAutoEncoder,self).get_hidden_values(x_corrupted)
+        y = self.get_hidden_values(x_corrupted)
         z = self.get_reconstructed_input(y)
         
         # Use the cross entropy loss
@@ -379,7 +379,7 @@ class GaussianAutoEncoder(AutoEncoder):
         """ Compute the reconstruction error over the mini-batched input
        taking into account a certain level of corruption of the input """
         x_corrupted = super(GaussianAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
-        y = super(GaussianAutoEncoder,self).get_hidden_values(x_corrupted)
+        y = self.get_hidden_values(x_corrupted)
         z = self.get_reconstructed_input(y)
         
         # Take the sum over columns
