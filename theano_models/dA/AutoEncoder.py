@@ -256,6 +256,9 @@ class BernoulliAutoEncoder(AutoEncoder):
                    bhid=kwargs['bhid'], bvis=kwargs['bvis'], W_name=kwargs['W_name'], 
                    bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'])        
     
+    def get_hidden_values(self, input):
+        """ Compute the values of the hidden layer """    
+        return T.nnet.sigmoid(T.dot(input, self.W) + self.b)
     
     def get_reconstructed_input(self, hidden):
         """ Compute the reconstructed input given the hidden rep'n """
@@ -363,6 +366,10 @@ class GaussianAutoEncoder(AutoEncoder):
                    n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'],W=kwargs['W'],
                    bhid=kwargs['bhid'], bvis=kwargs['bvis'],W_name=kwargs['W_name'], 
                    bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'])        
+    
+    def get_hidden_values(self, input):
+        """ Compute the values of the hidden layer """    
+        return T.nnet.sigmoid(T.dot(input, self.W) + self.b)    
     
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
