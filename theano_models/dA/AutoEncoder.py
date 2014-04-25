@@ -233,9 +233,28 @@ class BernoulliAutoEncoder(AutoEncoder):
     @classmethod
     def class_from_values(cls, *args, **kwargs):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
-            Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
-        """   
-        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
+            Args that always get specified in this constructor: numpy_rng, theano_rng, input, n_visible, n_hidden, W_name, bvis_name, bhid_name
+            Args that *sometimes* get specified in this constructor: W, bvis, bhid
+        """  
+        
+        keys = kwargs.keys()
+        if 'W' not in keys:
+            kwargs['W'] = None
+            #DEBUG
+            print "class_from_values: W was missing from kwargs"
+        if 'bhid' not in keys:
+            kwargs['bhid'] = None
+            #DEBUG
+            print "class_from_values: bhid was missing from kwargs"
+        if 'bvis' not in keys:
+            kwargs['bvis']=None
+            #DEBUG
+            print "class_from_values: bvis was missing from kwargs"        
+        
+        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], 
+                   n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'], W=kwargs['W'],
+                   bhid=kwargs['bhid'], bvis=kwargs['bvis'], W_name=kwargs['W_name'], 
+                   bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'])        
     
     
     def get_reconstructed_input(self, hidden):
@@ -314,17 +333,36 @@ class GaussianAutoEncoder(AutoEncoder):
             :param bhid_name: name to be assigned to the bhid vector.
         
         
-        """        
+        """
+               
         super(GaussianAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name)
         self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)    
 
     @classmethod
     def class_from_values(cls, *args, **kwargs):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
-            Args that get specified through this version of the constructor: numpy_rng, theano_rng, input, n_visible, n_hidden
+            Args that always get specified through this constructor: numpy_rng, theano_rng, input, n_visible, n_hidden, W_name, bvis_name, bhid_name.
+            Args that *might* be specified: W, bhid, bvis.
         """
         
-        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'])        
+        keys = kwargs.keys()
+        if 'W' not in keys:
+            kwargs['W'] = None
+            #DEBUG
+            print "class_from_values: W was missing from kwargs"
+        if 'bhid' not in keys:
+            kwargs['bhid'] = None
+            #DEBUG
+            print "class_from_values: bhid was missing from kwargs"
+        if 'bvis' not in keys:
+            kwargs['bvis']=None
+            #DEBUG
+            print "class_from_values: bvis was missing from kwargs"
+            
+        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], 
+                   n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'],W=kwargs['W'],
+                   bhid=kwargs['bhid'], bvis=kwargs['bvis'],W_name=kwargs['W_name'], 
+                   bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'])        
     
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
