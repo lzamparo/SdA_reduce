@@ -444,6 +444,14 @@ class SdA(object):
             print [elem.shape for elem in dA_W_list]
             print "__setstate__: Norms of W list: "
             print [np.linalg.norm(elem) for elem in dA_W_list]
+            print "__setstate:__: Shape of bhid list: "
+            print [elem.shape for elem in dA_bhid_list]
+            print "__setstate__: Norms of bhid list: "
+            print [np.linalg.norm(elem) for elem in dA_bhid_list]
+            print "__setstate:__: Shape of bvis list: "
+            print [elem.shape for elem in dA_bvis_list]
+            print "__setstate__: Norms of bvis list: "
+            print [np.linalg.norm(elem) for elem in dA_bvis_list]             
             
             n_visible,n_hidden = dA_W_list[i].shape
             w_name = 'W_' + str(i)

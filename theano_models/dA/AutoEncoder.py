@@ -140,6 +140,8 @@ class AutoEncoder(object):
     
     def __setstate__(self, state):
         """ Set the state of this dA from values returned from a deserialization process like unpickle. """
+        #DEBUG
+        print "dA.__setstate__: I should *not* be called "
         W, b, b_prime, n_visible, n_hidden = state
         self.W = shared(value=W, name='W')
         self.b = shared(value=b, name = 'bvis')
@@ -226,8 +228,7 @@ class BernoulliAutoEncoder(AutoEncoder):
         
         
         """        
-        super(BernoulliAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden,
-                 W=None, bhid=None, bvis=None, W_name=W_name, bvis_name=bvis_name, bhid_name=bhid_name)
+        super(BernoulliAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name)
         self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)
         
     @classmethod

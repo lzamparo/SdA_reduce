@@ -38,13 +38,13 @@ def test_pickle_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, batch_s
 
     """
     
-    current_dir = os.getcwd()    
-
+    layer_types=['Gaussian','Bernoulli']
+    current_dir = os.getcwd()       
     os.chdir(options.dir)
     today = datetime.today()
     day = str(today.date())
     hour = str(today.time())
-    output_filename = "test_pickle_sda_." + day + "." + hour
+    output_filename = "test_pickle_sda_." + '_'.join([elem for elem in layer_types]) + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
     print >> output_file, "Run on " + str(datetime.now())    
@@ -74,7 +74,7 @@ def test_pickle_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, batch_s
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=[5, 5],
               corruption_levels = [0.25, 0.25],
-              layer_types=['Gaussian','Bernoulli'])
+              layer_types=layer_types)
 
     #########################
     # PRETRAINING THE MODEL #
