@@ -74,7 +74,7 @@ def test_pickled_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, batch_
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=[1000, 50],
               corruption_levels = [0.25, 0.25],
-              layer_types=['ReLU','ReLU'])
+              layer_types=['Gaussian','Bernoulli'])
 
     #########################
     # PRETRAINING THE MODEL #
