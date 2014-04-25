@@ -16,7 +16,7 @@
 
 # To make substitutions from a higher up script: -p $FIRSTMODEL -q $SECONDMODEL -o $OFFSET
 cd $PBS_O_WORKDIR
-python test_pretrain_SdA.py -d /scratch/z/zhaolei/lzamparo/gpu_tests/ -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -c 0.25 -s $SCRATCH/gpu_tests/adaptive_lr_pretrain.pkl -r $SCRATCH/gpu_tests/adaptive_lr_pretrain.pkl
+python test_pickle_SdA.py -d /scratch/z/zhaolei/lzamparo/gpu_tests/ -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -c 0.25 -s $SCRATCH/gpu_tests/adaptive_lr_pickle.pkl -r $SCRATCH/gpu_tests/adaptive_lr_pickle.pkl
 
 
 
