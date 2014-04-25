@@ -241,15 +241,15 @@ class BernoulliAutoEncoder(AutoEncoder):
         if 'W' not in keys:
             kwargs['W'] = None
             #DEBUG
-            print "class_from_values: W was missing from kwargs"
+            print "BernoulliAutoEncoder.class_from_values: W was missing from kwargs"
         if 'bhid' not in keys:
             kwargs['bhid'] = None
             #DEBUG
-            print "class_from_values: bhid was missing from kwargs"
+            print "BernoulliAutoEncoder.class_from_values: bhid was missing from kwargs"
         if 'bvis' not in keys:
             kwargs['bvis']=None
             #DEBUG
-            print "class_from_values: bvis was missing from kwargs"        
+            print "BernoulliAutoEncoder.class_from_values: bvis was missing from kwargs"        
         
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], 
                    n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'], W=kwargs['W'],
@@ -352,15 +352,15 @@ class GaussianAutoEncoder(AutoEncoder):
         if 'W' not in keys:
             kwargs['W'] = None
             #DEBUG
-            print "class_from_values: W was missing from kwargs"
+            print "GaussianAutoEncoder.class_from_values: W was missing from kwargs"
         if 'bhid' not in keys:
             kwargs['bhid'] = None
             #DEBUG
-            print "class_from_values: bhid was missing from kwargs"
+            print "GaussianAutoEncoder.class_from_values: bhid was missing from kwargs"
         if 'bvis' not in keys:
             kwargs['bvis']=None
             #DEBUG
-            print "class_from_values: bvis was missing from kwargs"
+            print "GaussianAutoEncoder.class_from_values: bvis was missing from kwargs"
             
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], 
                    n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'],W=kwargs['W'],
@@ -484,15 +484,15 @@ class ReluAutoEncoder(AutoEncoder):
         if 'W' not in keys:
             kwargs['W'] = None
             #DEBUG
-            print "class_from_values: W was missing from kwargs"
+            print "dA.class_from_values: W was missing from kwargs"
         if 'bhid' not in keys:
             kwargs['bhid'] = None
             #DEBUG
-            print "class_from_values: bhid was missing from kwargs"
+            print "dA.class_from_values: bhid was missing from kwargs"
         if 'bvis' not in keys:
             kwargs['bvis']=None
             #DEBUG
-            print "class_from_values: bvis was missing from kwargs"
+            print "dA.class_from_values: bvis was missing from kwargs"
             
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'],
                    n_hidden=kwargs['n_hidden'], W=kwargs['W'],

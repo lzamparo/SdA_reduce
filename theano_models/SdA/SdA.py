@@ -393,14 +393,14 @@ class SdA(object):
            bvis_list.append(bvis.get_value(borrow=True))
         
         #DEBUG
-        print "length of W_list: " + str(len(W_list))
-        print "length of bhid_list: " + str(len(bhid_list))
-        print "length of bvis_list: " + str(len(bvis_list))
-        print "What's in these lists? "
+        print "__getstate__: length of W_list: " + str(len(W_list))
+        print "__getstate__: length of bhid_list: " + str(len(bhid_list))
+        print "__getstate__: length of bvis_list: " + str(len(bvis_list))
+        print "__getstate__: What's in these lists? "
         print [type(elem) for elem in W_list]
         print [type(elem) for elem in bhid_list]
         print [type(elem) for elem in bvis_list]
-        print "What are the norms of these arrays? "
+        print "__getstate__: What are the norms of these arrays? "
         print [np.linalg.norm(elem) for elem in W_list]
         print [np.linalg.norm(elem) for elem in bhid_list]
         print [np.linalg.norm(elem) for elem in bvis_list]
@@ -440,9 +440,9 @@ class SdA(object):
             
             # Rebuild the dA layer from the values provided in layer_types, dA_<param>_lists
             #DEBUG
-            print "Shape of W list: "
+            print "__setstate__: Shape of W list: "
             print [elem.shape for elem in dA_W_list]
-            print "Norms of W list: "
+            print "__setstate__: Norms of W list: "
             print [np.linalg.norm(elem) for elem in dA_W_list]
             
             n_visible,n_hidden = dA_W_list[i].shape
@@ -450,9 +450,9 @@ class SdA(object):
             bhid_name = 'bhid_' + str(i)
             bvis_name = 'bvis_' + str(i)
             #DEBUG
-            print "W name: " + w_name
-            print "bhid name: " + bhid_name
-            print "bvis name: " + bvis_name
+            print "__setstate__: W name: " + w_name
+            print "__setstate__: bhid name: " + bhid_name
+            print "__setstate__: bvis name: " + bvis_name
             
             dA_layer = layer_classes[layer_types[i]](numpy_rng=numpy_rng,
                         theano_rng=theano_rng,
