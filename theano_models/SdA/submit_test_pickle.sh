@@ -5,7 +5,7 @@
 # required
 #
 #PBS -l nodes=1:ppn=8:gpus=2,walltime=00:30:00
-#PBS -N Test_Pretrain_SdA
+#PBS -N Test_Pickle_SdA
 #PBS -q arc
 
 # Load theano modules
