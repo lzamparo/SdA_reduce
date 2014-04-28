@@ -21,7 +21,7 @@ import time
 from datetime import datetime
 from optparse import OptionParser
 
-def test_pickled_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, batch_size=20):
+def test_pickled_SdA(num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_size=20):
     """
     
     Pretrain an SdA model for the given number of training epochs.  The model is either initialized from scratch, or 

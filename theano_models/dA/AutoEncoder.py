@@ -140,8 +140,6 @@ class AutoEncoder(object):
     
     def __setstate__(self, state):
         """ Set the state of this dA from values returned from a deserialization process like unpickle. """
-        #DEBUG
-        print "dA.__setstate__: I should *not* be called "
         W, b, b_prime, n_visible, n_hidden = state
         self.W = shared(value=W, name='W')
         self.b = shared(value=b, name = 'bvis')
@@ -241,16 +239,10 @@ class BernoulliAutoEncoder(AutoEncoder):
         keys = kwargs.keys()
         if 'W' not in keys:
             kwargs['W'] = None
-            #DEBUG
-            print "BernoulliAutoEncoder.class_from_values: W was missing from kwargs"
         if 'bhid' not in keys:
             kwargs['bhid'] = None
-            #DEBUG
-            print "BernoulliAutoEncoder.class_from_values: bhid was missing from kwargs"
         if 'bvis' not in keys:
-            kwargs['bvis']=None
-            #DEBUG
-            print "BernoulliAutoEncoder.class_from_values: bvis was missing from kwargs"        
+            kwargs['bvis'] = None       
         
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], 
                    n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'], W=kwargs['W'],
@@ -352,16 +344,13 @@ class GaussianAutoEncoder(AutoEncoder):
         keys = kwargs.keys()
         if 'W' not in keys:
             kwargs['W'] = None
-            #DEBUG
-            print "GaussianAutoEncoder.class_from_values: W was missing from kwargs"
+    
         if 'bhid' not in keys:
             kwargs['bhid'] = None
-            #DEBUG
-            print "GaussianAutoEncoder.class_from_values: bhid was missing from kwargs"
+            
         if 'bvis' not in keys:
             kwargs['bvis']=None
-            #DEBUG
-            print "GaussianAutoEncoder.class_from_values: bvis was missing from kwargs"
+            
             
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], 
                    n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'],W=kwargs['W'],
@@ -460,16 +449,13 @@ class ReluAutoEncoder(AutoEncoder):
         if W is None:
             initial_W = np.asarray(np.random.normal(loc=0.01, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
             W = shared(value=initial_W, name=W_name)   
-            #DEBUG
-            print "ReLU dA constructor: initialized W "
+            
         if bvis is None:
             bvis = shared(value=np.ones(n_visible, dtype = config.floatX), name = bvis_name)
-            #DEBUG
-            print "ReLU dA constructor: initialized bvis "            
+                        
         if bhid is None:
             bhid = shared(value=np.ones(n_hidden, dtype = config.floatX), name = bhid_name)
-            #DEBUG
-            print "ReLU dA constructor: initialized bhid "            
+                        
         
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name)
         self.output = T.maximum(T.dot(input, self.W) + self.b, 0.0)
@@ -484,16 +470,13 @@ class ReluAutoEncoder(AutoEncoder):
         keys = kwargs.keys()
         if 'W' not in keys:
             kwargs['W'] = None
-            #DEBUG
-            print "dA.class_from_values: W was missing from kwargs"
+            
         if 'bhid' not in keys:
             kwargs['bhid'] = None
-            #DEBUG
-            print "dA.class_from_values: bhid was missing from kwargs"
+            
         if 'bvis' not in keys:
             kwargs['bvis']=None
-            #DEBUG
-            print "dA.class_from_values: bvis was missing from kwargs"
+            
             
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'],
                    n_hidden=kwargs['n_hidden'], W=kwargs['W'],
