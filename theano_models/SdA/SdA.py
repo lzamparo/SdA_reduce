@@ -22,7 +22,8 @@ class SdA(object):
 
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=-1,
-                 corruption_levels=[0.1, 0.1], layer_types=['ReLU','ReLU']):
+                 corruption_levels=[0.1, 0.1], layer_types=['ReLU','ReLU'],
+                 loss=):
         """ This class is made to support a variable number of layers
 
         :type numpy_rng: numpy.random.RandomState
@@ -55,6 +56,10 @@ class SdA(object):
         :type layer_types: list of string
         :param layer_types: each entry specifies the AutoEncoder sub-class to
                             instatiate for each layer.
+                            
+        :type loss: string
+        :param loss: specify what loss function to use for reconstruction error
+                            Currently supported: 'squared','xent','softplus'
                                                                        
         """
 
@@ -62,14 +67,14 @@ class SdA(object):
         self.params = []
         self.layer_types = layer_types
         
-        # Keep track of previous parameter updates so we can use momentum
+        # keep track of previous parameter updates so we can use momentum
         self.updates = OrderedDict()
         
         self.n_outs = n_outs
         self.corruption_levels = corruption_levels
         self.n_layers = len(hidden_layers_sizes)
 
-        # Sanity checks on parameter list sizes
+        # sanity checks on parameter list sizes
         assert self.n_layers > 0
         assert len(hidden_layers_sizes) == len(corruption_levels) == len(layer_types)                                                                        
 
@@ -84,8 +89,11 @@ class SdA(object):
             self.y = T.ivector('y')  # the labels (if present) are presented as 1D vector of
                                      # [int] labels
 
+        # sanity check on loss parameter
+        assert loss in ['squared', 'xent', 'softplus']
+        self.use_loss = loss
         
-        # Build each layer dynamically 
+        # build each layer dynamically 
         layer_classes = {'Gaussian': GaussianAutoEncoder, 'Bernoulli': BernoulliAutoEncoder, 'ReLU': ReluAutoEncoder}
         
         for i in xrange(self.n_layers):
@@ -144,10 +152,55 @@ class SdA(object):
             self.errors = self.logLayer.errors(self.y)
         
         else:
-            self.finetune_cost = self.reconstruction_error(self.x)
-            self.output = self.encode(self.x)
-            self.errors = self.reconstruction_error(self.x)
-                    
+            self.finish_sda_unsupervised()
+
+    def finish_sda_unsupervised(self):    
+        """ Finish up unsupervised property settings for the model: set self.loss, self.finetune_cost, self.output, self.errors """
+        
+        loss_dict = {'squared': self.squared_loss, 'xent': self.xent_loss, 'softplus': self.softplus_loss}
+        self.loss = loss_dict[self.use_loss]
+        self.finetune_cost = self.reconstruction_error(self.x)
+        self.output = self.encode(self.x)
+        self.errors = self.reconstruction_error(self.x)        
+                      
+    def squared_loss(self,X,Z):
+        """ Return the theano expression for squared error loss
+        
+        :type X: theano.tensor.TensorType
+        :param X: Shared variable that contains data 
+                  
+        :type Z: theano.tensor.TensorType
+        :param Z: Shared variable that contains the reconstruction
+                  of the data under the model)          
+        """
+        
+        return T.sum((X - Z) **2, axis = 1)
+    
+    def softplus_loss(self,X,Z):
+        """ Return the theano expression for softplus error loss 
+
+        :type X: theano.tensor.TensorType
+        :param X: Shared variable that contains data 
+                  
+        :type Z: theano.tensor.TensorType
+        :param Z: Shared variable that contains the reconstruction
+                  of the data under the model)
+        """
+        
+        return T.sum((X - T.nnet.softplus(Z)) **2, axis = 1)
+    
+    def xent_loss(self,X,Z):
+        """ Return the theano expression for cross entropy error loss 
+        
+        :type X: theano.tensor.TensorType
+        :param X: Shared variable that contains data 
+                  
+        :type Z: theano.tensor.TensorType
+        :param Z: Shared variable that contains the reconstruction
+                  of the data under the model)
+        """
+        
+        return -T.sum(X * T.log(Z) + (1 - X) * T.log(1 - Z), axis=1)            
             
     def reconstruct_input(self, X):
         """ Given data X, provide the symbolic computation of  
@@ -157,6 +210,7 @@ class SdA(object):
         :param X: Shared variable that contains data 
                   to be pushed through the SdA (i.e reconstructed)
         """
+        
         X_prime = X
         for dA in self.dA_layers:
             X_prime = dA.get_hidden_values(X_prime)
@@ -175,8 +229,9 @@ class SdA(object):
         :param X: Shared variable that contains a batch of datapoints 
                   to be reconstructed
         """
-        Z = self.reconstruct_input(X)
-        L = T.sum((X - Z) **2, axis = 1)
+        
+        Z = self.reconstruct_input(X)    
+        L = self.loss(X,Z)
         return T.mean(L)
             
     def encode(self,X):
@@ -188,6 +243,7 @@ class SdA(object):
         :param X: Shared variable that contains data 
                   to be pushed through the SdA (i.e reconstructed)
         """
+        
         X_prime = X
         for dA in self.dA_layers:
             X_prime = dA.get_hidden_values(X_prime) 
@@ -392,19 +448,20 @@ class SdA(object):
            bhid_list.append(bhid.get_value(borrow=True))
            bvis_list.append(bvis.get_value(borrow=True))
         
-        return (self.n_layers, self.n_outs, W_list, bhid_list, bvis_list, self.corruption_levels, self.layer_types)
+        return (self.n_layers, self.n_outs, W_list, bhid_list, bvis_list, self.corruption_levels, self.layer_types, self.use_loss)
     
     def __setstate__(self, state):
         """ Unpickle an SdA model by restoring the list of dA layers.  
         The input should be provided to the initial layer, and the input of layer i+1 is set to the output of layer i. 
         Fill up the self.params from the dA params lists. """
         
-        (layers, n_outs, dA_W_list, dA_bhid_list, dA_bvis_list, corruption_levels, layer_types) = state
+        (layers, n_outs, dA_W_list, dA_bhid_list, dA_bvis_list, corruption_levels, layer_types, use_loss) = state
         self.n_layers = layers
         self.n_outs = n_outs
         self.corruption_levels = corruption_levels
         self.layer_types = layer_types
         self.dA_layers = []
+        self.use_loss = use_loss
         self.params = []
         self.x = T.matrix('x')  # symbolic input for the training data
         self.x_prime = T.matrix('X_prime') # symbolic output for the top layer dA
@@ -458,9 +515,7 @@ class SdA(object):
         if n_outs > 0:
             self.reconstruct_loglayer(n_outs)
         else:
-            self.finetune_cost = self.reconstruction_error(self.x)
-            self.errors = self.reconstruction_error(self.x)
-            self.output = self.encode(self.x)
+            self.finish_sda_unsupervised()
 
    
 #################### Legacy code below: logistic layer top for SdA that were intended for dual MLP
