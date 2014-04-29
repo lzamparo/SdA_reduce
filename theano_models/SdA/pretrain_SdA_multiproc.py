@@ -59,7 +59,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
     layer_types = parse_layer_type(shared_args_dict['layertype'], len(arch_list))    
     
     
-    output_filename = "stacked_denoising_autoencoder_" + + private_args['arch'] + "." + day + "." + hour
+    output_filename = "stacked_denoising_autoencoder_" + "_".join(elem for elem in layer_types) + private_args['arch'] + "." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
     print >> output_file, "Run on " + str(datetime.now())    
