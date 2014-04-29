@@ -47,7 +47,7 @@ do
     let prev=$i-1
     first="${fiveLayerModelList[$i]}$outputLayer"
     second="${fiveLayerModelList[$prev]}$outputLayer"
-    qsub submit_pretrain_gravity_5layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer",LAYERTYPES="$layerType",,LOSS="$loss" 
+    qsub submit_pretrain_gravity_5layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer",LAYERTYPES="$layerType",LOSS="$loss" 
     ((offset+=5))
     sleep 5
     
