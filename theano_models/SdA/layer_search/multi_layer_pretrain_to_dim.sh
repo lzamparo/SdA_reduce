@@ -21,6 +21,8 @@ outputLayer=$1
 
 layerType=$2
 
+loss=$3
+
 len=${#threeLayerModelList[*]}
 
 for((i=1; i<=$len; i+=2 ))
@@ -28,7 +30,7 @@ do
     let prev=$i-1
     first="${threeLayerModelList[$i]}$outputLayer"
     second="${threeLayerModelList[$prev]}$outputLayer"
-    qsub submit_pretrain_gravity_3layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer",LAYERTYPES="$layerType"
+    qsub submit_pretrain_gravity_3layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer",LAYERTYPES="$layerType",LOSS="$loss"
     ((offset+=5))
     sleep 5
     
@@ -45,7 +47,7 @@ do
     let prev=$i-1
     first="${fiveLayerModelList[$i]}$outputLayer"
     second="${fiveLayerModelList[$prev]}$outputLayer"
-    qsub submit_pretrain_gravity_5layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer",LAYERTYPES="$layerType"
+    qsub submit_pretrain_gravity_5layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer",LAYERTYPES="$layerType",,LOSS="$loss" 
     ((offset+=5))
     sleep 5
     
