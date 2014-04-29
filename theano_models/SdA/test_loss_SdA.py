@@ -21,7 +21,7 @@ import time
 from datetime import datetime
 from optparse import OptionParser
 
-def test_loss_SdA(num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_size=20):
+def test_loss_SdA(num_epochs=100, pretrain_lr=0.0001, lr_decay = 0.98, batch_size=20):
     """
     
     Pretrain an SdA model for the given number of training epochs, specifiying a different loss function that usual.
@@ -38,7 +38,7 @@ def test_loss_SdA(num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_size
     """
     
     current_dir = os.getcwd()    
-    layer_types=['ReLU','ReLU']
+    layer_types=['ReLU','ReLU','ReLU']
     os.chdir(options.dir)
     today = datetime.today()
     day = str(today.date())
@@ -69,12 +69,11 @@ def test_loss_SdA(num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_size
     # Function to decrease the learning rate
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
                     updates={learning_rate: learning_rate * lr_decay})    
-
-    
+ 
 
     sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
-              hidden_layers_sizes=[1000, 50],
-              corruption_levels = [0.25, 0.0],
+              hidden_layers_sizes=[1000, 600, 50],
+              corruption_levels = [0.25, 0.0, 0.0],
               layer_types=layer_types,
               loss=options.loss)
 

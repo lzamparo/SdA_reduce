@@ -20,7 +20,7 @@ from tables import openFile
 
 from datetime import datetime
 
-def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, lr_decay = 0.98, batch_size=50): 
+def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001, lr_decay = 0.98, batch_size=50): 
     """ Pretrain an SdA model for the given number of training epochs.  The model is either initialized from 
     scratch, or is reconstructed from a previously pickled model.
 
@@ -54,7 +54,12 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     today = datetime.today()
     day = str(today.date())
     hour = str(today.time())
-    output_filename = "stacked_denoising_autoencoder_" + private_args['arch'] + "." + day + "." + hour
+    arch_list = get_arch_list(private_args)            
+    corruption_list = [shared_args_dict['corruption'] for i in arch_list]
+    layer_types = parse_layer_type(shared_args_dict['layertype'], len(arch_list))    
+    
+    
+    output_filename = "stacked_denoising_autoencoder_" + + private_args['arch'] + "." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
     print >> output_file, "Run on " + str(datetime.now())    
@@ -88,17 +93,13 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
         f.close()        
         os.chdir(current_dir)
     else:
-        print '... building the model'
-        arch_list = get_arch_list(private_args)
-        
-        corruption_list = [shared_args_dict['corruption'] for i in arch_list]
-        layer_types = parse_layer_type(shared_args_dict['layertype'], len(arch_list))
-        
+        print '... building the model'  
         
         sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=arch_list,
               corruption_levels = corruption_list,
               layer_types=layer_types,
+              loss=shared_args_dict['loss']
               n_outs=-1)
 
     #########################
@@ -212,7 +213,8 @@ if __name__ == '__main__':
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")    
     parser.add_option("-a", "--firstarch", dest="p_arch", default = "", help="dash separated list to specify the first architecture of the SdA.  E.g: -a 850-400-50")
     parser.add_option("-b", "--secondarch", dest="q_arch", default = "", help="dash separated list to specify the second architecture of the SdA.")
-    parser.add_option("-l", "--layertype", dest="layer_type", type="string", default = "Gaussian", help="specify the type of SdA layer activations to use.  Acceptable values are 'Gaussian', 'Bernoulli', 'ReLU'.")
+    parser.add_option("-t", "--layertype", dest="layer_type", type="string", default = "Gaussian", help="specify the type of SdA layer activations to use.  Acceptable values are 'Gaussian', 'Bernoulli', 'ReLU'.")
+    parser.add_option("-l", "--loss", dest="loss", type="string", default = "squared", help="specify the loss function to use for measuring reconstruction error.  Acceptable values are 'squared', 'xent', 'softplus'.")
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -229,6 +231,7 @@ if __name__ == '__main__':
     shared_args['corruption'] = options.corruption
     shared_args['offset'] = options.offset
     shared_args['layertype'] = options.layer_type
+    shared_args['loss'] = options.loss
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes
