@@ -78,7 +78,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
     numpy_rng = numpy.random.RandomState(89677)
     
     # Set the initial value of the learning rate
-    learning_rate = theano.shared(np.asarray(pretrain_lr, 
+    learning_rate = theano.shared(numpy.asarray(pretrain_lr, 
                                              dtype=theano.config.floatX))     
     
     
