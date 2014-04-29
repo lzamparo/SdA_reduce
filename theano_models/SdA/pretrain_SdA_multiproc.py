@@ -99,7 +99,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
               hidden_layers_sizes=arch_list,
               corruption_levels = corruption_list,
               layer_types=layer_types,
-              loss=shared_args_dict['loss']
+              loss=shared_args_dict['loss'],
               n_outs=-1)
 
     #########################
