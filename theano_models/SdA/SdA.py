@@ -23,7 +23,7 @@ class SdA(object):
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=-1,
                  corruption_levels=[0.1, 0.1], layer_types=['ReLU','ReLU'],
-                 loss=):
+                 loss='squared'):
         """ This class is made to support a variable number of layers
 
         :type numpy_rng: numpy.random.RandomState
