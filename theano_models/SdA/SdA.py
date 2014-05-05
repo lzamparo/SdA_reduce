@@ -446,10 +446,10 @@ class SdA(object):
         bhid_list = []
         bvis_list = []
         for layer in self.dA_layers:
-           W, bhid, bvis  = layer.get_params()
-           W_list.append(W.get_value(borrow=True))
-           bhid_list.append(bhid.get_value(borrow=True))
-           bvis_list.append(bvis.get_value(borrow=True))
+            W, bhid, bvis  = layer.get_params()
+            W_list.append(W.get_value(borrow=True))
+            bhid_list.append(bhid.get_value(borrow=True))
+            bvis_list.append(bvis.get_value(borrow=True))
         
         return (self.n_layers, self.n_outs, W_list, bhid_list, bvis_list, self.corruption_levels, self.layer_types, self.use_loss)
     

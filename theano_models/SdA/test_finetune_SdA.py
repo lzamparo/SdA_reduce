@@ -124,7 +124,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
         epoch = epoch + 1
         
         for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost = train_fn(minibatch_index, momentum=momentum)
+            minibatch_avg_cost = train_fn(minibatch_index, momentum=shared_args_dict['momentum'])
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
             if (iter + 1) % validation_frequency == 0:
@@ -193,6 +193,7 @@ if __name__ == '__main__':
     shared_args['dir'] = os.path.join(options.dir,options.extension)
     shared_args['input'] = options.inputfile
     shared_args['offset'] = options.offset
+    shared_args['momentum'] = 0.8
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes
