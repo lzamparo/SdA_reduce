@@ -85,10 +85,18 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
     # get the training, validation function for the model
     datasets = (train_set_x,valid_set_x)
     
+    # Set the initial value of the learning rate
+    learning_rate = theano.shared(numpy.asarray(finetune_lr, 
+                                                     dtype=theano.config.floatX)) 
+        
+    # Function to decrease the learning rate
+    decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
+                        updates={learning_rate: learning_rate * lr_decay})     
+    
     print '... getting the finetuning functions'
     train_fn, validate_model = sda.build_finetune_functions_reconstruction(
                 datasets=datasets, batch_size=batch_size,
-                learning_rate=finetune_lr)
+                learning_rate=learning_rate)
 
     print '... fine-tuning the model'    
 
@@ -109,15 +117,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
     start_time = time.clock()
 
     done_looping = False
-    epoch = 0
-    
-    # Set the initial value of the learning rate
-    learning_rate = theano.shared(numpy.asarray(finetune_lr, 
-                                                 dtype=theano.config.floatX)) 
-    
-    # Function to decrease the learning rate
-    decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
-                    updates={learning_rate: learning_rate * lr_decay})    
+    epoch = 0   
     
 
     while (epoch < finetuning_epochs) and (not done_looping):
@@ -149,11 +149,13 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
                     # simulate saving the best model that achieved this best loss    
                     print >> output_file, '(Simulated) Pickling the model...'          
                                         
-                    
+             
 
             if patience <= iter:
                 done_looping = True
                 break
+        
+        decay_learning_rate()
 
     end_time = time.clock()
     print >> output_file, (('Optimization complete with best validation score of %f ') %

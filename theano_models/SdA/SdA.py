@@ -268,7 +268,7 @@ class SdA(object):
         :type batch_size: int
         :param batch_size: size of a [mini]batch
         
-        :type learning_rate: float
+        :type learning_rate: theano.tensor.shared
         :param learning_rate: the learning rate for pretraining 
         
 
@@ -334,7 +334,7 @@ class SdA(object):
         :type batch_size: int
         :param batch_size: size of a minibatch
 
-        :type learning_rate: float
+        :type learning_rate: theano.tensor.shared
         :param learning_rate: learning rate used during finetune stage
         '''
         (train_set_x, valid_set_x) = datasets
@@ -362,7 +362,7 @@ class SdA(object):
         for param, grad_update in updates:
             if param in self.updates:
                 last_update = self.updates[param]
-                delta = momentum * last_update -  (1.0 - momemtum)* learning_rate * grad_update
+                delta = momentum * last_update -  (1.0 - momentum)* learning_rate * grad_update
                 mod_updates[param] = param + delta
                 self.updates[param] = delta
             else:               
