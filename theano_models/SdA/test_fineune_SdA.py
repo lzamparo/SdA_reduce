@@ -1,48 +1,38 @@
-""" SdA finetuning script that uses two GPUs, one per sub-process,
-via the Python multiprocessing module.  """
-
-
-# These imports will not trigger any theano GPU binding, so are safe to sit here.
-from multiprocessing import Process, Manager
-from optparse import OptionParser
-import os, re
-
-import cPickle
-import gzip
-import sys
-import time
-
 import numpy
+import cPickle
+import os, re, sys, time
+
+from numpy.linalg import norm
 
 from extract_datasets import extract_unlabeled_chunkrange
 from load_shared import load_data_unlabeled
 from tables import openFile
 
+
 from datetime import datetime
+from optparse import OptionParser
+from multiprocessing import Process, Manager
 
-def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finetuning_epochs=500, lr_decay=0.98,
-             batch_size=100): 
-    """ Finetune and validate a pre-trained SdA for the given number of training epochs.
-    Batch size and finetuning epochs default values are picked to roughly match the reported values
-    of Hinton & Salakhtudinov.
+def test_finetune_SdA(shared_args, private_args, num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_size=20):
+    """
     
-    :type finetune_lr: float
-    :param finetune_lr: learning rate used in the finetune stage
-    (factor for the stochastic gradient)
+    Finetune an SdA model for the given number of training epochs.  The model is reconstructed from a previously pickled model.
 
-    :type momentum: float
-    :param momentum: the weight given to the previous update when 
-    calculating the present update to the weights
+    :type shared_args: dict
+    :param shared_args: dictionary of arguments shared by both threads
     
-    :type lr_decay: float
-    :param lr_decay: the rate at which the learning rate decays after each epoch
+    :type private_args: dict
+    :param private_args: dictionary of arguments exclusively for this thread
 
-    :type finetuning_epochs: int
-    :param finetuning_epochs: number of epoch to do finetuning
-    
+    :type num_epochs: int
+    :param num_epochs: number of epoch to do pretraining
+
+    :type pretrain_lr: float
+    :param pretrain_lr: learning rate to be used during pre-training
+
     :type batch_size: int
-    :param batch_size: size of the mini-batches
-    
+    :param batch_size: train in mini-batches of this size
+
     """
     
     # Import sandbox.cuda to bind the specified GPU to this subprocess
@@ -63,7 +53,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
     today = datetime.today()
     day = str(today.date())
     hour = str(today.time())   
-    output_filename = "finetune_sda_" + private_args['arch'] + "." + day + "." + hour
+    output_filename = "test_finetune_sda_" + private_args['arch'] + "." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
     print >> output_file, "Run on " + str(datetime.now())    
@@ -156,11 +146,9 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
                     best_validation_loss = this_validation_loss
                     best_iter = iter
                     
-                    # save best model that achieved this best loss    
-                    print >> output_file, 'Pickling the model...'          
-                    f = file(private_args['save'], 'wb')
-                    cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
-                    f.close()                    
+                    # simulate saving the best model that achieved this best loss    
+                    print >> output_file, '(Simulated) Pickling the model...'          
+                                        
                     
 
             if patience <= iter:
@@ -174,19 +162,17 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))    
 
-    output_file.close()        
-    
-
+    output_file.close()   
+      
 def extract_arch(filename, model_regex):
     ''' Return the model architecture of this filename
     Modle filenames look like SdA_1000_500_100_50.pkl'''
     match = model_regex.match(filename)
     if match is not None:    
-        return match.groups()[0]
-        
-        
+        return match.groups()[0]    
+    
 if __name__ == '__main__':
-        
+    
     # Parse command line args
     parser = OptionParser()
     parser.add_option("-d", "--dir", dest="dir", help="base output directory")
@@ -235,11 +221,13 @@ if __name__ == '__main__':
     q_args['save'] = pkl_save_file
 
     # Run both sub-processes
-    p = Process(target=finetune_SdA, args=(args,p_args,))
-    q = Process(target=finetune_SdA, args=(args,q_args,))
+    p = Process(target=test_finetune_SdA, args=(args,p_args,))
+    q = Process(target=test_finetune_SdA, args=(args,q_args,))
     p.start()
     q.start()
     p.join()
-    q.join()
-
+    q.join()        
+    
+    
+    
     

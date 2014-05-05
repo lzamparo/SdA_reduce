@@ -347,6 +347,9 @@ class SdA(object):
         
         # compute the gradients with respect to the model parameters
         gparams = T.grad(self.finetune_cost, self.params)       
+        
+        # momentum rate to use
+        momentum = T.scalar('momentum')        
 
         # compute list of fine-tuning updates
         updates = []
@@ -366,7 +369,7 @@ class SdA(object):
                 mod_updates[param] = grad_update        
                 
 
-        train_fn = theano.function(inputs=[index],
+        train_fn = theano.function(inputs=[index, theano.Param(momentum, default=0.8)],
               outputs=self.finetune_cost,
               updates=updates,
               givens={
