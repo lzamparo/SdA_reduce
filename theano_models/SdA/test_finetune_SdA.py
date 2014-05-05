@@ -13,7 +13,7 @@ from datetime import datetime
 from optparse import OptionParser
 from multiprocessing import Process, Manager
 
-def test_finetune_SdA(shared_args, private_args, num_epochs=10, pretrain_lr=0.0001, lr_decay = 0.98, batch_size=20):
+def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.0001, lr_decay = 0.98, batch_size=20):
     """
     
     Finetune an SdA model for the given number of training epochs.  The model is reconstructed from a previously pickled model.
