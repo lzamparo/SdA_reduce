@@ -124,7 +124,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
         epoch = epoch + 1
         
         for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost = train_fn(minibatch_index, momentum=shared_args_dict['momentum'])
+            minibatch_avg_cost = train_fn(index=minibatch_index, momentum=shared_args_dict['momentum'])
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
             if (iter + 1) % validation_frequency == 0:

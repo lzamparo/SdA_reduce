@@ -371,7 +371,7 @@ class SdA(object):
 
         train_fn = theano.function(inputs=[index, theano.Param(momentum, default=0.8)],
               outputs=self.finetune_cost,
-              updates=updates,
+              updates=mod_updates,
               givens={
                 self.x: train_set_x[index * batch_size:
                                     (index + 1) * batch_size]})
