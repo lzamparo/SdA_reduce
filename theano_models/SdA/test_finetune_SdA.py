@@ -120,7 +120,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
     epoch = 0   
     
 
-    while (epoch < finetuning_epochs) and (not done_looping):
+    while (epoch < num_epochs) and (not done_looping):
         epoch = epoch + 1
         
         for minibatch_index in xrange(n_train_batches):
