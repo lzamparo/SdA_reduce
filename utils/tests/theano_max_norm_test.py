@@ -35,20 +35,19 @@ u = shared(numpy.asarray(10 * rng.rand(vlen), config.floatX).reshape((1000,1000)
 # function to simulate a parameter update to a matrix
 add_update = function([], x + u, updates={x: x+u})
 
-# expressions & function to simulate max norm regularization
+# expressions & function to simulate sum of all squares calc
 squares = x**2
 cumulative_sum = squares.sum()
 ss = function([], outputs=cumulative_sum)
-scale = maxval / T.max(maxval,cumulative_sum)
-max_norm = function(inputs=[],outputs=[scale])
 
 # function to rescale the matrix 
 val = T.scalar(name="scale_value", dtype=config.floatX)
-rescale_x = function(inputs=[val],outputs=x,updates={x: x * val})
+rescale_x = function(inputs=[val],outputs = x, updates={x: x * val})
 
 for i in xrange(iters):
     r = add_update()
-    sfactor = max_norm()
+    sfactor = ss()
+    scale = maxval / numpy.amax([maxval,sfactor])
     print >> output_file, "Scale factor is: ", str(sfactor)
     print >> output_file, "1-Norm of the updated matrix X is: ", str(norm(r, ord=1))
     xval = rescale_x(sfactor)
