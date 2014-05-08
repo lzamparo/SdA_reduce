@@ -31,7 +31,7 @@ x = shared(numpy.asarray(10 * rng.rand(vlen), config.floatX).reshape((1000,1000)
 u = shared(numpy.asarray(10 * rng.rand(vlen), config.floatX).reshape((1000,1000)))
 
 cumulative_sum = T.lscalar('cumulative_sum')
-cumulative_sum = T.extra_ops.cumsum(T.sum(T.sqr(x), axis = 0, keepdims=True)) 
+cumulative_sum = T.sum(T.sum(T.sqr(x), axis = 0, keepdims=True)) 
 scale = maxval / T.max(maxval,cumulative_sum)
 scaleval = shared(0, name="scale value")
 
