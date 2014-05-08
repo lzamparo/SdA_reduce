@@ -27,8 +27,9 @@ print >> output_file, "Run on " + str(datetime.now())
 
 rng = numpy.random.RandomState(22)
 
-# Shared variables for 
+# Shared variables for simulation
 maxval = shared(numpy.asarray(options.max, config.floatX))
+maxval_h = maxval.get_value(borrow=True)
 x = shared(numpy.asarray(10 * rng.rand(vlen), config.floatX).reshape((1000,1000)))
 u = shared(numpy.asarray(10 * rng.rand(vlen), config.floatX).reshape((1000,1000)))
 
@@ -47,7 +48,7 @@ rescale_x = function(inputs=[val],outputs = x, updates={x: x * val})
 for i in xrange(iters):
     r = add_update()
     sfactor = ss()
-    scale = maxval / numpy.amax([maxval,sfactor])
+    scale = maxval_h / numpy.amax([maxval_h,sfactor])
     print >> output_file, "Scale factor is: ", str(sfactor)
     print >> output_file, "1-Norm of the updated matrix X is: ", str(norm(r, ord=1))
     xval = rescale_x(sfactor)
