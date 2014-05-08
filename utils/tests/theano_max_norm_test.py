@@ -26,27 +26,33 @@ output_file = open(output_filename,'w')
 print >> output_file, "Run on " + str(datetime.now())
 
 rng = numpy.random.RandomState(22)
+
+# Shared variables for 
 maxval = shared(numpy.asarray(options.max, config.floatX))
 x = shared(numpy.asarray(10 * rng.rand(vlen), config.floatX).reshape((1000,1000)))
 u = shared(numpy.asarray(10 * rng.rand(vlen), config.floatX).reshape((1000,1000)))
 
-cumulative_sum = T.scalar('cumulative_sum')
-scale = T.scalar('scale')
-cumulative_sum = T.sum(T.sum(T.sqr(x), axis = 0, keepdims=True)) 
+# function to simulate a parameter update to a matrix
+add_update = function([], x + u, updates={x: x+u})
+
+# expressions & function to simulate max norm regularization
+squares = x**2
+cumulative_sum = squares.sum()
+ss = function([], outputs=cumulative_sum)
 scale = maxval / T.max(maxval,cumulative_sum)
-scaleval = shared(0, name="scale value")
+max_norm = function(inputs=[],outputs=[scale])
 
-f = function([], x + u)
-max_norm = function(inputs=[],outputs=x, 
-                    updates={x: scale * x, scaleval: scale})
-
-print >> output_file, "Scale factor is: ", str(scaleval.get_value(borrow=True))
+# function to rescale the matrix 
+val = T.scalar(name="scale_value", dtype=config.floatX)
+rescale_x = function(inputs=[val],outputs=x,updates={x: x * val})
 
 for i in xrange(iters):
-    r = f()
-    mn = max_norm()
-    # output tests for x,u, norm here
-    print >> output_file, "Scale factor is: ", str(scaleval.get_value(borrow=True))
-    print >> output_file, "1-Norm of the matrix columns is: ", str(norm(r, ord=1))
+    r = add_update()
+    sfactor = max_norm()
+    print >> output_file, "Scale factor is: ", str(sfactor)
+    print >> output_file, "1-Norm of the updated matrix X is: ", str(norm(r, ord=1))
+    xval = rescale_x(sfactor)
+    print >> output_file, "1-Norm of the re-scaled matrix X is: ", str(norm(xval, ord=1))    
+    
 
 output_file.close()
