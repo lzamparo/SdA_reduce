@@ -33,6 +33,8 @@ maxval_h = maxval.get_value(borrow=True)
 x = shared(numpy.asarray(10 * rng.rand(vlen), config.floatX).reshape((1000,1000)))
 u = shared(numpy.asarray(10 * rng.rand(vlen), config.floatX).reshape((1000,1000)))
 
+print >> output_file, "Inital 1-Norm of the X matrix is: ", str(norm(x.get_value(borrow=True), ord=1))
+
 # function to simulate a parameter update to a matrix
 add_update = function([], x + u, updates={x: x+u})
 
@@ -49,10 +51,10 @@ for i in xrange(iters):
     r = add_update()
     sfactor = ss()
     scale = maxval_h / numpy.amax([maxval_h,sfactor])
-    print >> output_file, "Scale factor is: ", str(sfactor)
+    print >> output_file, "Scale factor is: ", str(scale)
     print >> output_file, "1-Norm of the updated matrix X is: ", str(norm(r, ord=1))
     xval = rescale_x(scale)
-    print >> output_file, "1-Norm of the re-scaled matrix X is: ", str(norm(xval, ord=1))    
+    print >> output_file, "1-Norm of the re-scaled matrix X is: ", str(norm(x.get_value(borrow=True), ord=1))    
     
 
 output_file.close()
