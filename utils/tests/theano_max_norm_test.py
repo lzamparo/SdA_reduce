@@ -51,7 +51,7 @@ for i in xrange(iters):
     scale = maxval_h / numpy.amax([maxval_h,sfactor])
     print >> output_file, "Scale factor is: ", str(sfactor)
     print >> output_file, "1-Norm of the updated matrix X is: ", str(norm(r, ord=1))
-    xval = rescale_x(sfactor)
+    xval = rescale_x(scale)
     print >> output_file, "1-Norm of the re-scaled matrix X is: ", str(norm(xval, ord=1))    
     
 
