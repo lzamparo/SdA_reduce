@@ -5,7 +5,7 @@ from numpy.testing import assert_equal, assert_array_almost_equal
 from nose.tools import with_setup
 
 import sys
-sys.path.append('/home/lee/projects/screen_clustering/utils/')
+sys.path.append('/home/lee/projects/SdA_reduce/utils/')
 from ..constraint_sampling import extract_one_class, estimate_class_sizes, draw_pairs, generate_points, sample_similar, sample_differences
 
 """Test fixtures"""
