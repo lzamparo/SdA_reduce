@@ -119,6 +119,8 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
     done_looping = False
     epoch = 0   
     
+    # Set up functions for max norm regularization
+    max_norm_regularization_fns = SdA.max_norm_regularization()
 
     while (epoch < num_epochs) and (not done_looping):
         epoch = epoch + 1
@@ -127,6 +129,10 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
             minibatch_avg_cost = train_fn(index=minibatch_index, momentum=shared_args_dict['momentum'])
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
+            # apply max-norm regularization
+            for i in xrange(SdA.n_layers):
+                scale = max_norm_regularization_fns[i](norm_max=shared_args_dict['maxnorm'])
+            
             if (iter + 1) % validation_frequency == 0:
                 validation_losses = validate_model()
                 this_validation_loss = numpy.mean(validation_losses)
@@ -184,6 +190,7 @@ if __name__ == '__main__':
     parser.add_option("-q","--secondrestorefile",dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
+    parser.add_option("-n","--normlimit",dest = "norm_limit", help = "limit the norm of each vector in each W matrix to norm_limit")
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -196,6 +203,7 @@ if __name__ == '__main__':
     shared_args['input'] = options.inputfile
     shared_args['offset'] = options.offset
     shared_args['momentum'] = 0.8
+    shared_args['maxnorm'] = options.norm_limit
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes

@@ -40,8 +40,10 @@ add_update = function([], x + u, updates={x: x+u})
 
 # expressions & function to simulate sum of all squares calc
 squares = x**2
-cumulative_sum = squares.sum()
-ss = function([], outputs=cumulative_sum)
+col_sum = squares.sum(axis = 1)
+maxval = col_sum.max()
+scale_factor = factor / T.maximum(factor, maxval)
+apply_rescaling = function([factor], scale_factor, updates = {x: x * scale_factor})
 
 # function to rescale the matrix 
 val = T.scalar(name="scale_value", dtype=config.floatX)
@@ -53,7 +55,7 @@ for i in xrange(iters):
     scale = maxval_h / numpy.amax([maxval_h,sfactor])
     print >> output_file, "Scale factor is: ", str(scale)
     print >> output_file, "1-Norm of the updated matrix X is: ", str(norm(r, ord=1))
-    xval = rescale_x(scale)
+    apply_rescaling(50.0)
     print >> output_file, "1-Norm of the re-scaled matrix X is: ", str(norm(x.get_value(borrow=True), ord=1))    
     
 

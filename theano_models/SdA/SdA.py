@@ -249,7 +249,28 @@ class SdA(object):
             X_prime = dA.get_hidden_values(X_prime) 
         
         self.x_prime = X_prime
-        return self.x_prime    
+        return self.x_prime  
+    
+    def max_norm_regularization(self):
+        '''
+        Define and return a list of theano function objects implementing max norm 
+        regularization for each layer of the SdA.  
+        
+        '''
+        
+        norm_max = T.scalar('norm_limit')
+        max_norm_fns = []
+        
+        for dA in self.dA_layers:
+            W,scrub,dub = dA.get_params()
+            squares = W**2
+            col_sum = squares.sum(axis = 1)
+            maxval = col_sum.max()
+            scale_factor = norm_max / T.maximum(norm_max, maxval)            
+            fn = function([norm_max], scale_factor, updates = {W: W * scale_factor})        
+            max_norm_fns.append(fn)
+            
+        return max_norm_fns
 
     def pretraining_functions(self, train_set_x, batch_size, learning_rate):
         ''' Generates a list of functions, each of them implementing one
