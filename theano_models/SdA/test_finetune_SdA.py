@@ -120,7 +120,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
     epoch = 0   
     
     # Set up functions for max norm regularization
-    max_norm_regularization_fns = SdA.max_norm_regularization()
+    max_norm_regularization_fns = sda.max_norm_regularization()
 
     while (epoch < num_epochs) and (not done_looping):
         epoch = epoch + 1
@@ -131,7 +131,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
 
             # apply max-norm regularization
             for i in xrange(SdA.n_layers):
-                scale = max_norm_regularization_fns[i](norm_max=shared_args_dict['maxnorm'])
+                scale = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])
             
             if (iter + 1) % validation_frequency == 0:
                 validation_losses = validate_model()

@@ -104,7 +104,7 @@ def test_restrict_norm_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, 
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i]))
                 # regularize weights here
-                scale = max_norm_regularization_fns[i](norm_max=options.norm_limit)               
+                scale = max_norm_regularization_fns[i](norm_limit=options.norm_limit)               
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             print >> output_file, 'Learning rate '
