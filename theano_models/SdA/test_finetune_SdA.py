@@ -130,7 +130,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
             # apply max-norm regularization
-            for i in xrange(SdA.n_layers):
+            for i in xrange(sda.n_layers):
                 scale = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])
                 if scale > 1.0:
                     print >> output_file, "Re-scaling took place w scale value ", str(scale)
