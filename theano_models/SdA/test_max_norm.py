@@ -89,7 +89,7 @@ def test_restrict_norm_SdA(num_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, 
     #for i in xrange(sda.n_layers):
         #theano.printing.debugprint(pretraining_fns[i], file = output_file, print_type=True) 
     print '... getting the max-norm regularization functions'
-    max_norm_regularization_fns = SdA.max_norm_regularization()
+    max_norm_regularization_fns = sda.max_norm_regularization()
 
     print '... pre-training the model'
     start_time = time.clock()
