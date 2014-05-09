@@ -258,7 +258,7 @@ class SdA(object):
         
         '''
         
-        norm_max = T.scalar('norm_limit')
+        norm_limit = T.scalar('norm_limit')
         max_norm_fns = []
         
         for dA in self.dA_layers:
@@ -266,8 +266,8 @@ class SdA(object):
             squares = W**2
             col_sum = squares.sum(axis = 1)
             maxval = col_sum.max()
-            scale_factor = norm_max / T.maximum(norm_max, maxval)            
-            fn = theano.function([norm_max], scale_factor, updates = {W: W * scale_factor})        
+            scale_factor = norm_limit / T.maximum(norm_limit, maxval)            
+            fn = theano.function([norm_limit], scale_factor, updates = {W: W * scale_factor})        
             max_norm_fns.append(fn)
             
         return max_norm_fns
