@@ -197,7 +197,7 @@ if __name__ == '__main__':
     
     # Construct a dict of shared arguments that should be read by both processes
     manager = Manager()
--
+
     args = manager.list()
     args.append({})
     shared_args = args[0]
