@@ -21,7 +21,7 @@ from tables import openFile
 from datetime import datetime
 
 def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finetuning_epochs=500, lr_decay=0.98,
-             batch_size=100): 
+             batch_size=50): 
     """ Finetune and validate a pre-trained SdA for the given number of training epochs.
     Batch size and finetuning epochs default values are picked to roughly match the reported values
     of Hinton & Salakhtudinov.
@@ -129,6 +129,8 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
                     updates={learning_rate: learning_rate * lr_decay})    
     
+    # Set up functions for max norm regularization
+    max_norm_regularization_fns = sda.max_norm_regularization()
 
     while (epoch < finetuning_epochs) and (not done_looping):
         epoch = epoch + 1
@@ -136,6 +138,12 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
         for minibatch_index in xrange(n_train_batches):
             minibatch_avg_cost = train_fn(minibatch_index, momentum=momentum)
             iter = (epoch - 1) * n_train_batches + minibatch_index
+
+            # apply max-norm regularization
+            for i in xrange(sda.n_layers):
+                scale = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])
+                if scale > 1.0:
+                    print >> output_file, "Re-scaling took place w scale value ", str(scale)            
 
             if (iter + 1) % validation_frequency == 0:
                 validation_losses = validate_model()
@@ -166,6 +174,8 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
             if patience <= iter:
                 done_looping = True
                 break
+            
+        decay_learning_rate()
 
     end_time = time.clock()
     print >> output_file, (('Optimization complete with best validation score of %f ') %
@@ -196,6 +206,8 @@ if __name__ == '__main__':
     parser.add_option("-q","--secondrestorefile",dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
+    parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, help = "limit the norm of each vector in each W matrix to norm_limit")
+    
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -207,6 +219,9 @@ if __name__ == '__main__':
     shared_args['dir'] = os.path.join(options.dir,options.extension)
     shared_args['input'] = options.inputfile
     shared_args['offset'] = options.offset
+    shared_args['momentum'] = 0.8
+    7shared_args['maxnorm'] = options.norm_limit
+    
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes
