@@ -220,7 +220,7 @@ if __name__ == '__main__':
     shared_args['input'] = options.inputfile
     shared_args['offset'] = options.offset
     shared_args['momentum'] = 0.8
-    7shared_args['maxnorm'] = options.norm_limit
+    shared_args['maxnorm'] = options.norm_limit
     
     args[0] = shared_args
     
