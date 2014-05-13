@@ -121,6 +121,9 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
                 updates={learning_rate: learning_rate * lr_decay})    
     
+    # Set up functions for max norm regularization
+    max_norm_regularization_fns = sda.max_norm_regularization()    
+    
     for i in xrange(sda.n_layers):       
                 
         for epoch in xrange(pretraining_epochs):
@@ -130,6 +133,9 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i],
                          momentum=shared_args_dict["momentum"]))
+                scale = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])
+                if scale > 1.0:
+                    print >> output_file, "Re-scaling took place w scale value ", str(scale)                 
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             print >> output_file, learning_rate.get_value(borrow=True)
@@ -215,6 +221,8 @@ if __name__ == '__main__':
     parser.add_option("-b", "--secondarch", dest="q_arch", default = "", help="dash separated list to specify the second architecture of the SdA.")
     parser.add_option("-t", "--layertype", dest="layer_type", type="string", default = "Gaussian", help="specify the type of SdA layer activations to use.  Acceptable values are 'Gaussian', 'Bernoulli', 'ReLU'.")
     parser.add_option("-l", "--loss", dest="loss", type="string", default = "squared", help="specify the loss function to use for measuring reconstruction error.  Acceptable values are 'squared', 'xent', 'softplus'.")
+    parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, default = 5.0, help = "limit the norm of each vector in each W matrix to norm_limit")
+    
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -232,6 +240,7 @@ if __name__ == '__main__':
     shared_args['offset'] = options.offset
     shared_args['layertype'] = options.layer_type
     shared_args['loss'] = options.loss
+    shared_args['maxnorm'] = options.norm_limit
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes

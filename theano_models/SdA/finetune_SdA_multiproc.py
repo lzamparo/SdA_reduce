@@ -206,7 +206,7 @@ if __name__ == '__main__':
     parser.add_option("-q","--secondrestorefile",dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
-    parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, help = "limit the norm of each vector in each W matrix to norm_limit")
+    parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, default = 5.0, help = "limit the norm of each vector in each W matrix to norm_limit")
     
     (options, args) = parser.parse_args()    
     
