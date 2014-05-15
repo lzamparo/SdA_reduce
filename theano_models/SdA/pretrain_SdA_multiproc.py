@@ -221,7 +221,7 @@ if __name__ == '__main__':
     parser.add_option("-b", "--secondarch", dest="q_arch", default = "", help="dash separated list to specify the second architecture of the SdA.")
     parser.add_option("-t", "--layertype", dest="layer_type", type="string", default = "Gaussian", help="specify the type of SdA layer activations to use.  Acceptable values are 'Gaussian', 'Bernoulli', 'ReLU'.")
     parser.add_option("-l", "--loss", dest="loss", type="string", default = "squared", help="specify the loss function to use for measuring reconstruction error.  Acceptable values are 'squared', 'xent', 'softplus'.")
-    parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, default = 5.0, help = "limit the norm of each vector in each W matrix to norm_limit")
+    parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, default = 3.0, help = "limit the norm of each vector in each W matrix to norm_limit")
     
     (options, args) = parser.parse_args()    
     
