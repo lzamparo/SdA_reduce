@@ -94,7 +94,7 @@ gammas = np.logspace(-10,3,num=50)
 # Make a scoring function for the pipeline
 v_measure_scorer = make_scorer(v_measure_score)
 
-# Parameters of pipelines are set using ‘__’ separated parameter names:
+# Set the kpca model parameters to cycle over using '__' a prefix
 estimator = GridSearchCV(pipe, dict(kpca__gamma=gammas), scoring=v_measure_scorer, n_jobs=opts.jobs)
 estimator.fit(D_scaled,D_labels)
 
