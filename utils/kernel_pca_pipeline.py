@@ -89,7 +89,7 @@ kmeans = KMeans(n_clusters=3)
 pipe = Pipeline(steps=[('kpca', kpca), ('kmeans', kmeans)])
 
 # Range of parameters to consider for gamma in the RBF kernel for kPCA
-gammas = np.logspace(-10,3,num=20)
+gammas = np.logspace(-3,3,num=40)
 
 # Make a scoring function for the pipeline
 v_measure_scorer = make_scorer(v_measure_score)
