@@ -76,7 +76,7 @@ foci_data_sample = np.random.permutation(foci_data)[0:foci_samplesize,:]
 ab_nuclei_sample = np.random.permutation(ab_nuclei_data)[0:ab_nuclei_samplesize,:]
 
 D = np.vstack((wt_data_sample,foci_data_sample,ab_nuclei_sample))
-D_labels = np.hstack((wt_labels,foci_labels,ab_nuclei_labels))
+D_labels = np.hstack((wt_labels[0:wt_samplesize],foci_labels[0:foci_samplesize],ab_nuclei_labels[0:ab_nuclei_samplesize]))
 D_scaled = scale(D)
 
 datafile.close()
@@ -89,7 +89,7 @@ kmeans = KMeans(n_clusters=3)
 pipe = Pipeline(steps=[('kpca', kpca), ('kmeans', kmeans)])
 
 # Range of parameters to consider for gamma in the RBF kernel for kPCA
-gammas = np.logspace(-10,3,num=50)
+gammas = np.logspace(-10,3,num=20)
 
 # Make a scoring function for the pipeline
 v_measure_scorer = make_scorer(v_measure_score)
