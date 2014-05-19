@@ -31,7 +31,7 @@ op.add_option("--do-kmeans",
 (opts, args) = op.parse_args()
 
 # Make sure pca, lle, isomap inputs are specified
-if None in list(opts.pcainput, opts.lleinput, opts.isoinput):
+if None in [opts.pcainput, opts.lleinput, opts.isoinput]:
     print()
     print("Error: must specify the input to each of PCA, ISOMAP, LLE data files.")
     exit()
