@@ -23,10 +23,18 @@ op.add_option("--lle",
 op.add_option("--iso",
               dest="isoinput", help="Read ISOMAP data input from this file.")
 op.add_option("--sda",
-              dest="sdainput", help="Read SdA models data input below this directory.")
+              dest="sdainput", default=None, help="Read SdA models data input below this directory.")
 op.add_option("--output",
               dest="outfile", help="Write the pdf figures to this file prefix.")
+op.add_option("--do-kmeans",
+              dest="dokmeans", default=False, help="Repeat the homogeneity test with k-means clustering too.")
 (opts, args) = op.parse_args()
+
+# Make sure pca, lle, isomap inputs are specified
+if None in list(opts.pcainput, opts.lleinput, opts.isoinput):
+    print()
+    print("Error: must specify the input to each of PCA, ISOMAP, LLE data files.")
+    exit()
 
 # Load the data matrices
 pca = np.load(opts.pcainput)
@@ -41,15 +49,6 @@ lle_std = lle.std(axis = 1)
 isomap_means = isomap.mean(axis = 1)
 isomap_std = isomap.std(axis = 1)
 
-# Compare the top n models for SdA against PCA, LLE, ISOMAP
-n = 5
-
-# read all dimension folders below opts.sdainput
-# plot the points in order of highest to lowest dimension, hence the sort & reverse.
-dims_list = os.listdir(opts.sdainput)
-dims_list = [i for i in dims_list if i.endswith('0')]
-dims_list.sort()
-dims_list.reverse()
 
 ####################  GMM test ####################
 
@@ -62,18 +61,28 @@ ax.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1
 ax.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
 ax.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
 
-# dive in and extract the top n models (n = 5) from each dim
-# fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
-sda_results = []
-
-for i, dim in enumerate(dims_list):
-    parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'gmm'))
-    results_dict = return_top(parsed_vals,n)
-    labels, scores= [list(t) for t in zip(*results_dict)]
-    sda_results.append(scores)
-    pdb.set_trace()
-    x_vals = np.ones((n,),dtype=np.int) * (i + 1)
-    ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA" if i == 0 else "_no_legend",markersize=9)
+if opts.sdainput is not None:
+    # Compare the top n models for SdA against PCA, LLE, ISOMAP
+    n = 5
+    
+    # read all dimension folders below opts.sdainput
+    # plot the points in order of highest to lowest dimension, hence the sort & reverse.
+    dims_list = os.listdir(opts.sdainput)
+    dims_list = [i for i in dims_list if i.endswith('0')]
+    dims_list.sort()
+    dims_list.reverse()
+    
+    # dive in and extract the top n models (n = 5) from each dim
+    # fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
+    sda_results = []
+    
+    for i, dim in enumerate(dims_list):
+        parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'gmm'))
+        results_dict = return_top(parsed_vals,n)
+        labels, scores= [list(t) for t in zip(*results_dict)]
+        sda_results.append(scores)
+        x_vals = np.ones((n,),dtype=np.int) * (i + 1)
+        ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA" if i == 0 else "_no_legend",markersize=9)
 
 P.xlim(0,6)
 P.ylim(0,0.50)
@@ -89,35 +98,37 @@ P.savefig(outfile, dpi=100, format="pdf")
 
 ####################  K-means test ####################
 
-fig = P.figure()
-ax = fig.add_subplot(111)
-
-x = np.arange(1,6,1)
-ax.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1.5, fmt='--o')
-ax.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
-ax.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
-
-# dive in and extract the top n models (n = 20) from each dim
-# fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
-sda_results = []
-
-for i, dim in enumerate(dims_list):
-    parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'kmeans'))
-    results_dict = return_top(parsed_vals,n)
-    labels, scores= [list(t) for t in zip(*results_dict)]
-    sda_results.append(scores)
-    x_vals = np.ones((n,),dtype=np.int) * (i + 1)
-    ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA" if i == 0 else "_no_legend",markersize=9)
-
-P.xlim(0,6)
-P.ylim(0,0.50)
-P.title('3-component K-means mixture model test')
-P.xlabel('Dimension of the Data')
-P.ylabel('Average Homogeneity')
-locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
-P.xticks(locs,['',50,40,30,20,10])
-
-
-P.legend(loc = 7,numpoints=1)    # legend centre right
-outfile = opts.outfile + ".kmeans.pdf"
-P.savefig(outfile, dpi=100, format="pdf")
+if opts.dokmeans:
+    fig = P.figure()
+    ax = fig.add_subplot(111)
+    
+    x = np.arange(1,6,1)
+    ax.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1.5, fmt='--o')
+    ax.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
+    ax.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
+    
+    # dive in and extract the top n models (n = 20) from each dim
+    # fill the sda_results with list of lists, each sub-list representing the points on the y-axis to plot (homogeneity results)
+    if opts.sdainput is not None:
+        sda_results = []
+        
+        for i, dim in enumerate(dims_list):
+            parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'kmeans'))
+            results_dict = return_top(parsed_vals,n)
+            labels, scores= [list(t) for t in zip(*results_dict)]
+            sda_results.append(scores)
+            x_vals = np.ones((n,),dtype=np.int) * (i + 1)
+            ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA" if i == 0 else "_no_legend",markersize=9)
+    
+    P.xlim(0,6)
+    P.ylim(0,0.50)
+    P.title('3-component K-means mixture model test')
+    P.xlabel('Dimension of the Data')
+    P.ylabel('Average Homogeneity')
+    locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
+    P.xticks(locs,['',50,40,30,20,10])
+    
+    
+    P.legend(loc = 7,numpoints=1)    # legend centre right
+    outfile = opts.outfile + ".kmeans.pdf"
+    P.savefig(outfile, dpi=100, format="pdf")
