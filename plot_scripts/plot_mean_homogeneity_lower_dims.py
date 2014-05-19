@@ -22,6 +22,8 @@ op.add_option("--lle",
               dest="lleinput", help="Read LLE data input from this file.")
 op.add_option("--iso",
               dest="isoinput", help="Read ISOMAP data input from this file.")
+op.add_option("--kpca",
+              dest="kpcainput", help="Read KPCA data input from this file.")
 op.add_option("--sda",
               dest="sdainput", default=None, help="Read SdA models data input below this directory.")
 op.add_option("--output",
@@ -31,15 +33,16 @@ op.add_option("--do-kmeans",
 (opts, args) = op.parse_args()
 
 # Make sure pca, lle, isomap inputs are specified
-if None in [opts.pcainput, opts.lleinput, opts.isoinput]:
+if None in [opts.pcainput, opts.lleinput, opts.isoinput, opts.kpcainput]:
     print()
-    print("Error: must specify the input to each of PCA, ISOMAP, LLE data files.")
+    print("Error: must specify the input to each of PCA, ISOMAP, LLE, KPCA data files.")
     exit()
 
 # Load the data matrices
 pca = np.load(opts.pcainput)
 lle = np.load(opts.lleinput)
 isomap = np.load(opts.isoinput)
+kpca = np.load(opts.kpcainput)
 
 # Calculate the means and std devs of each 
 pca_means = pca.mean(axis = 1)
@@ -48,6 +51,8 @@ lle_means = lle.mean(axis = 1)
 lle_std = lle.std(axis = 1)
 isomap_means = isomap.mean(axis = 1)
 isomap_std = isomap.std(axis = 1)
+kpca_means = kpca.mean(axis=1)
+kpca_std = kpca.std(axis=1)
 
 
 ####################  GMM test ####################
@@ -60,6 +65,7 @@ x = np.arange(1,6,1)
 ax.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1.5, fmt='--o')
 ax.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
 ax.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
+ax.errorbar(x,kpca_means,yerr=kpca_std, elinewidth=2, capsize=3, label="KPCA", lw=1.5, fmt='--o')
 
 if opts.sdainput is not None:
     # Compare the top n models for SdA against PCA, LLE, ISOMAP
