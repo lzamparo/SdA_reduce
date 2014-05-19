@@ -32,7 +32,7 @@ op.add_option("--low",
 op.add_option("--step",
               dest="step", type="int", help="Go from high to low by step sizes")
 op.add_option("--iters",
-              dest="iters", type="int", help="Do this many iterations of k-means clustering")
+              dest="iters", type="int", help="Repeat the clustering test this many times")
 
 (opts, args) = op.parse_args()
 
@@ -74,8 +74,7 @@ for i in dimension_list:
     
     for j in range(0,opts.iters,1):
         km = KMeans(n_clusters=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  
-        gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=100)
-        #print "Clustering Isomap data with %s" % km        
+        gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=100)        
         km.fit(X_pca[:,0:(i-1)])
         gaussmix.fit(X_pca[:,0:(i-1)])
         gaussmix_labels = gaussmix.predict(X_pca[:,0:(i-1)])

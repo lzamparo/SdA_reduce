@@ -84,7 +84,7 @@ datafile.close()
 ##################
 
 # Set up the kPCA -> kmeans -> v-measure pipeline
-kpca = KernelPCA(kernel="rbf")
+kpca = KernelPCA(n_components=30, kernel="rbf")
 kmeans = KMeans(n_clusters=3)
 pipe = Pipeline(steps=[('kpca', kpca), ('kmeans', kmeans)])
 
