@@ -61,11 +61,7 @@ cells = opts.high / opts.step
 kpca_km_results = np.zeros((cells,opts.iters))
 kpca_gmm_results = np.zeros((cells,opts.iters))
 
-pca = PCA(n_components=opts.high)
 D = scale(X[:,0:612])
-pca.fit(D)
-D_kpca = pca.transform(D)
-
 
 # For the specified number of principal components, do the clustering
 dimension_list = range(opts.low, opts.high + 1, opts.step)
