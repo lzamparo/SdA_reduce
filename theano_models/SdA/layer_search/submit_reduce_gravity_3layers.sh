@@ -12,7 +12,7 @@
 
 # To make substitutions from a higher up script: -p $FIRSTMODEL -q $SECONDMODEL -o $OFFSET -x $EXTENSION
 cd $PBS_O_WORKDIR
-python reduce_SdA_multiproc.py -d "${SCRATCH}/gpu_tests/SdA_results/3_layers/reduced_data" -x $EXTENSION -p $FIRSTMODEL -q $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sample.h5" 
+python ../reduce_SdA_multiproc.py -d "${SCRATCH}/gpu_tests/SdA_results/3_layers/reduced_data" -x $EXTENSION -p $FIRSTMODEL -q $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sample.h5" 
 
 
 
