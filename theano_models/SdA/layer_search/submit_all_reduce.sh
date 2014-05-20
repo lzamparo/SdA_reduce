@@ -2,6 +2,9 @@
 
 # Batch data reduction job submission script for 3,5 layer models 
 
+# keep track of the directory where the scripts are located.
+currdir=`pwd`
+
 # Submit 3 layer jobs
 
 cd "$SCRATCH/gpu_tests/SdA_results/3_layers/finetune_pkl_files"     
@@ -19,7 +22,9 @@ do
             let prev=$i-1
             first=${three_arr[$i]}
             second=${three_arr[$prev]}
-            qsub submit_reduce_gravity_3layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",EXTENSION="$dim/$layertype"            
+            pushd "$currdir"
+            qsub submit_reduce_gravity_3layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",EXTENSION="$dim/$layertype"
+            popd 
             ((offset+=5))
             sleep 5
             
@@ -50,7 +55,9 @@ do
             let prev=$i-1
             first=${five_arr[$i]}
             second=${five_arr[$prev]}
+            pushd "$currdir"
             qsub submit_reduce_gravity_5layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",EXTENSION="$dim/$layertype"
+            popd
             ((offset+=5))
             sleep 5
             
