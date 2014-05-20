@@ -4,14 +4,14 @@
 
 # Submit 3 layer jobs
 
-cd "$SCRATCH/gpu_tests/3_layers/finetune_pkl_files"     
+cd "$SCRATCH/gpu_tests/SdA_results/3_layers/finetune_pkl_files"     
 for dim in {10..30..10}
 do
     cd "$dim"
     for layertype in {"gb","relu"}
     do
         cd "$layertype"
-        three_arr=(`ls .`
+        three_arr=(`ls .`)
         offset=0
         len=${#three_arr[*]}
         for((i=1; i<=$len; i+=2 ))
