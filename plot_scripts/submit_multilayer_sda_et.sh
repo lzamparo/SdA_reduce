@@ -16,7 +16,7 @@ do
         cd "$layertype"
         three_arr=(`ls *.h5`)
         basedir=`pwd`
-        for model in three_arr
+        for model in $three_arr
         do
             # send reduced base dir, reduced file, output dir with job
             pushd "$currdir"
@@ -40,7 +40,7 @@ do
         cd "$layertype"
         five_arr=(`ls *.h5`)
         basedir=`pwd`
-        for model in five_arr
+        for model in $five_arr
         do
             # send reduced base dir, reduced file, output dir with job
             pushd "$currdir"
