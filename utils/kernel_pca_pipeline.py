@@ -18,7 +18,7 @@ from tables import *
 
 from sklearn.decomposition import KernelPCA
 from sklearn.cluster import KMeans
-from sklearn.metrics import v_measure_score, make_scorer
+from sklearn.metrics import v_measure_score, make_scorer, homogeneity_score
 from extract_datasets import extract_labeled_chunkrange
 from sklearn.preprocessing import scale
 from sklearn.pipeline import Pipeline
@@ -93,9 +93,10 @@ gammas = np.logspace(-3,3,num=40)
 
 # Make a scoring function for the pipeline
 v_measure_scorer = make_scorer(v_measure_score)
+homogeneity_scorer = make_scorer(homogeneity_score)
 
 # Set the kpca model parameters to cycle over using '__' a prefix
-estimator = GridSearchCV(pipe, dict(kpca__gamma=gammas), scoring=v_measure_scorer, n_jobs=opts.jobs)
+estimator = GridSearchCV(pipe, dict(kpca__gamma=gammas), scoring=homogeneity_scorer, n_jobs=opts.jobs)
 estimator.fit(D_scaled,D_labels)
 
 # Dump the estimator to a file
