@@ -20,7 +20,7 @@ do
         do
             # send reduced base dir, reduced file, output dir with job
             pushd "$currdir"
-            echo "qsub submit_sda_et.sh -v BASEDIR=$basedir,OUTPUTDIR=$basedir,REDUCEDFILE=$model" 
+            qsub submit_sda_et.sh -v BASEDIR=$basedir,OUTPUTDIR=$basedir,REDUCEDFILE=$model
             popd 
             sleep 5    
         done            
@@ -44,7 +44,7 @@ do
         do
             # send reduced base dir, reduced file, output dir with job
             pushd "$currdir"
-            echo "qsub submit_sda_et.sh -v BASEDIR=$basedir,OUTPUTDIR=$basedir,REDUCEDFILE=$model" 
+            qsub submit_sda_et.sh -v BASEDIR=$basedir,OUTPUTDIR=$basedir,REDUCEDFILE=$model
             popd 
             sleep 5  
         done            
