@@ -67,7 +67,7 @@ D = scale(X[:,0:612])
 dimension_list = range(opts.low, opts.high + 1, opts.step)
 for i in dimension_list:
     index = (i / opts.step) - 1    
-    kpca = KernelPCA(n_components=i, kernel="rbf", gamma=0.024244620170823284)
+    kpca = KernelPCA(n_components=i, kernel="rbf", gamma=0.0028942661247167516)
     D_kpca = kpca.fit_transform(D)
     
     for j in range(0,opts.iters,1):
