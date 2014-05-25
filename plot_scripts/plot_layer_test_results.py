@@ -12,7 +12,7 @@ import numpy as np
 import pylab as P
 import os
 from optparse import OptionParser
-from parse_homogeneity_results import return_top, parse_dir
+from parse_homogeneity_results import return_top, parse_dir_meanstd
 
 op = OptionParser()
 op.add_option("--topmodels",
@@ -77,9 +77,9 @@ def make_units_plot(ax, topX, base_dir, title, limit):
     for i, dim in enumerate(dims_list):
         
         # extract values for GB .npy files
-        parsed_gb_mean,parsed_gb_std = parse_dir(os.path.join(base_dir,str(dim),'gb'))
+        parsed_gb_mean,parsed_gb_std = parse_dir_meanstd(os.path.join(base_dir,str(dim),'gb'))
         # extract values for ReLU .npy files
-        parsed_relu_mean,parsed_relu_std = parse_dir(os.path.join(base_dir,str(dim),'relu'))
+        parsed_relu_mean,parsed_relu_std = parse_dir_meanstd(os.path.join(base_dir,str(dim),'relu'))
         top_gb_mean = return_top(parsed_gb_mean,n)
         #top_gb_std = return_top(parsed_gb_std,n)
         top_relu_mean = return_top(parsed_relu_mean,n)
