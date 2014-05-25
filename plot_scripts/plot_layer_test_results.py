@@ -22,7 +22,7 @@ op.add_option("--threedir",
 op.add_option("--fivedir",
               dest="fivedir", help="5 layer input directories lie below here")
 op.add_option("--upperlimit",
-              desk="upperlimit", default=50, type=int, help="Don't plot points in higher dimensions than this limit")
+              dest="upperlimit", default=50, type=int, help="Don't plot points in higher dimensions than this limit")
 op.add_option("--compareunits",
               dest="makeunits", default=True, help="Produce a ReLU versus GB figure.  Produces two plots (3 layer, 5 layer)")
 op.add_option("--comparelayers",
