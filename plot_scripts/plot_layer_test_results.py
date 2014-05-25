@@ -37,35 +37,6 @@ if not os.path.exists(opts.fivedir) and os.path.exists(opts.threedir):
     print("Error: both 3,5 layer model dirs must be specified.")
     exit()
 
-if opts.makeunits:
-
-    # Plot the mean for each results matrix with standard deviation bars
-    fig = P.figure()
-    
-    ax = fig.add_subplot(211)
-    make_units_plot(ax, opts.topX, opts.threedir, "3 layer model embedding test", opts.upperlimit)      
-    
-    ax = fig.add_subplot(221)    
-    make_units_plot(ax, opts.topX, opts.fivedir, "5 layer model embedding test", opts.upperlimit)     
-
-    outfile = opts.outfile + ".gmm.pdf"
-    P.savefig(outfile, dpi=100, format="pdf")
-    
-if opts.makelayers:
-    
-    # Plot the mean for each results matrix with standard deviation bars
-    fig = P.figure()
-    
-    ax = fig.add_subplot(111)
-    make_units_plot(opts.topX, opts.threedir, "3 layer vs 5 layer models")
-    
-    ax = fig.add_subplot(221)    
-    make_units_plot(opts.topX, opts.threedir, "3 layer model embedding test")     
-    
-    outfile = opts.outfile + ".gmm.pdf"
-    P.savefig(outfile, dpi=100, format="pdf")    
-    
-
 
 def make_units_plot(ax, topX, base_dir, title, limit):
     """ Make a ReLU vs GB networks plot
@@ -136,7 +107,41 @@ def make_units_plot(ax, topX, base_dir, title, limit):
     labels = ['']
     labels.extend(dims_list)
     ax.xticks(locs,labels)
-    ax.legend(loc = 7,numpoints=1)    # legend centre right    
+    ax.legend(loc = 7,numpoints=1)    # legend centre right
+
+############################  make the plots ##########################
+
+if opts.makeunits:
+
+    # Plot the mean for each results matrix with standard deviation bars
+    fig = P.figure()
+    
+    ax = fig.add_subplot(211)
+    make_units_plot(ax, opts.topX, opts.threedir, "3 layer model embedding test", opts.upperlimit)      
+    
+    ax = fig.add_subplot(221)    
+    make_units_plot(ax, opts.topX, opts.fivedir, "5 layer model embedding test", opts.upperlimit)     
+
+    outfile = opts.outfile + ".gmm.pdf"
+    P.savefig(outfile, dpi=100, format="pdf")
+    
+if opts.makelayers:
+    
+    # Plot the mean for each results matrix with standard deviation bars
+    fig = P.figure()
+    
+    ax = fig.add_subplot(111)
+    make_units_plot(opts.topX, opts.threedir, "3 layer vs 5 layer models")
+    
+    ax = fig.add_subplot(221)    
+    make_units_plot(opts.topX, opts.threedir, "3 layer model embedding test")     
+    
+    outfile = opts.outfile + ".gmm.pdf"
+    P.savefig(outfile, dpi=100, format="pdf")    
+    
+
+
+    
            
 
         
