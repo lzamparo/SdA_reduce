@@ -13,7 +13,6 @@ import pylab as P
 import os
 from optparse import OptionParser
 from parse_homogeneity_results import return_top, parse_dir
-import pdb
 
 op = OptionParser()
 op.add_option("--pca",

@@ -33,6 +33,31 @@ def parse_dir(input_dir):
 
     return results
 
+def parse_dir_meanstd(input_dir):
+    """ Read all .npy file provided in input_dir, output two dicts (mean, std) for homogeneity results (values) for each model (key)"""
+    os.chdir(input_dir)
+    model_files = os.listdir(".")
+
+    # Store the results of the model search in this dictionary
+    # keys are model name, values are mean homogeneity scores
+    mean_results = OrderedDict()
+    std_results = OrderedDict()
+    for f in model_files:
+        # if this file is not an .npy file, ignore it
+        if not f.endswith("gmm.npy"):
+            continue
+        
+        # read the file, populate results dict with mean homogeneity value
+        parts = f.split('.')
+        f_model = parts[0]
+        if f_model is None:
+            continue
+        
+        homog_results = np.load(f)
+        mean_results[f_model] = homog_results.mean()
+        std_results[f_model] = homog_results.std()
+
+    return mean_results, std_results
 
 def return_top_print(results, n):
     """ Find the top n scoring models in each of the dicts.  Also, compute some order statistics to qualify this list: max, min """
