@@ -38,11 +38,11 @@ if not os.path.exists(opts.fivedir) and os.path.exists(opts.threedir):
     exit()
 
 
-def make_units_plot(ax, topX, base_dir, title, limit):
+def make_units_plot(subfig, topX, base_dir, title, limit):
     """ Make a ReLU vs GB networks plot
     
-    :param: ax axis-object
-    :param: ax Matplotlib sub-plot object 
+    :param: subfig axis-object
+    :param: subfig Matplotlib sub-plot object 
     
     :param: topX int
     :param: topX use this number of top scoring models in the plot
@@ -90,37 +90,34 @@ def make_units_plot(ax, topX, base_dir, title, limit):
         sda_results_gb.append(gb_scores)
         sda_results_relu.append(relu_scores)
         x_vals = np.ones((n,),dtype=np.int) * (i + 1)
-        ax.plot(x_vals.tolist(),sda_results_gb[i],'y*',label="GB SdA" if i == 0 else "_no_legend",markersize=9)
-        ax.plot(x_vals.tolist(),sda_results_relu[i],'b*',label="ReLU SdA" if i == 0 else "_no_legend",markersize=9)
+        subfig.plot(x_vals.tolist(),sda_results_gb[i],'y*',label="GB SdA" if i == 0 else "_no_legend",markersize=9)
+        subfig.plot(x_vals.tolist(),sda_results_relu[i],'b*',label="ReLU SdA" if i == 0 else "_no_legend",markersize=9)
         
-        #ax.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1.5, fmt='--o')
-        #ax.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
-        #ax.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
-        #ax.errorbar(x,kpca_means,yerr=kpca_std, elinewidth=2, capsize=3, label="KPCA", lw=1.5, fmt='--o')        
+        #subfig.errorbar(x,pca_means,yerr=pca_std, elinewidth=2, capsize=3, label="PCA", lw=1.5, fmt='--o')
+        #subfig.errorbar(x,lle_means,yerr=lle_std, elinewidth=2, capsize=3, label="LLE", lw=1.5, fmt='--o')
+        #subfig.errorbar(x,isomap_means,yerr=isomap_std, elinewidth=2, capsize=3, label="ISOMAP", lw=1.5, fmt='--o')
+        #subfig.errorbar(x,kpca_means,yerr=kpca_std, elinewidth=2, capsize=3, label="KPCA", lw=1.5, fmt='--o')        
         
-    ax.xlim(0,len(dims_list) + 1)
-    ax.ylim(0,0.50)
-    ax.title(title)
-    ax.xlabel('Dimension of the Data')
-    ax.ylabel('Average Homogeneity')
-    locs, labels = ax.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
+    subfig.set_xlim(0,len(dims_list) + 1)
+    subfig.set_ylim(0,0.50)
+    subfig.set_title(title)
+    subfig.set_xlabel('Dimension of the Data')
+    subfig.set_ylabel('Average Homogeneity')
+    labels = subfig.get_xticklabels()   # get the xtick location and labels, re-order them so they match the experimental data
     labels = ['']
     labels.extend(dims_list)
-    ax.xticks(locs,labels)
-    ax.legend(loc = 7,numpoints=1)    # legend centre right
+    subfig.set_xticklabels(labels)
+    subfig.legend(loc = 7,numpoints=1)    # legend centre right
 
 ############################  make the plots ##########################
 
 if opts.makeunits:
 
     # Plot the mean for each results matrix with standard deviation bars
-    fig = P.figure()
-    
-    ax = fig.add_subplot(211)
-    make_units_plot(ax, opts.topX, opts.threedir, "3 layer model embedding test", opts.upperlimit)      
-    
-    ax = fig.add_subplot(221)    
-    make_units_plot(ax, opts.topX, opts.fivedir, "5 layer model embedding test", opts.upperlimit)     
+    fig, axarr = P.subplots(nrows=2, sharex=True)
+
+    make_units_plot(axarr[0], opts.topX, opts.threedir, "3 layer ReLU vs GB", opts.upperlimit)      
+    make_units_plot(axarr[1], opts.topX, opts.fivedir, "5 layer ReLU vs GB", opts.upperlimit)     
 
     outfile = opts.outfile + ".gmm.pdf"
     P.savefig(outfile, dpi=100, format="pdf")
@@ -130,11 +127,11 @@ if opts.makelayers:
     # Plot the mean for each results matrix with standard deviation bars
     fig = P.figure()
     
-    ax = fig.add_subplot(111)
-    make_units_plot(opts.topX, opts.threedir, "3 layer vs 5 layer models")
+    ax = fig.add_subplot(211)
+    make_units_plot(ax, opts.topX, opts.threedir, "3 layer vs 5 layer ReLU models", opts.upperlimit)
     
-    ax = fig.add_subplot(221)    
-    make_units_plot(opts.topX, opts.threedir, "3 layer model embedding test")     
+    bx = fig.add_subplot(212)    
+    make_units_plot(bx, opts.topX, opts.fivedir, "3 layer model GB models", opts.upperlimit)     
     
     outfile = opts.outfile + ".gmm.pdf"
     P.savefig(outfile, dpi=100, format="pdf")    
