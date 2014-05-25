@@ -43,10 +43,10 @@ if opts.makeunits:
     fig = P.figure()
     
     ax = fig.add_subplot(211)
-    make_units_plot(opts.topX, opts.threedir, "3 layer model embedding test", opts.upperlimit)      
+    make_units_plot(ax, opts.topX, opts.threedir, "3 layer model embedding test", opts.upperlimit)      
     
     ax = fig.add_subplot(221)    
-    make_units_plot(ax, opts.topX, opts.threedir, "3 layer model embedding test")     
+    make_units_plot(ax, opts.topX, opts.fivedir, "5 layer model embedding test", opts.upperlimit)     
 
     outfile = opts.outfile + ".gmm.pdf"
     P.savefig(outfile, dpi=100, format="pdf")
