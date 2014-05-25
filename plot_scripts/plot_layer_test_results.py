@@ -32,7 +32,7 @@ op.add_option("--output",
 (opts, args) = op.parse_args()
 
 # Make sure threedir, fivedir paths exist
-if not os.path.exists(opts.fivedir) or not os.path.exists(opts.threedir)
+if not os.path.exists(opts.fivedir) and os.path.exists(opts.threedir):
     print()
     print("Error: both 3,5 layer model dirs must be specified.")
     exit()
