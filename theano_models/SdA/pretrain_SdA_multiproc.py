@@ -134,7 +134,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
                          corruption=corruption_levels[i],
                          momentum=shared_args_dict["momentum"]))
                 scale = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])
-                if scale > 1.0:
+                if scale < 1.0:
                     print >> output_file, "Re-scaling took place w scale value ", str(scale)                 
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)

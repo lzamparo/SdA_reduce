@@ -141,9 +141,9 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
 
             # apply max-norm regularization
             for i in xrange(sda.n_layers):
-                scale = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])
-                if scale > 1.0:
-                    print >> output_file, "Re-scaling took place w scale value ", str(scale)            
+                scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])
+                if scales < 1.0:
+                    print >> output_file, "Re-scaling took place w scale value ", str(scales)            
 
             if (iter + 1) % validation_frequency == 0:
                 validation_losses = validate_model()
