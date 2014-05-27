@@ -128,6 +128,7 @@ class SdA(object):
             
 
         # Keep track of parameter updates, so we may use momentum 
+        # DEBUG: should I restrict to the W matrices only?
         for param in self.params:
             init = np.zeros(param.get_value(borrow=True).shape,
                             dtype=theano.config.floatX)
@@ -267,11 +268,6 @@ class SdA(object):
             col_norms = T.sqrt(T.sum(T.sqr(W), axis=0))
             desired_norms = T.clip(col_norms, 0, norm_limit)
             updated_W = W * (desired_norms / (1e-7 + col_norms))            
-            #squares = W**2
-            #col_sum = squares.sum(axis = 1)
-            #maxval = col_sum.max()
-            #scale_factor = norm_limit / T.maximum(norm_limit, maxval)            
-            #fn = theano.function([norm_limit], scale_factor, updates = {W: W * scale_factor})
             fn = theano.function([norm_limit], desired_norms, updates = {W: updated_W})
             max_norm_fns.append(fn)
             
@@ -318,18 +314,22 @@ class SdA(object):
         
         for dA in self.dA_layers:
             # get the cost and the updates list
-            cost, updates = dA.get_cost_updates(corruption_level,learning_rate)
+            cost, updates = dA.get_cost_gparams(corruption_level,learning_rate)
             
-            # modify the updates to account for the momentum smoothing 
-            mod_updates = OrderedDict()
+            # modify the updates to account for momentum smoothing 
+            momentum_updates = OrderedDict()
             for param, grad_update in updates:
                 if param in self.updates:
                     last_update = self.updates[param]
-                    delta = momentum * last_update -  (1. - momentum) * learning_rate * grad_update
-                    mod_updates[param] = param + delta
+                    # updates list contains tuples of the form (param, learning_rate*gparam)
+                    # !!! I have: delta = momentum * last_update -  (1. - momentum) * learning_rate * (param - learning_rate * gparam)
+                    # !!! I want: delta = momemtum * last_update - (1. - momentum) * learning_rate * gparam
+                    
+                    delta = momentum * last_update - (1. - momentum) * grad_update
+                    momentum_updates[param] = param + delta
                     self.updates[param] = delta
                 else:               
-                    mod_updates[param] = grad_update
+                    momentum_updates[param] = param - grad_update
             
                 
             # compile the theano function
@@ -337,7 +337,7 @@ class SdA(object):
                               theano.Param(corruption_level, default=0.15),
                               theano.Param(momentum, default=0.8)], 
                                  outputs=cost,
-                                 updates=mod_updates,
+                                 updates=momentum_updates,
                                  givens={self.x: train_set_x[batch_begin:
                                                              batch_end]})
             # append `fn` to the list of functions
@@ -377,22 +377,22 @@ class SdA(object):
         # momentum rate to use
         momentum = T.scalar('momentum')        
 
-        # compute list of fine-tuning updates
+        # package up each param with it's gradient component * learning rate
         updates = []
         for param, gparam in zip(self.params, gparams):
-            updates.append((param, param - gparam * learning_rate))
+            updates.append((param, gparam * learning_rate))
             
         
-        # modify the updates to account for the momentum smoothing
+        # modify the updates to account for momentum smoothing
         mod_updates = OrderedDict()
         for param, grad_update in updates:
             if param in self.updates:
                 last_update = self.updates[param]
-                delta = momentum * last_update -  (1.0 - momentum)* learning_rate * grad_update
+                delta = momentum * last_update - (1.0 - momentum) * grad_update
                 mod_updates[param] = param + delta
                 self.updates[param] = delta
             else:               
-                mod_updates[param] = grad_update        
+                mod_updates[param] = param - grad_update        
                 
 
         train_fn = theano.function(inputs=[index, theano.Param(momentum, default=0.8)],
