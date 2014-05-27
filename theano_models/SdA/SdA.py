@@ -254,20 +254,25 @@ class SdA(object):
     def max_norm_regularization(self):
         '''
         Define and return a list of theano function objects implementing max norm 
-        regularization for each layer of the SdA.  
+        regularization for each weight matrix in each layer of the SdA.  
         
         '''
         
         norm_limit = T.scalar('norm_limit')
         max_norm_fns = []
         
-        for dA in self.dA_layers:
+        for dA in self.dA_layers:            
             W,scrub,dub = dA.get_params()
-            squares = W**2
-            col_sum = squares.sum(axis = 1)
-            maxval = col_sum.max()
-            scale_factor = norm_limit / T.maximum(norm_limit, maxval)            
-            fn = theano.function([norm_limit], scale_factor, updates = {W: W * scale_factor})        
+            # max-norm column regularization as per Pylearn2 MLP lib
+            col_norms = T.sqrt(T.sum(T.sqr(W), axis=0))
+            desired_norms = T.clip(col_norms, 0, norm_limit)
+            updated_W = W * (desired_norms / (1e-7 + col_norms))            
+            #squares = W**2
+            #col_sum = squares.sum(axis = 1)
+            #maxval = col_sum.max()
+            #scale_factor = norm_limit / T.maximum(norm_limit, maxval)            
+            #fn = theano.function([norm_limit], scale_factor, updates = {W: W * scale_factor})
+            fn = theano.function([norm_limit], desired_norms, updates = {W: updated_W})
             max_norm_fns.append(fn)
             
         return max_norm_fns
@@ -315,7 +320,7 @@ class SdA(object):
             # get the cost and the updates list
             cost, updates = dA.get_cost_updates(corruption_level,learning_rate)
             
-            # modify the updates to account for the momentum smoothing and weight decay regularization
+            # modify the updates to account for the momentum smoothing 
             mod_updates = OrderedDict()
             for param, grad_update in updates:
                 if param in self.updates:
