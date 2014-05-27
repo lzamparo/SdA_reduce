@@ -13,4 +13,4 @@
 
 # Run the job
 cd $PBS_O_WORKDIR
-python kernel_pca_pipeline.py --h5file "${SCRATCH}/sm_rep1_data/sample.h5" --size 7 --sample-size 5000 --num-jobs 8 --output "${SCRATCH}/figures/kpca_pipeline.pkl" 
+python kernel_pca_pipeline.py --h5file "${SCRATCH}/sm_rep1_data/sample.h5" --size 5 --sample-size 5000 --num-jobs 8 --output "${SCRATCH}/figures/kpca_pipeline.pkl" 
