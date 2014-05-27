@@ -280,6 +280,31 @@ class BernoulliAutoEncoder(AutoEncoder):
             
         return (cost, updates)
     
+    def get_cost_gparams(self, corruption_level, learning_rate):
+        """ Compute the reconstruction error over the mini-batched input (with corruption)
+       
+       But instead of returning a list of tuples (updates) were the rval has the form of an update to 
+       a theano.tensor variable (param, update_value), return instead (param, gparam)."""
+        x_corrupted = super(ReluAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
+        y = self.get_hidden_values(x_corrupted)
+        z = self.get_reconstructed_input(y)
+        
+        # Take the sum over columns
+        # Use the squared error loss function
+        L = T.sum((self.x - z) **2, axis = 1)
+            
+        cost = T.mean(L)
+        
+        # compute the gradients of the cost of the dA w.r.t the params
+        gparams = T.grad(cost, self.params)
+        
+        # populate the list of updates to each param
+        updates = []
+        for param, gparam in zip(self.params, gparams):
+            updates.append((param, learning_rate * gparam))
+            
+        return (cost, updates)    
+    
     
 class GaussianAutoEncoder(AutoEncoder):
         
@@ -387,6 +412,31 @@ class GaussianAutoEncoder(AutoEncoder):
             updates.append((param, param - learning_rate * gparam))
             
         return (cost, updates)
+    
+    def get_cost_gparams(self, corruption_level, learning_rate):
+        """ Compute the reconstruction error over the mini-batched input (with corruption)
+    
+    But instead of returning a list of tuples (updates) were the rval has the form of an update to 
+    a theano.tensor variable (param, update_value), return instead (param, gparam)."""
+        x_corrupted = super(GaussianAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
+        y = self.get_hidden_values(x_corrupted)
+        z = self.get_reconstructed_input(y)
+        
+        # Take the sum over columns
+        # Use the squared error loss function
+        L = T.sum((self.x - z) **2, axis = 1)
+            
+        cost = T.mean(L)
+        
+        # compute the gradients of the cost of the dA w.r.t the params
+        gparams = T.grad(cost, self.params)
+        
+        # populate the list of updates to each param
+        updates = []
+        for param, gparam in zip(self.params, gparams):
+            updates.append((param, learning_rate * gparam))
+            
+        return (cost, updates)    
     
     
 class ReluAutoEncoder(AutoEncoder):        
@@ -513,3 +563,28 @@ class ReluAutoEncoder(AutoEncoder):
             updates.append((param, param - learning_rate * gparam))
             
         return (cost, updates)
+    
+    def get_cost_gparams(self, corruption_level, learning_rate):
+        """ Compute the reconstruction error over the mini-batched input (with corruption)
+    
+        But instead of returning a list of tuples (updates) were the rval has the form of an update to 
+        a theano.tensor variable (param, update_value), return instead (param, gparam)."""
+        x_corrupted = super(ReluAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
+        y = self.get_hidden_values(x_corrupted)
+        z = self.get_reconstructed_input(y)
+        
+        # Take the sum over columns
+        # Use the squared error loss function
+        L = T.sum((self.x - z) **2, axis = 1)
+            
+        cost = T.mean(L)
+        
+        # compute the gradients of the cost of the dA w.r.t the params
+        gparams = T.grad(cost, self.params)
+        
+        # populate the list of updates to each param
+        updates = []
+        for param, gparam in zip(self.params, gparams):
+            updates.append((param, learning_rate * gparam))
+            
+        return (cost, updates)    
