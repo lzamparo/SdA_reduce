@@ -189,16 +189,16 @@ def parse_layer_type(layer_str, num_layers):
     :type num_layers: int
     :param num_layers: number of layers
     """
-    if layer_str == 'Bernoulli':
+    if layer_str.lower() == 'bernoulli':
         layers = ['Bernoulli' for i in xrange(num_layers)]
         return layers
     
-    elif layer_str == 'Gaussian':
+    elif layer_str.lower() == 'gaussian':
         layers = ['Bernoulli' for i in xrange(num_layers)]
         layers[0] = layer_str
         return layers
     
-    elif layer_str == 'ReLU':
+    elif layer_str.lower() == 'relu':
         layers = ['ReLU' for i in xrange(num_layers)]
         return layers
     
