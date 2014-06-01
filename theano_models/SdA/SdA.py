@@ -90,11 +90,11 @@ class SdA(object):
                                      # [int] labels
 
         # sanity check on loss parameter
-        assert loss in ['squared', 'xent', 'softplus']
-        self.use_loss = loss
+        assert loss.lower() in ['squared', 'xent', 'softplus']
+        self.use_loss = loss.lower()
         
         # build each layer dynamically 
-        layer_classes = {'Gaussian': GaussianAutoEncoder, 'Bernoulli': BernoulliAutoEncoder, 'ReLU': ReluAutoEncoder}
+        layer_classes = {'gaussian': GaussianAutoEncoder, 'bernoulli': BernoulliAutoEncoder, 'relu': ReluAutoEncoder}
         
         for i in xrange(self.n_layers):
             
