@@ -133,9 +133,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.0001,
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i],
                          momentum=shared_args_dict["momentum"]))
-                scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])
-                if numpy.any(scales < 1.0):
-                    print >> output_file, "Re-scaling took place "                 
+                scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])                
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             print >> output_file, learning_rate.get_value(borrow=True)
@@ -190,16 +188,16 @@ def parse_layer_type(layer_str, num_layers):
     :param num_layers: number of layers
     """
     if layer_str.lower() == 'bernoulli':
-        layers = ['Bernoulli' for i in xrange(num_layers)]
+        layers = ['bernoulli' for i in xrange(num_layers)]
         return layers
     
     elif layer_str.lower() == 'gaussian':
-        layers = ['Bernoulli' for i in xrange(num_layers)]
-        layers[0] = layer_str
+        layers = ['bernoulli' for i in xrange(num_layers)]
+        layers[0] = layer_str.lower()
         return layers
     
     elif layer_str.lower() == 'relu':
-        layers = ['ReLU' for i in xrange(num_layers)]
+        layers = ['relu' for i in xrange(num_layers)]
         return layers
     
     else:
