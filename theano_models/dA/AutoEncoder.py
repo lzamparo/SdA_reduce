@@ -285,7 +285,7 @@ class BernoulliAutoEncoder(AutoEncoder):
        
        But instead of returning a list of tuples (updates) were the rval has the form of an update to 
        a theano.tensor variable (param, update_value), return instead (param, gparam)."""
-        x_corrupted = super(ReluAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
+        x_corrupted = super(BernoulliAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
         y = self.get_hidden_values(x_corrupted)
         z = self.get_reconstructed_input(y)
         
