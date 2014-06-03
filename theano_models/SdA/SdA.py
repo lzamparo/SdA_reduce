@@ -518,7 +518,8 @@ class SdA(object):
             bhid_name = 'bhid_' + str(i)
             bvis_name = 'bvis_' + str(i)
             
-            dA_layer = layer_classes[layer_types[i]](numpy_rng=numpy_rng,
+            lt = layer_types[i].lower()
+            dA_layer = layer_classes[lt](numpy_rng=numpy_rng,
                         theano_rng=theano_rng,
                         input=layer_input,
                         n_visible=n_visible,

@@ -177,9 +177,9 @@ def get_arch_list(private_args):
 def parse_layer_type(layer_str, num_layers):
     """ Return a list of strings identifying the types of layers to use when constructing this model.  
     Acceptable configurations are: 
-        'Gaussian': for a Gaussian-Bernoulli SdA
-        'Bernoulli': for a purely Bernoulli SdA
-        'ReLU': for a ReLU SdA
+        'gaussian': for a Gaussian-Bernoulli SdA
+        'bernoulli': for a purely Bernoulli SdA
+        'relu': for a ReLU SdA
     
     :type layer_str: string
     :param layer_str: the string representation of the layer type
