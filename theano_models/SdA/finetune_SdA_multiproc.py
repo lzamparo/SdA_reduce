@@ -95,10 +95,6 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
     # get the training, validation function for the model
     datasets = (train_set_x,valid_set_x)
     
-    ### DEBUG: Try to update the use_loss param after the fact ###
-    sda.use_loss = 'squared'
-    sda.finish_sda_unsupervised()
-    
     print '... getting the finetuning functions'
     train_fn, validate_model = sda.build_finetune_functions_reconstruction(
                 datasets=datasets, batch_size=batch_size,
@@ -208,7 +204,7 @@ if __name__ == '__main__':
     parser.add_option("-q","--secondrestorefile",dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
-    parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, default = 5.0, help = "limit the norm of each vector in each W matrix to norm_limit")
+    parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, default = 3.0, help = "limit the norm of each vector in each W matrix to norm_limit")
     
     (options, args) = parser.parse_args()    
     
