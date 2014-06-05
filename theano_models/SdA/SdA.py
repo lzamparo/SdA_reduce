@@ -23,7 +23,7 @@ class SdA(object):
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=-1,
                  corruption_levels=[0.1, 0.1], layer_types=['ReLU','ReLU'],
-                 loss='squared'):
+                 loss='squared', dropout_rates = [1.0, 1.0]):
         """ This class is made to support a variable number of layers
 
         :type numpy_rng: numpy.random.RandomState
@@ -60,6 +60,11 @@ class SdA(object):
         :type loss: string
         :param loss: specify what loss function to use for reconstruction error
                             Currently supported: 'squared','xent','softplus'
+                            
+        :type dropout_rates: list of float
+        :param dropout_rates: proportion of output units to drop from this layer
+                            Default rates are 0.0 (all layer output is retained)
+                                  
                                                                        
         """
 
@@ -72,11 +77,12 @@ class SdA(object):
         
         self.n_outs = n_outs
         self.corruption_levels = corruption_levels
+        self.dropout_rates = dropout_rates
         self.n_layers = len(hidden_layers_sizes)
 
         # sanity checks on parameter list sizes
         assert self.n_layers > 0
-        assert len(hidden_layers_sizes) == len(corruption_levels) == len(layer_types)                                                                        
+        assert len(hidden_layers_sizes) == len(corruption_levels) == len(layer_types) == len(dropout_rates)                                                                                            dropout_rates)                                                                       
 
         if not theano_rng:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
@@ -128,7 +134,6 @@ class SdA(object):
             
 
         # Keep track of parameter updates, so we may use momentum 
-        # DEBUG: should I restrict to the W matrices only?
         for param in self.params:
             init = np.zeros(param.get_value(borrow=True).shape,
                             dtype=theano.config.floatX)
@@ -211,10 +216,11 @@ class SdA(object):
         :param X: Shared variable that contains data 
                   to be pushed through the SdA (i.e reconstructed)
         """
-        
+       
+        # Use dropout here 
         X_prime = X
-        for dA in self.dA_layers:
-            X_prime = dA.get_hidden_values(X_prime)
+        for dA, p in zip(self.dA_layers,self.dropout_rates):
+            X_prime = dA.dropout_from_layer(dA.get_hidden_values(X_prime),p)
         
         for dA in self.dA_layers[::-1]:
             X_prime = dA.get_reconstructed_input(X_prime)
@@ -234,6 +240,19 @@ class SdA(object):
         Z = self.reconstruct_input(X)    
         L = self.loss(X,Z)
         return T.mean(L)
+    
+    def scale_dA_weights(self,factors):
+        """ Scale each dA weight matrix by some factor.  Used primarily when encoding 
+        data trained with an SdA where droput was used in finetuning. 
+        
+        :type factors: list of floats
+        :param factors: scale the weight matrices by the factors in the list
+        """
+        for dA,p in zip(self.dA_layers,factors):
+            W, = dA.get_params()
+            W.set_value(W.get_value(borrow=True) * p, borrow=True)
+            
+                        
             
     def encode(self,X):
         """ Given data X, provide the symbolic computation of X_prime, by 
