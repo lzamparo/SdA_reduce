@@ -127,7 +127,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
     max_norm_regularization_fns = sda.max_norm_regularization()
     
     # Set the dropout rates, and scale the weights up by the inverse of the dropout rates
-    sda.dropout_rates = shared_args_dict['dropout']
+    sda.dropout_rates = private_args['dropout']
     sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
 
     while (epoch < finetuning_epochs) and (not done_looping):
