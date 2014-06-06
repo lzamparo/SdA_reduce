@@ -236,22 +236,22 @@ class SdA(object):
    
     
     def reconstruct_input(self, X):
-            """ Given data X, provide the symbolic computation of  
-            \hat{X} where \hat{X} is the reconstructed data vector output of the 'unrolled' SdA
-             
-            
-            :type X: theano.tensor.TensorType
-            :param X: Shared variable that contains data 
-                      to be pushed through the SdA (i.e reconstructed)
-            """
-            
-            X_prime = X
-            for dA in self.dA_layers:
-                X_prime = dA.get_hidden_values(X_prime)
-            
-            for dA in self.dA_layers[::-1]:
-                X_prime = dA.get_reconstructed_input(X_prime)
-            return X_prime             
+        """ Given data X, provide the symbolic computation of  
+        \hat{X} where \hat{X} is the reconstructed data vector output of the 'unrolled' SdA
+         
+        
+        :type X: theano.tensor.TensorType
+        :param X: Shared variable that contains data 
+                  to be pushed through the SdA (i.e reconstructed)
+        """
+        
+        X_prime = X
+        for dA in self.dA_layers:
+            X_prime = dA.get_hidden_values(X_prime)
+        
+        for dA in self.dA_layers[::-1]:
+            X_prime = dA.get_reconstructed_input(X_prime)
+        return X_prime             
     
     def reconstruction_error(self, X):
         """ Calculate the reconstruction error. Take a matrix of 
@@ -268,18 +268,18 @@ class SdA(object):
         return T.mean(L)
     
     def reconstruction_error_dropout(self, X):
-            """ Calculate the reconstruction error. Take a matrix of 
-            training examples where X[i,:] is one data vector, return 
-            the squared error between X, Z where Z is the reconstructed data. 
-            
-            :type X: theano.tensor.TensorType
-            :param X: Shared variable that contains a batch of datapoints 
-                      to be reconstructed
-            """
-            
-            Z = self.reconstruct_input_dropout(X)    
-            L = self.loss(X,Z)
-            return T.mean(L)    
+        """ Calculate the reconstruction error. Take a matrix of 
+        training examples where X[i,:] is one data vector, return 
+        the squared error between X, Z where Z is the reconstructed data. 
+        
+        :type X: theano.tensor.TensorType
+        :param X: Shared variable that contains a batch of datapoints 
+                  to be reconstructed
+        """
+        
+        Z = self.reconstruct_input_dropout(X)    
+        L = self.loss(X,Z)
+        return T.mean(L)    
     
     def scale_dA_weights(self,factors):
         """ Scale each dA weight matrix by some factor.  Used primarily when encoding 
@@ -289,7 +289,7 @@ class SdA(object):
         :param factors: scale the weight matrices by the factors in the list
         """
         for dA,p in zip(self.dA_layers,factors):
-            W, = dA.get_params()
+            W,meh,bah = dA.get_params()
             W.set_value(W.get_value(borrow=True) * p, borrow=True)
             
                         
@@ -365,8 +365,6 @@ class SdA(object):
         # momentum rate to use
         momentum = T.scalar('momentum')  
         
-        # number of batches
-        n_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
         # begining of a batch, given `index`
         batch_begin = index * batch_size
         # ending of a batch given `index`
@@ -515,10 +513,7 @@ class SdA(object):
         :param batch_size: size of the test batch.
         
         '''
-        # compute number of minibatches for training, validation and testing
-        n_batches = dataset.get_value(borrow=True).shape[0]
-        n_batches /= batch_size
-                
+                        
         index_val = T.lscalar('gtestindex')  # index to a [mini]batch     
                 
         # compute the gradients with respect to the model parameters
