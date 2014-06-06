@@ -205,6 +205,7 @@ def parse_dropout(d_string, model):
     Or, if d_string == 'none', make sure all components are kept for finetuning. '''
     if d_string is not 'none':
         parts = d_string.split('-')
+        assert len(parts) == len(model.split('_'))
         return [float(f) / 100 for f in parts]
     else:
         model_parts = model.split('_')
