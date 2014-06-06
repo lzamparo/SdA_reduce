@@ -228,7 +228,8 @@ class SdA(object):
        
         X_prime = X
         for dA, p in zip(self.dA_layers,self.dropout_rates):
-            X_prime = dA.dropout_from_layer(dA.get_hidden_values(X_prime),p)
+            hidden = dA.get_hidden_values(X_prime)
+            X_prime = dA.dropout_from_layer(hidden,p)
         
         for dA in self.dA_layers[::-1]:
             X_prime = dA.get_reconstructed_input(X_prime)
