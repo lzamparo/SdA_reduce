@@ -170,7 +170,7 @@ class AutoEncoder(object):
         :type p: float
         :param p: retain each unit in this layer with probability p """
         
-        mask = self.theano_rng.binomial(size=layer.shape, n=1, p=p) * layer
+        mask = self.theano_rng.binomial(size=layer.shape, n=1, p=p)
         # According to https://github.com/mdenil/dropout/blob/master/mlp.py:
         # The cast is important because int * float32 = float64, 
         # which pulls things off the gpu.  He apparently has not heard of allow.downcast.
