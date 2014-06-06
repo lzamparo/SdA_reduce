@@ -8,8 +8,6 @@ from optparse import OptionParser
 import os, re
 
 import cPickle
-import gzip
-import sys
 import time
 
 import numpy
@@ -52,7 +50,6 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
     
     import theano
     import theano.tensor as T
-    from theano.tensor.shared_randomstreams import RandomStreams
     
     from SdA import SdA    
     
@@ -79,9 +76,6 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
     # compute number of minibatches for training, validation and testing
     n_train_batches, n_features = train_set_x.get_value(borrow=True).shape
     n_train_batches /= batch_size
-    
-    # numpy random generator
-    numpy_rng = numpy.random.RandomState(89677)
     
     print >> output_file, 'Unpickling the model from %s ...' % (private_args['restore'])        
     f = file(private_args['restore'], 'rb')
