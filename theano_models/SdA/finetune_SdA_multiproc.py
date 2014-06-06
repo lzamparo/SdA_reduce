@@ -134,7 +134,6 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
     
     # Set the dropout rates, and scale the weights up by the inverse of the dropout rates
     sda.dropout_rates = shared_args_dict['dropout']
-    # DEBUG: fold this step into SdA reconstruct_data_dropout
     sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
 
     while (epoch < finetuning_epochs) and (not done_looping):
@@ -149,12 +148,17 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
                 scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])          
 
             if (iter + 1) % validation_frequency == 0:
-                # DEBUG: fold this step into SdA reconstruct_data_full
-                # Re-scale the weights to account for dropout 
+                # Re-scale the weights, which will now all be used for activation
+                # to keep the expected activation fixed
                 sda.scale_dA_weights(sda.dropout_rates)
                 
                 validation_losses = validate_model()
                 this_validation_loss = numpy.mean(validation_losses)
+                
+                # Re-scale the weights again, since after validation we're back to 
+                # less activation under dropout regularization               
+                sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
+                
                 print >> output_file, ('epoch %i, minibatch %i/%i, validation error %f ' %
                       (epoch, minibatch_index + 1, n_train_batches,
                        this_validation_loss))
