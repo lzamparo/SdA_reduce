@@ -161,20 +161,17 @@ class AutoEncoder(object):
         """ Set the input for an unpickled dA """
         self.x = input
         
-    def dropout_from_layer(layer, p):
+    def dropout_from_layer(self, layer, prob):
         """ Apply masking noise to the hidden (i.e output) layer for this dA.
         
         :type layer: theano.shared 
         :param layer: number random generator used to generate weights
         
-        :type p: float
-        :param p: retain each unit in this layer with probability p """
+        :type prob: float
+        :param prob: retain each unit in this layer with probability prob """
         
-        mask = self.theano_rng.binomial(size=layer.shape, n=1, p=p)
-        # According to https://github.com/mdenil/dropout/blob/master/mlp.py:
-        # The cast is important because int * float32 = float64, 
-        # which pulls things off the gpu.  He apparently has not heard of allow.downcast.
-        return layer * T.cast(mask, theano.config.floatX)    
+        return self.theano_rng.binomial(size=layer.shape, n=1, p=prob) * layer
+           
 
 
 class BernoulliAutoEncoder(AutoEncoder):
