@@ -23,7 +23,7 @@ class SdA(object):
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=-1,
                  corruption_levels=[0.1, 0.1], layer_types=['ReLU','ReLU'],
-                 loss='squared'):
+                 loss='squared', dropout_rates = None):
         """ This class is made to support a variable number of layers
 
         :type numpy_rng: numpy.random.RandomState
@@ -60,6 +60,11 @@ class SdA(object):
         :type loss: string
         :param loss: specify what loss function to use for reconstruction error
                             Currently supported: 'squared','xent','softplus'
+                            
+        :type dropout_rates: list of float
+        :param dropout_rates: proportion of output units to drop from this layer
+                            Default is to retain all units in all layers
+                                  
                                                                        
         """
 
@@ -74,9 +79,17 @@ class SdA(object):
         self.corruption_levels = corruption_levels
         self.n_layers = len(hidden_layers_sizes)
 
+        # Calculate dropout params (or set if provided)
+        if dropout_rates is not None:
+            self.dropout_rates = dropout_rates
+            assert len(dropout_rates) == len(layer_types)
+            assert dropout_rates[-1] == 1.0
+        else:
+            self.dropout_rates = [1.0 for l in layer_types]
+
         # sanity checks on parameter list sizes
         assert self.n_layers > 0
-        assert len(hidden_layers_sizes) == len(corruption_levels) == len(layer_types)                                                                        
+        assert len(hidden_layers_sizes) == len(corruption_levels) == len(layer_types)                                                                                             dropout_rates)                                                                       
 
         if not theano_rng:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))
@@ -128,7 +141,6 @@ class SdA(object):
             
 
         # Keep track of parameter updates, so we may use momentum 
-        # DEBUG: should I restrict to the W matrices only?
         for param in self.params:
             init = np.zeros(param.get_value(borrow=True).shape,
                             dtype=theano.config.floatX)
@@ -160,7 +172,7 @@ class SdA(object):
         
         loss_dict = {'squared': self.squared_loss, 'xent': self.xent_loss, 'softplus': self.softplus_loss}
         self.loss = loss_dict[self.use_loss]
-        self.finetune_cost = self.reconstruction_error(self.x)
+        self.finetune_cost = self.reconstruction_error_dropout(self.x)
         self.output = self.encode(self.x)
         self.errors = self.reconstruction_error(self.x)        
                       
@@ -203,23 +215,43 @@ class SdA(object):
         
         return -T.sum(X * T.log(Z) + (1 - X) * T.log(1 - Z), axis=1)            
             
-    def reconstruct_input(self, X):
+    def reconstruct_input_dropout(self, X):
         """ Given data X, provide the symbolic computation of  
-        \hat{X} where \hat{X} is the reconstructed data vector output of the 'unrolled' SdA 
+        \hat{X} where \hat{X} is the reconstructed data vector output of the 'unrolled' SdA
+        
+        Apply a dropout mask to the output of the previous layer
         
         :type X: theano.tensor.TensorType
         :param X: Shared variable that contains data 
                   to be pushed through the SdA (i.e reconstructed)
         """
-        
+       
         X_prime = X
-        for dA in self.dA_layers:
-            X_prime = dA.get_hidden_values(X_prime)
+        for dA, p in zip(self.dA_layers,self.dropout_rates):
+            X_prime = dA.dropout_from_layer(dA.get_hidden_values(X_prime),p)
         
         for dA in self.dA_layers[::-1]:
             X_prime = dA.get_reconstructed_input(X_prime)
         return X_prime
+   
+    
+    def reconstruct_input(self, X):
+            """ Given data X, provide the symbolic computation of  
+            \hat{X} where \hat{X} is the reconstructed data vector output of the 'unrolled' SdA
              
+            
+            :type X: theano.tensor.TensorType
+            :param X: Shared variable that contains data 
+                      to be pushed through the SdA (i.e reconstructed)
+            """
+            
+            X_prime = X
+            for dA in self.dA_layers:
+                X_prime = dA.get_hidden_values(X_prime)
+            
+            for dA in self.dA_layers[::-1]:
+                X_prime = dA.get_reconstructed_input(X_prime)
+            return X_prime             
     
     def reconstruction_error(self, X):
         """ Calculate the reconstruction error. Take a matrix of 
@@ -234,6 +266,33 @@ class SdA(object):
         Z = self.reconstruct_input(X)    
         L = self.loss(X,Z)
         return T.mean(L)
+    
+    def reconstruction_error_dropout(self, X):
+            """ Calculate the reconstruction error. Take a matrix of 
+            training examples where X[i,:] is one data vector, return 
+            the squared error between X, Z where Z is the reconstructed data. 
+            
+            :type X: theano.tensor.TensorType
+            :param X: Shared variable that contains a batch of datapoints 
+                      to be reconstructed
+            """
+            
+            Z = self.reconstruct_input_dropout(X)    
+            L = self.loss(X,Z)
+            return T.mean(L)    
+    
+    def scale_dA_weights(self,factors):
+        """ Scale each dA weight matrix by some factor.  Used primarily when encoding 
+        data trained with an SdA where droput was used in finetuning. 
+        
+        :type factors: list of floats
+        :param factors: scale the weight matrices by the factors in the list
+        """
+        for dA,p in zip(self.dA_layers,factors):
+            W, = dA.get_params()
+            W.set_value(W.get_value(borrow=True) * p, borrow=True)
+            
+                        
             
     def encode(self,X):
         """ Given data X, provide the symbolic computation of X_prime, by 
@@ -272,6 +331,9 @@ class SdA(object):
             max_norm_fns.append(fn)
             
         return max_norm_fns
+
+##############################  Training functions ##########################
+
 
     def pretraining_functions(self, train_set_x, batch_size, learning_rate):
         ''' Generates a list of functions, each of them implementing one
@@ -465,6 +527,9 @@ class SdA(object):
         # create a function to evaluate the gradient on the batch at index
         eval_grad = theano.function(inputs=[index_val], outputs=gparams, givens= {self.x: dataset[index_val * batch_size: (index_val + 1) * batch_size]})    
         return eval_grad
+     
+     
+##################### Pickling functions ###############################     
         
     def __getstate__(self):
         """ Pickle this SdA by tupling up the layers, output size, dA param lists, corruption levels and layer types. """
@@ -496,7 +561,10 @@ class SdA(object):
         self.x_prime = T.matrix('X_prime') # symbolic output for the top layer dA
         
         numpy_rng = np.random.RandomState(123)
-        theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
+        theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))    
+        
+        # Set the default dropout rates, can be updated later in a driver script
+        self.dropout_rates = [1.0 for i in xrange(self.n_layers)]
         
         # build each layer dynamically 
         layer_classes = {'gaussian': GaussianAutoEncoder, 'bernoulli': BernoulliAutoEncoder, 'relu': ReluAutoEncoder}

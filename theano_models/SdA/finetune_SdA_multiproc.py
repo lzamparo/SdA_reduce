@@ -131,6 +131,10 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
     
     # Set up functions for max norm regularization
     max_norm_regularization_fns = sda.max_norm_regularization()
+    
+    # Set the dropout rates, and scale the weights up by the inverse of the dropout rates
+    sda.dropout_rates = shared_args_dict['dropout']
+    sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
 
     while (epoch < finetuning_epochs) and (not done_looping):
         epoch = epoch + 1
@@ -144,8 +148,17 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
                 scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])          
 
             if (iter + 1) % validation_frequency == 0:
+                # Re-scale the weights, which will now all be used for activation
+                # to keep the expected activation fixed
+                sda.scale_dA_weights(sda.dropout_rates)
+                
                 validation_losses = validate_model()
                 this_validation_loss = numpy.mean(validation_losses)
+                
+                # Re-scale the weights again, since after validation we're back to 
+                # less activation under dropout regularization               
+                sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
+                
                 print >> output_file, ('epoch %i, minibatch %i/%i, validation error %f ' %
                       (epoch, minibatch_index + 1, n_train_batches,
                        this_validation_loss))
@@ -192,6 +205,16 @@ def extract_arch(filename, model_regex):
     if match is not None:    
         return match.groups()[0]
         
+def parse_dropout(d_string, model):
+    ''' Return a list of floats specified in d_string, describing how dropout should be applied.
+    Format for d_string is some part
+    Or, if d_string == 'none', make sure all components are kept for finetuning. '''
+    if d_string is not 'none':
+        parts = d_string.split('-')
+        return [float(f) / 100 for f in parts]
+    else:
+        model_parts = model.split('_')
+        return [1.0 for layer in model_parts]
         
 if __name__ == '__main__':
         
@@ -205,6 +228,7 @@ if __name__ == '__main__':
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
     parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, default = 3.0, help = "limit the norm of each vector in each W matrix to norm_limit")
+    parser.add_option("-u","--dropout",dest = "dropout", default = "none", help = "A dash delimited string describing how dropout should be applied in finetuning, or 'none' for regular finetuning.")
     
     (options, args) = parser.parse_args()    
     
@@ -233,6 +257,10 @@ if __name__ == '__main__':
     model_name = re.compile(".*?_([\d_]+).pkl")    
     p_args['arch'] = extract_arch(options.pr_file,model_name)
     q_args['arch'] = extract_arch(options.qr_file,model_name)
+    
+    # Parse the droput parameters for both models
+    p_args['dropout'] = parse_dropout(options.dropout, p_args['arch'])
+    q_args['dropout'] = parse_dropout(options.dropout, q_args['arch'])
          
     # Determine where to load & save the first model
     parts = os.path.split(options.dir)
