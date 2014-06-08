@@ -140,12 +140,13 @@ class SdA(object):
             self.params.extend(dA_layer.params)            
             
 
-        # Keep track of parameter updates, so we may use momentum 
+        # Keep track of parameter updates for weight matrices, so we may use momentum 
         for param in self.params:
-            init = np.zeros(param.get_value(borrow=True).shape,
-                            dtype=theano.config.floatX)
-            update_name = param.name + '_update'
-            self.updates[param] = theano.shared(init, name=update_name)        
+            if param.get_value(borrow=True).ndim == 2:
+                init = np.zeros(param.get_value(borrow=True).shape,
+                                dtype=theano.config.floatX)
+                update_name = param.name + '_update'
+                self.updates[param] = theano.shared(init, name=update_name)        
             
 
         if n_outs > 0:
@@ -382,10 +383,6 @@ class SdA(object):
             for param, grad_update in updates:
                 if param in self.updates:
                     last_update = self.updates[param]
-                    # updates list contains tuples of the form (param, learning_rate*gparam)
-                    # !!! I have: delta = momentum * last_update -  (1. - momentum) * learning_rate * (param - learning_rate * gparam)
-                    # !!! I want: delta = momemtum * last_update - (1. - momentum) * learning_rate * gparam
-                    
                     delta = momentum * last_update - (1. - momentum) * grad_update
                     momentum_updates[param] = param + delta
                     self.updates[param] = delta
@@ -597,12 +594,14 @@ class SdA(object):
             
         # Reconstruct the dictionary of shared vars for parameter updates 
         # so we can use momentum when training.
+        # Apply only to weight matrices
         self.updates = {}
         for param in self.params:
-            init = np.zeros(param.get_value(borrow=True).shape,
-                            dtype=theano.config.floatX)
-            update_name = param.name + '_update'
-            self.updates[param] = theano.shared(init, name=update_name)
+            if param.get_value(borrow=True).ndim == 2:
+                init = np.zeros(param.get_value(borrow=True).shape,
+                                dtype=theano.config.floatX)
+                update_name = param.name + '_update'
+                self.updates[param] = theano.shared(init, name=update_name)
             
         # Reconstruct the finetuning cost functions
         if n_outs > 0:

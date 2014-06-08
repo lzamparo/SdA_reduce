@@ -170,7 +170,7 @@ class AutoEncoder(object):
         :type prob: float
         :param prob: retain each unit in this layer with probability prob """
         
-        return self.theano_rng.binomial(size=layer.shape, n=1, p=prob) * layer
+        return T.cast(self.theano_rng.binomial(size=layer.shape, n=1, p=prob),config.floatX) * layer
            
 
 
