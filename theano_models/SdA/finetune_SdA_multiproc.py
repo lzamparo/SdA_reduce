@@ -18,7 +18,7 @@ from tables import openFile
 
 from datetime import datetime
 
-def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finetuning_epochs=500, lr_decay=0.999,
+def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, finetuning_epochs=500, lr_decay=0.999,
              batch_size=100): 
     """ Finetune and validate a pre-trained SdA for the given number of training epochs.
     Batch size and finetuning epochs default values are picked to roughly match the reported values
@@ -86,6 +86,9 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
     # FINETUNING THE MODEL #
     ########################
 
+    # Set the dropout rates, and scale the weights up by the inverse of the dropout rates
+    sda.dropout_rates = private_args['dropout']
+
     # get the training, validation function for the model
     datasets = (train_set_x,valid_set_x)
     
@@ -128,7 +131,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
     
     # Set the dropout rates, and scale the weights up by the inverse of the dropout rates
     sda.dropout_rates = private_args['dropout']
-    sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
+    #sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
 
     while (epoch < finetuning_epochs) and (not done_looping):
         epoch = epoch + 1
@@ -137,14 +140,20 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.001, momentum=0.8, finet
             minibatch_avg_cost = train_fn(minibatch_index, momentum=momentum)
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
+            # DEBUG: monitor the training error
+            print >> output_file, ('epoch %i, minibatch %i/%i, training error %f ' %
+                    (epoch, minibatch_index + 1, n_train_batches,
+                    minibatch_avg_cost))            
+
             # apply max-norm regularization
             for i in xrange(sda.n_layers):
                 scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])          
 
             if (iter + 1) % validation_frequency == 0:
-                # Re-scale the weights, which will now all be used for activation
+                # DEBUG: do not rescale the weights, since they were trained with corruption and so might still get reduced activation. 
+                #Re-scale the weights, which will now all be used for activation
                 # to keep the expected activation fixed
-                sda.scale_dA_weights(sda.dropout_rates)
+                # sda.scale_dA_weights(sda.dropout_rates)
                 
                 validation_losses = validate_model()
                 this_validation_loss = numpy.mean(validation_losses)
