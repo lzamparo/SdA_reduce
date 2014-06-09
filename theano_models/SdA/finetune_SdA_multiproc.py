@@ -18,8 +18,8 @@ from tables import openFile
 
 from datetime import datetime
 
-def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, finetuning_epochs=500, lr_decay=0.999,
-             batch_size=100): 
+def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, finetuning_epochs=500, lr_decay=0.998,
+             batch_size=1000): 
     """ Finetune and validate a pre-trained SdA for the given number of training epochs.
     Batch size and finetuning epochs default values are picked to roughly match the reported values
     of Hinton & Salakhtudinov.
@@ -67,7 +67,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, fine
     
     # Get the training and validation data samples from the input file
     data_set_file = openFile(str(shared_args_dict['input']), mode = 'r')
-    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 25, offset = shared_args_dict['offset'])
+    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 45, offset = shared_args_dict['offset'])
     train_set_x = load_data_unlabeled(datafiles)
     validation_datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 5, offset = shared_args_dict['offset'] + 25)
     valid_set_x = load_data_unlabeled(validation_datafiles)    
