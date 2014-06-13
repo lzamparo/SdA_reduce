@@ -23,7 +23,7 @@ class SdA(object):
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=-1,
                  corruption_levels=[0.1, 0.1], layer_types=['ReLU','ReLU'],
-                 loss='squared', dropout_rates = None):
+                 loss='squared', dropout_rates = None, sparse_init=-1):
         """ This class is made to support a variable number of layers
 
         :type numpy_rng: numpy.random.RandomState
@@ -44,10 +44,6 @@ class SdA(object):
         :type n_outs: int
         :param n_outs: dimension of the output of the network.  Negative if 
                        there is no logistic layer on top.
-        
-        :type log_top: boolean
-        :param log_top: True if a logistic regression layer should be stacked
-                        on top of all the other layers
 
         :type corruption_levels: list of float
         :param corruption_levels: amount of corruption to use for each
@@ -64,6 +60,11 @@ class SdA(object):
         :type dropout_rates: list of float
         :param dropout_rates: proportion of output units to drop from this layer
                             Default is to retain all units in all layers
+                            
+        :type sparse_init: int
+        :param sparse_init: Initialize the weight matrices using Martens sparse initialization (Martens ICML 2010)
+                            >0 specifies the number of units in the layer that have initial weights drawn from 
+                            a N(0,1).  Use -1 for dense init.
                                   
                                                                        
         """
@@ -134,7 +135,8 @@ class SdA(object):
                             n_hidden=int(hidden_layers_sizes[i]),
                             W_name=w_name,
                             bvis_name=bvis_name,
-                            bhid_name=bhid_name)         
+                            bhid_name=bhid_name,
+                            sparse_init=sparse_init)         
                 
             self.dA_layers.append(dA_layer)
             self.params.extend(dA_layer.params)            

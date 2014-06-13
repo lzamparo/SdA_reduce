@@ -18,11 +18,12 @@ from tables import openFile
 
 from datetime import datetime
 
-def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, finetuning_epochs=500, lr_decay=0.999,
-             batch_size=100): 
+def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, finetuning_epochs=50, lr_decay=0.999,
+             batch_size=50): 
     """ Finetune and validate a pre-trained SdA for the given number of training epochs.
     Batch size and finetuning epochs default values are picked to roughly match the reported values
-    of Hinton & Salakhtudinov.
+    of Hinton & Salakhtudinov.   
+
     
     :type finetune_lr: float
     :param finetune_lr: learning rate used in the finetune stage
