@@ -7,7 +7,7 @@ from multiprocessing import Process, Manager
 from optparse import OptionParser
 import os, re
 
-import cPickle
+import cPickle11
 import time
 
 import numpy
@@ -18,8 +18,9 @@ from tables import openFile
 
 from datetime import datetime
 
-def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, finetuning_epochs=50, lr_decay=0.999,
-             batch_size=50): 
+
+def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, max_momentum=0.9, finetuning_epochs=150, lr_decay=0.999,
+             batch_size=100): 
     """ Finetune and validate a pre-trained SdA for the given number of training epochs.
     Batch size and finetuning epochs default values are picked to roughly match the reported values
     of Hinton & Salakhtudinov.   
@@ -29,8 +30,8 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, fine
     :param finetune_lr: learning rate used in the finetune stage
     (factor for the stochastic gradient)
 
-    :type momentum: float
-    :param momentum: the weight given to the previous update when 
+    :type max_momentum: float
+    :param momentum: the maximum value for momentum given to the previous update when 
     calculating the present update to the weights
     
     :type lr_decay: float
@@ -68,7 +69,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, fine
     
     # Get the training and validation data samples from the input file
     data_set_file = openFile(str(shared_args_dict['input']), mode = 'r')
-    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 25, offset = shared_args_dict['offset'])
+    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 45, offset = shared_args_dict['offset'])
     train_set_x = load_data_unlabeled(datafiles)
     validation_datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 5, offset = shared_args_dict['offset'] + 25)
     valid_set_x = load_data_unlabeled(validation_datafiles)    
@@ -133,14 +134,24 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, fine
     # Set the dropout rates, and scale the weights up by the inverse of the dropout rates
     sda.dropout_rates = private_args['dropout']
     #sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
+    
+    # Set up NAG parameter based updates if specified in the SdA
+    if sda.opt_method == 'NAG':
+        do_NAG = True
+        apply_last_update = sda.nag_param_update()
 
     while (epoch < finetuning_epochs) and (not done_looping):
         epoch = epoch + 1
         
         for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost = train_fn(minibatch_index, momentum=momentum)
-            iter = (epoch - 1) * n_train_batches + minibatch_index
-
+            # Calculate momentum value
+            t = (epoch - 1) * n_train_batches + minibatch_index
+            momentum = min(1 - numpy.power(2,-1 - numpy.log2(numpy.floor(t / finetuning_epochs) +1)), max_momentum)            
+            
+            if do_NAG:
+                apply_last_update(momentum)
+            minibatch_avg_cost = train_fn(minibatch_index, momentum)
+            
             # DEBUG: monitor the training error
             print >> output_file, ('epoch %i, minibatch %i/%i, training error %f ' %
                     (epoch, minibatch_index + 1, n_train_batches,
@@ -150,7 +161,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, fine
             for i in xrange(sda.n_layers):
                 scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])          
 
-            if (iter + 1) % validation_frequency == 0:
+            if (t + 1) % validation_frequency == 0:
                 # DEBUG: do not rescale the weights, since they were trained with corruption and so might still get reduced activation. 
                 #Re-scale the weights, which will now all be used for activation
                 # to keep the expected activation fixed
@@ -161,7 +172,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, fine
                 
                 # Re-scale the weights again, since after validation we're back to 
                 # less activation under dropout regularization               
-                sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
+                # sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
                 
                 print >> output_file, ('epoch %i, minibatch %i/%i, validation error %f ' %
                       (epoch, minibatch_index + 1, n_train_batches,
@@ -173,11 +184,11 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, fine
                     # improve patience if loss improvement is good enough
                     if (this_validation_loss < best_validation_loss *
                         improvement_threshold):
-                        patience = max(patience, iter * patience_increase)
+                        patience = max(patience, t * patience_increase)
 
                     # save best validation score and iteration number
                     best_validation_loss = this_validation_loss
-                    best_iter = iter
+                    best_iter = t
                     
                     # save best model that achieved this best loss    
                     print >> output_file, 'Pickling the model...'          
@@ -186,7 +197,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, momentum=0.8, fine
                     f.close()                    
                     
 
-            if patience <= iter:
+            if patience <= t:
                 done_looping = True
                 break
             

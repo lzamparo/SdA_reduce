@@ -100,7 +100,9 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
               corruption_levels = corruption_list,
               layer_types=layer_types,
               loss=shared_args_dict['loss'],
-              n_outs=-1)
+              n_outs=-1,
+              sparse_init=shared_args_dict['sparse_init'],
+              opt_method=shared_args_dict['opt_method'])
 
     #########################
     # PRETRAINING THE MODEL #
@@ -122,7 +124,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
                 updates={learning_rate: learning_rate * lr_decay})    
     
     # Set up functions for max norm regularization
-    max_norm_regularization_fns = sda.max_norm_regularization()    
+    max_norm_regularization_fns = sda.max_norm_regularization()  
     
     for i in xrange(sda.n_layers):       
                 
@@ -215,12 +217,13 @@ if __name__ == '__main__':
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-c", "--corruption", dest="corruption", type="float", help="use this amount of corruption for the dA")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")    
-    parser.add_option("-a", "--firstarch", dest="p_arch", default = "", help="dash separated list to specify the first architecture of the SdA.  E.g: -a 850-400-50")
-    parser.add_option("-b", "--secondarch", dest="q_arch", default = "", help="dash separated list to specify the second architecture of the SdA.")
+    parser.add_option("-a", "--firstarch", dest="p_arch", help="dash separated list to specify the first architecture of the SdA.  E.g: -a 850-400-50")
+    parser.add_option("-b", "--secondarch", dest="q_arch", help="dash separated list to specify the second architecture of the SdA.")
     parser.add_option("-t", "--layertype", dest="layer_type", type="string", default = "Gaussian", help="specify the type of SdA layer activations to use.  Acceptable values are 'Gaussian', 'Bernoulli', 'ReLU'.")
     parser.add_option("-l", "--loss", dest="loss", type="string", default = "squared", help="specify the loss function to use for measuring reconstruction error.  Acceptable values are 'squared', 'xent', 'softplus'.")
-    parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, default = 3.0, help = "limit the norm of each vector in each W matrix to norm_limit")
-    
+    parser.add_option("-n","--normlimit",dest = "norm_limit", type = float, default = 3.0, help = "limit the norm of each vector in each W matrix to norm_limit")
+    parser.add_option("-m","--method",dest = "opt_method", default = 'CM', help = "Use either classical momentum (CM) or Nesterov's Accelerated gradient (NAG)")
+    parser.add_option("-s","--sparsity",dest = "sparse_init", type = int, default = -1, help = "Controls the sparsity of initial connections.  Use -1 for dense init.")
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -231,14 +234,16 @@ if __name__ == '__main__':
     shared_args = args[0]
     shared_args['dir'] = options.dir
     shared_args['input'] = options.inputfile
-    shared_args['momentum'] = 0.8
+    shared_args['momentum'] = 0.8 # deprecated, should be max_momentum
     shared_args['weight_decay'] = 0.0
-    shared_args['learning_rate'] = 0.0001    
+    shared_args['learning_rate'] = 0.0001 # deprecated, should be initial learning rate that is then scheduled    
     shared_args['corruption'] = options.corruption
     shared_args['offset'] = options.offset
     shared_args['layertype'] = options.layer_type
     shared_args['loss'] = options.loss
     shared_args['maxnorm'] = options.norm_limit
+    shared_args['opt_method'] = options.opt_method
+    shared_args['sparse_init'] = options.sparse_init
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes

@@ -23,7 +23,8 @@ class SdA(object):
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=-1,
                  corruption_levels=[0.1, 0.1], layer_types=['ReLU','ReLU'],
-                 loss='squared', dropout_rates = None, sparse_init=-1):
+                 loss='squared', dropout_rates = None, sparse_init=-1, opt_method = 'NAG'):
+
         """ This class is made to support a variable number of layers
 
         :type numpy_rng: numpy.random.RandomState
@@ -65,8 +66,10 @@ class SdA(object):
         :param sparse_init: Initialize the weight matrices using Martens sparse initialization (Martens ICML 2010)
                             >0 specifies the number of units in the layer that have initial weights drawn from 
                             a N(0,1).  Use -1 for dense init.
-                                  
-                                                                       
+
+        :type opt_method: string
+        :param opt_method: specifies the optimization method used to fit the model parameters.  
+                            Accepted values are {'CM': Classical Momentum, 'NAG': Nesterov Accelerated Gradient.}                                                                                            
         """
 
         self.dA_layers = []
@@ -106,6 +109,10 @@ class SdA(object):
         # sanity check on loss parameter
         assert loss.lower() in ['squared', 'xent', 'softplus']
         self.use_loss = loss.lower()
+        
+        # sanity check on optimization method 
+        assert opt_method.upper() in ['CM','NAG']
+        self.opt_method = opt_method.upper()
         
         # build each layer dynamically 
         layer_classes = {'gaussian': GaussianAutoEncoder, 'bernoulli': BernoulliAutoEncoder, 'relu': ReluAutoEncoder}
@@ -295,8 +302,7 @@ class SdA(object):
         for dA,p in zip(self.dA_layers,factors):
             W,meh,bah = dA.get_params()
             W.set_value(W.get_value(borrow=True) * p, borrow=True)
-            
-                        
+                                
             
     def encode(self,X):
         """ Given data X, provide the symbolic computation of X_prime, by 
@@ -336,6 +342,19 @@ class SdA(object):
             
         return max_norm_fns
 
+    def nag_param_update(self):
+        ''' Define and return a theano function to apply momentum updates to each 
+        parameter that is part of momentum updates '''
+        
+        momentum = T.scalar('momentum')
+        delta_t_updates = OrderedDict()
+        for param in self.params:
+            if param in self.updates.keys():
+                delta_t = self.updates[param]
+                delta_t_updates[param] = param + momentum * delta_t
+        fn = theano.function([momentum], [], updates = delta_t_updates)        
+        return fn
+    
 ##############################  Training functions ##########################
 
 
@@ -385,17 +404,16 @@ class SdA(object):
             for param, grad_update in updates:
                 if param in self.updates:
                     last_update = self.updates[param]
-                    delta = momentum * last_update - (1. - momentum) * grad_update
+                    delta = momentum * last_update - grad_update
                     momentum_updates[param] = param + delta
                     self.updates[param] = delta
                 else:               
                     momentum_updates[param] = param - grad_update
-            
+                
                 
             # compile the theano function
-            fn = theano.function(inputs=[index,
-                              theano.Param(corruption_level, default=0.15),
-                              theano.Param(momentum, default=0.8)], 
+            fn = theano.function(inputs=[index,momentum,
+                              theano.Param(corruption_level, default=0.15)], 
                                  outputs=cost,
                                  updates=momentum_updates,
                                  givens={self.x: train_set_x[batch_begin:
@@ -448,14 +466,14 @@ class SdA(object):
         for param, grad_update in updates:
             if param in self.updates:
                 last_update = self.updates[param]
-                delta = momentum * last_update - (1.0 - momentum) * grad_update
+                delta = momentum * last_update - grad_update
                 mod_updates[param] = param + delta
                 self.updates[param] = delta
             else:               
                 mod_updates[param] = param - grad_update        
                 
 
-        train_fn = theano.function(inputs=[index, theano.Param(momentum, default=0.8)],
+        train_fn = theano.function(inputs=[index, momentum],
               outputs=self.finetune_cost,
               updates=mod_updates,
               givens={
@@ -537,20 +555,21 @@ class SdA(object):
             bhid_list.append(bhid.get_value(borrow=True))
             bvis_list.append(bvis.get_value(borrow=True))
         
-        return (self.n_layers, self.n_outs, W_list, bhid_list, bvis_list, self.corruption_levels, self.layer_types, self.use_loss)
+        return (self.n_layers, self.n_outs, W_list, bhid_list, bvis_list, self.corruption_levels, self.layer_types, self.use_loss, self.dropout_rates, self.opt_method)
     
     def __setstate__(self, state):
         """ Unpickle an SdA model by restoring the list of dA layers.  
         The input should be provided to the initial layer, and the input of layer i+1 is set to the output of layer i. 
         Fill up the self.params from the dA params lists. """
         
-        (layers, n_outs, dA_W_list, dA_bhid_list, dA_bvis_list, corruption_levels, layer_types, use_loss) = state
+        (layers, n_outs, dA_W_list, dA_bhid_list, dA_bvis_list, corruption_levels, layer_types, use_loss, dropout_rates, opt_method) = state
         self.n_layers = layers
         self.n_outs = n_outs
         self.corruption_levels = corruption_levels
         self.layer_types = layer_types
         self.dA_layers = []
         self.use_loss = use_loss
+        self.opt_method = opt_method
         self.params = []
         self.x = T.matrix('x')  # symbolic input for the training data
         self.x_prime = T.matrix('X_prime') # symbolic output for the top layer dA
@@ -558,8 +577,11 @@ class SdA(object):
         numpy_rng = np.random.RandomState(123)
         theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))    
         
-        # Set the default dropout rates, can be updated later in a driver script
-        self.dropout_rates = [1.0 for i in xrange(self.n_layers)]
+        # Set the dropout rates
+        if dropout_rates is not None:
+            self.dropout_rates = dropout_rates
+        else:
+            self.dropout_rates = [1.0 for i in xrange(self.n_layers)]
         
         # build each layer dynamically 
         layer_classes = {'gaussian': GaussianAutoEncoder, 'bernoulli': BernoulliAutoEncoder, 'relu': ReluAutoEncoder}
