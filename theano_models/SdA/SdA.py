@@ -23,7 +23,7 @@ class SdA(object):
     def __init__(self, numpy_rng, theano_rng=None, n_ins=784,
                  hidden_layers_sizes=[500, 500], n_outs=-1,
                  corruption_levels=[0.1, 0.1], layer_types=['ReLU','ReLU'],
-                 loss='squared', dropout_rates = None):
+                 loss='squared', dropout_rates = None, opt_method = 'NAG'):
         """ This class is made to support a variable number of layers
 
         :type numpy_rng: numpy.random.RandomState
@@ -64,6 +64,10 @@ class SdA(object):
         :type dropout_rates: list of float
         :param dropout_rates: proportion of output units to drop from this layer
                             Default is to retain all units in all layers
+                            
+        :type opt_method: string
+        :param opt_method: specifies the optimization method used to fit the model parameters.  
+                            Accepted values are {'CM': Classical Momentum, 'NAG': Nesterov Accelerated Gradient.} 
                                   
                                                                        
         """
@@ -105,6 +109,10 @@ class SdA(object):
         # sanity check on loss parameter
         assert loss.lower() in ['squared', 'xent', 'softplus']
         self.use_loss = loss.lower()
+        
+        # sanity check on optimization method 
+        assert opt_method.upper() in ['CM','NAG']
+        self.opt_method = opt_method.upper()
         
         # build each layer dynamically 
         layer_classes = {'gaussian': GaussianAutoEncoder, 'bernoulli': BernoulliAutoEncoder, 'relu': ReluAutoEncoder}
@@ -293,8 +301,7 @@ class SdA(object):
         for dA,p in zip(self.dA_layers,factors):
             W,meh,bah = dA.get_params()
             W.set_value(W.get_value(borrow=True) * p, borrow=True)
-            
-                        
+                                
             
     def encode(self,X):
         """ Given data X, provide the symbolic computation of X_prime, by 
@@ -334,6 +341,18 @@ class SdA(object):
             
         return max_norm_fns
 
+    def nag_param_update(self):
+        ''' Define and return a theano function to apply momentum updates to each 
+        parameter that is part of momentum updates '''
+        
+        momentum = T.scalar('momentum')
+        delta_t_updates = OrderedDict()
+        for param in self.params:
+            if param in self.updates.keys():
+                delta_t = self.updates[param]
+                delta_t_updates[param] = param + momentum * delta_t
+        fn = theano.function([momentum], updates = delta_t_updates)        
+        return fn
 ##############################  Training functions ##########################
 
 
