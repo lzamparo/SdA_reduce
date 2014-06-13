@@ -7,7 +7,7 @@ from theano.tensor.shared_randomstreams import RandomStreams
 class AutoEncoder(object):
         
     def __init__(self, numpy_rng=None, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None):
+                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None, sparse_init=-1):
         """ A de-noising AutoEncoder class from theano tutorials.  
         
                 :type numpy_rng: numpy.random.RandomState
@@ -47,6 +47,11 @@ class AutoEncoder(object):
                 
                 :type bhid_name: string
                 :param bhid_name: name to be assigned to the b vector for the hidden units.
+                
+                :type sparse_init: int
+                :param sparse_init:  Initialize the weight matrices using Martens sparse initialization (Martens ICML 2010)
+                            >0 specifies the number of units in the layer that have initial weights drawn from 
+                            a N(0,1).  Use -1 for Glorot & Bengio (i.e dense) init.
             
                 """        
         
@@ -60,23 +65,32 @@ class AutoEncoder(object):
         if theano_rng is None:
             theano_rng = RandomStreams(numpy_rng.randint(2 ** 30))        
         
+        self.theano_rng = theano_rng
+        
         if W_name is None:
             W_name = 'W'
         if bvis_name is None:
             bvis_name = 'bvis'
         if bhid_name is None:
             bhid_name = 'bhid'
-        
-        # Pick initial values for W, bvis, bhid based on some formula given by 
-        # a paper by Glorot and Bengio (AISTATS2010).        
-        # N.B. this is only appropriate for sigmoid or tanh units.  ReLU units won't work well 
-        # here since many of them will be < 0 and thus shut off.
-        
+                
         if not W:
-            initial_W = np.asarray(numpy_rng.uniform(
-                low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
-                high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
-                size = (n_visible, n_hidden)), dtype = config.floatX)
+            if sparse_init > 0:
+                initial_W = np.zeros((n_visible,n_hidden),dtype = config.floatX)
+                # Sparse initialization method of Martens (ICML 2010)
+                # make only sparse_init connections from hidden back to each visible unit
+                idx = np.arange(n_hidden)
+                for j in xrange(n_visible):
+                    np.random.shuffle(idx)
+                    initial_W[j,idx[:sparse_init]] = np.random.randn(sparse_init)
+                
+            else:
+                # Pick initial values for dense initialization for W, bvis, bhid based on some formula given by 
+                # a paper by Glorot and Bengio (AISTATS2010).                
+                initial_W = np.asarray(numpy_rng.uniform(
+                    low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
+                    high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
+                    size = (n_visible, n_hidden)), dtype = config.floatX)
             W = shared(value=initial_W, name=W_name)
         
         self.W = W
@@ -87,20 +101,17 @@ class AutoEncoder(object):
         if not bvis:
             bvis = shared(value=np.zeros(n_visible,
                                             dtype = config.floatX), name = bvis_name)
-            
         self.b_prime = bvis
             
         # Bias of the hidden units    
         if not bhid:
             bhid = shared(value=np.zeros(n_hidden,
                                          dtype = config.floatX), name = bhid_name)
-        self.b = bhid
-        
-        self.theano_rng = theano_rng         
+        self.b = bhid         
         
         if input is None:
             self.x = T.dmatrix(name='input')
-                       
+                  
         else:
             self.x = input
             
