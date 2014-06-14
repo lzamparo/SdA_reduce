@@ -7,7 +7,7 @@ from multiprocessing import Process, Manager
 from optparse import OptionParser
 import os, re
 
-import cPickle11
+import cPickle
 import time
 
 import numpy
