@@ -349,7 +349,7 @@ class SdA(object):
         # This might be raising a MissingValueError because the output is empty; I should be
         # specifying some kind of multi-valued expression, probably one per update.
         # I wonder if I could pass the delta_t_updates.values() as the list of output expressions?
-        momentum = T.scalar('momentum')
+        momentum = T.dscalar('momentum')
         delta_t_updates = OrderedDict()
         for param in self.params:
             if param in self.updates.keys():
@@ -357,6 +357,21 @@ class SdA(object):
                 delta_t_updates[param] = param + momentum * delta_t
         fn = theano.function([momentum], delta_t_updates.values(), updates = delta_t_updates)        
         return fn
+    
+    def nag_param_update_host(self,momentum):
+        ''' Use get_value(), set_value() to apply the updates for each param in self.updates, so that just after the gradient may be 
+        calculated at those values.  '''
+        
+        #DEBUG: count how many params are updated
+        num_updates = 0
+        for param in self.params:
+            if param in self.updates.keys():
+                delta_t = self.updates[param].get_value(borrow=True)
+                param.set_value(param.get_value(borrow=True) + momentum * delta_t, borrow=True)
+                num_updates = num_updates + 1
+        
+        
+        
     
 ##############################  Training functions ##########################
 
