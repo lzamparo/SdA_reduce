@@ -346,13 +346,16 @@ class SdA(object):
         ''' Define and return a theano function to apply momentum updates to each 
         parameter that is part of momentum updates '''
         
+        # This might be raising a MissingValueError because the output is empty; I should be
+        # specifying some kind of multi-valued expression, probably one per update.
+        # I wonder if I could pass the delta_t_updates.values() as the list of output expressions?
         momentum = T.scalar('momentum')
         delta_t_updates = OrderedDict()
         for param in self.params:
             if param in self.updates.keys():
                 delta_t = self.updates[param]
                 delta_t_updates[param] = param + momentum * delta_t
-        fn = theano.function([momentum], [], updates = delta_t_updates)        
+        fn = theano.function([momentum], delta_t_updates.values(), updates = delta_t_updates)        
         return fn
     
 ##############################  Training functions ##########################
