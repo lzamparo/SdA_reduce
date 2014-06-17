@@ -352,7 +352,7 @@ class SdA(object):
             if param in self.updates:
                 delta_t = self.updates[param]
                 #DEBUG: print out names for delta_t, param
-                print "Retrieved " + delta_t.name + " from self.updates with key " + param.name                
+                print "nag_param_update: Retrieved " + delta_t.name + " from self.updates with key " + param.name                
                 delta_t_updates[param] = param + momentum * delta_t
         fn = theano.function([momentum], [], updates = delta_t_updates)        
         return fn
@@ -422,7 +422,7 @@ class SdA(object):
                 if param in self.updates:
                     last_update = self.updates[param]
                     #DEBUG: print out names for last_update, param
-                    print "Retrieved " + last_update.name + " from self.updates with key " + param.name
+                    print "pretraining_functions: Retrieved " + last_update.name + " from self.updates with key " + param.name
                     delta = momentum * last_update - grad_update
                     mod_updates[param] = param + delta
                     # update value of theano.shared in self.updates[param]
