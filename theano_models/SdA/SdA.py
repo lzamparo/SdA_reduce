@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np  
 
 import theano
 import theano.tensor as T
@@ -346,16 +346,15 @@ class SdA(object):
         ''' Define and return a theano function to apply momentum updates to each 
         parameter that is part of momentum updates '''
         
-        # This might be raising a MissingValueError because the output is empty; I should be
-        # specifying some kind of multi-valued expression, probably one per update.
-        # I wonder if I could pass the delta_t_updates.values() as the list of output expressions?
         momentum = T.dscalar('momentum')
         delta_t_updates = OrderedDict()
         for param in self.params:
-            if param in self.updates.keys():
+            if param in self.updates:
                 delta_t = self.updates[param]
+                #DEBUG: print out names for delta_t, param
+                print "Retrieved " + delta_t.name + " from self.updates with key " + param.name                
                 delta_t_updates[param] = param + momentum * delta_t
-        fn = theano.function([momentum], delta_t_updates.values(), updates = delta_t_updates)        
+        fn = theano.function([momentum], [], updates = delta_t_updates)        
         return fn
     
     def nag_param_update_host(self,momentum):
@@ -418,22 +417,25 @@ class SdA(object):
             cost, updates = dA.get_cost_gparams(corruption_level,learning_rate)
             
             # modify the updates to account for momentum smoothing 
-            momentum_updates = OrderedDict()
+            mod_updates = OrderedDict()
             for param, grad_update in updates:
                 if param in self.updates:
                     last_update = self.updates[param]
+                    #DEBUG: print out names for last_update, param
+                    print "Retrieved " + last_update.name + " from self.updates with key " + param.name
                     delta = momentum * last_update - grad_update
-                    momentum_updates[param] = param + delta
-                    self.updates[param] = delta
+                    mod_updates[param] = param + delta
+                    # update value of theano.shared in self.updates[param]
+                    mod_updates[last_update] = delta 
                 else:               
-                    momentum_updates[param] = param - grad_update
+                    mod_updates[param] = param - grad_update
                 
                 
             # compile the theano function
             fn = theano.function(inputs=[index,momentum,
                               theano.Param(corruption_level, default=0.15)], 
                                  outputs=cost,
-                                 updates=momentum_updates,
+                                 updates=mod_updates,
                                  givens={self.x: train_set_x[batch_begin:
                                                              batch_end]})
             # append `fn` to the list of functions
@@ -483,10 +485,11 @@ class SdA(object):
         mod_updates = OrderedDict()
         for param, grad_update in updates:
             if param in self.updates:
-                last_update = self.updates[param]
+                last_update = self.updates[param]               
                 delta = momentum * last_update - grad_update
                 mod_updates[param] = param + delta
-                self.updates[param] = delta
+                # update value of theano.shared in self.updates[param]
+                mod_updates[last_update] = delta
             else:               
                 mod_updates[param] = param - grad_update        
                 
