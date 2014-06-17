@@ -138,8 +138,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, max_momentum=0.9, 
     # Set up NAG parameter based updates if specified in the SdA
     if sda.opt_method == 'NAG':
         do_NAG = True
-        #DEBUG: applying parameter updates with get/set_value() now
-        #apply_last_update = sda.nag_param_update()
+        apply_last_update = sda.nag_param_update()
 
     while (epoch < finetuning_epochs) and (not done_looping):
         epoch = epoch + 1
@@ -150,8 +149,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, max_momentum=0.9, 
             momentum = min(1 - numpy.power(2,-1 - numpy.log2(numpy.floor(t / finetuning_epochs) +1)), max_momentum)            
             
             if do_NAG:
-                sda.nag_param_update_host(momentum)
-                #apply_last_update(momentum)
+                apply_last_update(momentum)
             minibatch_avg_cost = train_fn(minibatch_index, momentum)
             
             # DEBUG: monitor the training error
