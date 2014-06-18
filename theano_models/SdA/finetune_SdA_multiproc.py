@@ -146,7 +146,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.0001, max_momentum=0.9, 
         for minibatch_index in xrange(n_train_batches):
             # Calculate momentum value
             t = (epoch - 1) * n_train_batches + minibatch_index
-            momentum = min(1 - numpy.power(2,-1 - numpy.log2(numpy.floor(t / finetuning_epochs) +1)), max_momentum)            
+            momentum = numpy.asarray(min(1 - numpy.power(2,-1 - numpy.log2(numpy.floor(t / finetuning_epochs) +1)), max_momentum),dtype=numpy.float32)          
             
             if do_NAG:
                 apply_last_update(momentum)
