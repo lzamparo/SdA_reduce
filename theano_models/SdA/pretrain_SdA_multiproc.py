@@ -31,7 +31,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     :param pretrain_lr: learning rate to be used during pre-training
     
     :type lr_decay: float
-    :param lr_decay: exponential decay rate (applied after each epoch) for the learning rate
+    :param lr_decay: decay the learning rate exponentially by this rate
 
     :type batch_size: int
     :param batch_size: train in mini-batches of this size """
@@ -121,7 +121,12 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     
     # Function to decrease the learning rate
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
-                updates={learning_rate: learning_rate * lr_decay})    
+                updates={learning_rate: learning_rate * lr_decay})  
+    
+    # Function to reset the learning rate to pretrain_lr
+    lr_val = T.scalar('original_lr')
+    reset_learning_rate = theano.function(inputs=[lr_val], outputs=learning_rate,
+                updates={learning_rate: lr_val})
     
     # Set up functions for max norm regularization
     max_norm_regularization_fns = sda.max_norm_regularization()  
@@ -140,7 +145,10 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
             print >> output_file, numpy.mean(c)
             print >> output_file, learning_rate.get_value(borrow=True)
             decay_learning_rate()
-            
+        
+        # Reset the learning rate
+        reset_learning_rate(numpy.asarray(pretrain_lr, dtype=numpy.float32))
+        
         if private_args.has_key('save'):
             print >> output_file, 'Pickling the model...'
             current_dir = os.getcwd()    

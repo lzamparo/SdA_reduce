@@ -149,13 +149,12 @@ class SdA(object):
             self.params.extend(dA_layer.params)            
             
 
-        # Keep track of parameter updates for weight matrices, so we may use momentum 
-        for param in self.params:
-            if param.get_value(borrow=True).ndim == 2:
-                init = np.zeros(param.get_value(borrow=True).shape,
-                                dtype=theano.config.floatX)
-                update_name = param.name + '_update'
-                self.updates[param] = theano.shared(init, name=update_name)        
+        # Keep track of parameter updates so we may use momentum 
+        for param in self.params:    
+            init = np.zeros(param.get_value(borrow=True).shape,
+                            dtype=theano.config.floatX)
+            update_name = param.name + '_update'
+            self.updates[param] = theano.shared(init, name=update_name)        
             
 
         if n_outs > 0:
@@ -355,21 +354,7 @@ class SdA(object):
                 print "nag_param_update: Retrieved " + delta_t.name + " from self.updates with key " + param.name                
                 delta_t_updates[param] = param + momentum * delta_t
         fn = theano.function([momentum], [], updates = delta_t_updates)        
-        return fn
-    
-    def nag_param_update_host(self,momentum):
-        ''' Use get_value(), set_value() to apply the updates for each param in self.updates, so that just after the gradient may be 
-        calculated at those values.  '''
-        
-        #DEBUG: count how many params are updated
-        num_updates = 0
-        for param in self.params:
-            if param in self.updates.keys():
-                delta_t = self.updates[param].get_value(borrow=True)
-                param.set_value(param.get_value(borrow=True) + momentum * delta_t, borrow=True)
-                num_updates = num_updates + 1
-        
-        
+        return fn    
         
     
 ##############################  Training functions ##########################
@@ -485,7 +470,9 @@ class SdA(object):
         mod_updates = OrderedDict()
         for param, grad_update in updates:
             if param in self.updates:
-                last_update = self.updates[param]               
+                last_update = self.updates[param]
+                #DEBUG: print out names for last_update, param
+                print "finetuning_functions: Retrieved " + last_update.name + " from self.updates with key " + param.name                
                 delta = momentum * last_update - grad_update
                 mod_updates[param] = param + delta
                 # update value of theano.shared in self.updates[param]
