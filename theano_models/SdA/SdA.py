@@ -346,7 +346,7 @@ class SdA(object):
         ''' Define and return a theano function to apply momentum updates to each 
         parameter that is part of momentum updates '''
         
-        momentum = T.dscalar('momentum')
+        momentum = T.fscalar('momentum')
         delta_t_updates = OrderedDict()
         for param in self.params:
             if param in self.updates:
