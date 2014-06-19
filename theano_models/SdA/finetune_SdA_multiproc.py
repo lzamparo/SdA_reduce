@@ -128,8 +128,8 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.00001, max_momentum=0.9,
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
                     updates={learning_rate: learning_rate * lr_decay})    
     
-    # Set up functions for max norm regularization
-    max_norm_regularization_fns = sda.max_norm_regularization()
+    # Set up function for max norm regularization
+    apply_max_norm_regularization = sda.max_norm_regularization()
     
     # Set the dropout rates, and scale the weights up by the inverse of the dropout rates
     sda.dropout_rates = private_args['dropout']
@@ -158,8 +158,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.00001, max_momentum=0.9,
                     minibatch_avg_cost))            
 
             # apply max-norm regularization
-            for i in xrange(sda.n_layers):
-                scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])          
+            apply_max_norm_regularization(shared_args_dict['maxnorm'])          
 
             if (t + 1) % validation_frequency == 0:
                 # DEBUG: do not rescale the weights, since they were trained with corruption and so might still get reduced activation. 
