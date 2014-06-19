@@ -625,14 +625,12 @@ class SdA(object):
             
         # Reconstruct the dictionary of shared vars for parameter updates 
         # so we can use momentum when training.
-        # Apply only to weight matrices
         self.updates = {}
         for param in self.params:
-            if param.get_value(borrow=True).ndim == 2:
-                init = np.zeros(param.get_value(borrow=True).shape,
-                                dtype=theano.config.floatX)
-                update_name = param.name + '_update'
-                self.updates[param] = theano.shared(init, name=update_name)
+            init = np.zeros(param.get_value(borrow=True).shape,
+                            dtype=theano.config.floatX)
+            update_name = param.name + '_update'
+            self.updates[param] = theano.shared(init, name=update_name)
             
         # Reconstruct the finetuning cost functions
         if n_outs > 0:
