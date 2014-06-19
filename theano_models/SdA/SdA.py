@@ -181,7 +181,7 @@ class SdA(object):
         
         loss_dict = {'squared': self.squared_loss, 'xent': self.xent_loss, 'softplus': self.softplus_loss}
         self.loss = loss_dict[self.use_loss]
-        self.finetune_cost = self.reconstruction_error_dropout(self.x)
+        self.finetune_cost = self.reconstruction_error(self.x)
         self.output = self.encode(self.x)
         self.errors = self.reconstruction_error(self.x)        
                       
@@ -328,18 +328,17 @@ class SdA(object):
         '''
         
         norm_limit = T.scalar('norm_limit')
-        max_norm_fns = []
+        max_norm_updates = OrderedDict()
         
-        for dA in self.dA_layers:            
-            W,scrub,dub = dA.get_params()
-            # max-norm column regularization as per Pylearn2 MLP lib
-            col_norms = T.sqrt(T.sum(T.sqr(W), axis=0))
-            desired_norms = T.clip(col_norms, 0, norm_limit)
-            updated_W = W * (desired_norms / (1e-7 + col_norms))            
-            fn = theano.function([norm_limit], desired_norms, updates = {W: updated_W})
-            max_norm_fns.append(fn)
-            
-        return max_norm_fns
+        for param in self.params:            
+            if param.get_value(borrow=True).ndim == 2:
+                # max-norm column regularization as per Pylearn2 MLP lib
+                col_norms = T.sqrt(T.sum(T.sqr(param), axis=0))
+                desired_norms = T.clip(col_norms, 0, norm_limit)
+                updated_W = param * (desired_norms / (1e-7 + col_norms))  
+                max_norm_updates[param] = updated_W
+        fn = theano.function([norm_limit], [], updates = max_norm_updates)
+        return fn
 
     def nag_param_update(self):
         ''' Define and return a theano function to apply momentum updates to each 
