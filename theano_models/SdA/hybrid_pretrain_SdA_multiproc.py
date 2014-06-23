@@ -1,4 +1,4 @@
-""" SdA pretraining script that uses two GPUs, one per sub-process,
+""" SdA hybrid pretraining script that uses two GPUs, one per sub-process,
 via the Python multiprocessing module.  """
 
 
@@ -58,7 +58,6 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     corruption_list = [shared_args_dict['corruption'] for i in arch_list]
     layer_types = parse_layer_type(shared_args_dict['layertype'], len(arch_list))    
     
-    
     output_filename = "stacked_denoising_autoencoder_" + "_".join(elem for elem in layer_types) + private_args['arch'] + "." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
@@ -113,6 +112,14 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
                                                 batch_size=batch_size,
                                                 learning_rate=learning_rate)
 
+    print '... getting the hybrid training functions'
+    hybrid_pretraining_fns = sda.build_finetune_limited_reconstruction(train_set_x=train_set_x, 
+                                                                      batch_size=batch_size, 
+                                                                      learning_rate=learning_rate)
+    
+    # DEBUG: should only have n_layers - 2 hybrid pretraining functions
+    assert len(hybrid_pretraining_fns) == sda.n_layers - 2
+    
     print '... pre-training the model'
     start_time = time.clock()
     
@@ -129,7 +136,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
                 updates={learning_rate: lr_val})
     
     # Set up functions for max norm regularization
-    max_norm_regularization_fns = sda.max_norm_regularization()  
+    max_norm_regularization_fn = sda.max_norm_regularization()  
     
     for i in xrange(sda.n_layers):       
                 
@@ -140,11 +147,20 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i],
                          momentum=shared_args_dict["momentum"]))
-                scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])                
+                                
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             print >> output_file, learning_rate.get_value(borrow=True)
             decay_learning_rate()
+            max_norm_regularization_fn(norm_limit=shared_args_dict['maxnorm'])
+        
+        # Do hybrid pretraining only on the middle layer(s)
+        if i > 0 and i < sda.n_layers - 1:
+            hybrid_c = []
+            for batch_index in xrange(n_train_batches):
+                hybrid_c.append(hybrid_pretraining_fns[i-1](index=batch_index,momentum=shared_args_dict["momentum"]))  
+            print >> output_file, "Hybrid pre-training layer %i, cost" % (i),
+            print >> output_file, numpy.mean(hybrid_c)
         
         # Reset the learning rate
         reset_learning_rate(numpy.asarray(pretrain_lr, dtype=numpy.float32))
@@ -220,8 +236,8 @@ if __name__ == '__main__':
     # Parse command line args
     parser = OptionParser()
     parser.add_option("-d", "--dir", dest="dir", help="output directory")   
-    parser.add_option("-p","--firstrestorefile",dest = "pr_file", help = "Restore the first model from this pickle file", default=None)
-    parser.add_option("-q","--secondrestorefile",dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
+    parser.add_option("-p","--firstrestorefile", dest = "pr_file", help = "Restore the first model from this pickle file", default=None)
+    parser.add_option("-q","--secondrestorefile", dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-c", "--corruption", dest="corruption", type="float", help="use this amount of corruption for the dA")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")    
@@ -229,9 +245,10 @@ if __name__ == '__main__':
     parser.add_option("-b", "--secondarch", dest="q_arch", help="dash separated list to specify the second architecture of the SdA.")
     parser.add_option("-t", "--layertype", dest="layer_type", type="string", default = "Gaussian", help="specify the type of SdA layer activations to use.  Acceptable values are 'Gaussian', 'Bernoulli', 'ReLU'.")
     parser.add_option("-l", "--loss", dest="loss", type="string", default = "squared", help="specify the loss function to use for measuring reconstruction error.  Acceptable values are 'squared', 'xent', 'softplus'.")
-    parser.add_option("-n","--normlimit",dest = "norm_limit", type = float, default = 3.0, help = "limit the norm of each vector in each W matrix to norm_limit")
-    parser.add_option("-m","--method",dest = "opt_method", default = 'CM', help = "Use either classical momentum (CM) or Nesterov's Accelerated gradient (NAG)")
-    parser.add_option("-s","--sparsity",dest = "sparse_init", type = int, default = -1, help = "Controls the sparsity of initial connections.  Use -1 for dense init.")
+    parser.add_option("-n","--normlimit", dest = "norm_limit", type = float, default = 3.0, help = "limit the norm of each vector in each W matrix to norm_limit")
+    parser.add_option("-m","--method", dest = "opt_method", default = 'CM', help = "Use either classical momentum (CM) or Nesterov's Accelerated gradient (NAG)")
+    parser.add_option("-s","--sparsity", dest = "sparse_init", type = int, default = -1, help = "Controls the sparsity of initial connections.  Use -1 for dense init.")
+    parser.add_option("-u","--unstick", dest = "unstick", type = "string", default = 0, help = "Perform these many epochs of reconstruction error on the partially formed SdA.")
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -252,6 +269,7 @@ if __name__ == '__main__':
     shared_args['maxnorm'] = options.norm_limit
     shared_args['opt_method'] = options.opt_method
     shared_args['sparse_init'] = options.sparse_init
+    shared_args['unstick_epochs'] = options.unstick
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes

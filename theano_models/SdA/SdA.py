@@ -224,6 +224,38 @@ class SdA(object):
         
         return -T.sum(X * T.log(Z) + (1 - X) * T.log(1 - Z), axis=1)            
             
+                
+    def reconstruct_input(self, X):
+        """ Given data X, provide the symbolic computation of  
+        \hat{X} where \hat{X} is the reconstructed data output of the 'unrolled' SdA
+         
+        
+        :type X: theano.tensor.TensorType
+        :param X: Shared variable that contains data 
+                  to be pushed through the SdA (i.e reconstructed)
+        """
+        
+        X_prime = X
+        for dA in self.dA_layers:
+            X_prime = dA.get_hidden_values(X_prime)
+        
+        for dA in self.dA_layers[::-1]:
+            X_prime = dA.get_reconstructed_input(X_prime)
+        return X_prime             
+    
+    def reconstruct_input_limited(self, X, i):
+        """ Given data X, provide the symbolic computation of 
+        \hat{X} where \hat{X} is the reconstructed data output 
+        using only the first i (counting from 0) layers of the 'unrolled' SdA """
+        
+        X_prime = X
+        for dA in self.dA_layers[:i]:
+            X_prime = dA.get_hidden_values(X_prime)
+        
+        for dA in self.dA_layers[i-1::-1]:
+            X_prime = dA.get_reconstructed_input(X_prime)
+        return X_prime    
+    
     def reconstruct_input_dropout(self, X):
         """ Given data X, provide the symbolic computation of  
         \hat{X} where \hat{X} is the reconstructed data vector output of the 'unrolled' SdA
@@ -242,26 +274,7 @@ class SdA(object):
         
         for dA in self.dA_layers[::-1]:
             X_prime = dA.get_reconstructed_input(X_prime)
-        return X_prime
-   
-    
-    def reconstruct_input(self, X):
-        """ Given data X, provide the symbolic computation of  
-        \hat{X} where \hat{X} is the reconstructed data vector output of the 'unrolled' SdA
-         
-        
-        :type X: theano.tensor.TensorType
-        :param X: Shared variable that contains data 
-                  to be pushed through the SdA (i.e reconstructed)
-        """
-        
-        X_prime = X
-        for dA in self.dA_layers:
-            X_prime = dA.get_hidden_values(X_prime)
-        
-        for dA in self.dA_layers[::-1]:
-            X_prime = dA.get_reconstructed_input(X_prime)
-        return X_prime             
+        return X_prime        
     
     def reconstruction_error(self, X):
         """ Calculate the reconstruction error. Take a matrix of 
@@ -276,6 +289,22 @@ class SdA(object):
         Z = self.reconstruct_input(X)    
         L = self.loss(X,Z)
         return T.mean(L)
+    
+    def reconstruction_error_limited(self, X, limit):
+        """ Calculate the reconstruction error using a limited number of layers
+        in the SdA.
+        
+        :type X: theano.tensor.TensorType
+        :param X: Shared variable that contains a batch of datapoints 
+                  to be reconstructed
+                  
+        :type limit: int
+        :param limit: Use the first 'limit' layers of the SdA for reconstruction 
+        """
+        
+        Z = self.reconstruct_input_limited(X, limit)    
+        L = self.loss(X,Z)
+        return T.mean(L)        
     
     def reconstruction_error_dropout(self, X):
         """ Calculate the reconstruction error. Take a matrix of 
@@ -427,8 +456,76 @@ class SdA(object):
             
         return pretrain_fns
 
+    
+    def build_finetune_limited_reconstruction(self, train_set_x, batch_size, learning_rate):
+        ''' Generates a list of theano functions, each of them implementing one
+        step in hybrid pretraining.  Hybrid pretraining is traning to minimize the 
+        reconstruction error of the data against the representation produced using 
+        two or more layers of the SdA.  
+        
+        N.B: learning_rate should be a theano.shared variable declared in the
+        code driving the (pre)training of this SdA.
 
-    def build_finetune_functions_reconstruction(self, datasets, batch_size, learning_rate):
+        :type train_set_x: theano.tensor.TensorType
+        :param train_set_x: Shared variable that contains all datapoints used
+                            for training the dA
+
+        :type batch_size: int
+        :param batch_size: size of a [mini]batch
+        
+        :type learning_rate: theano.tensor.shared
+        :param learning_rate: the learning rate for pretraining '''
+        
+        # index to a minibatch
+        index = T.lscalar('index') 
+
+        # momentum rate to use
+        momentum = T.scalar('momentum')  
+        
+        # begining of a batch, given `index`
+        batch_begin = index * batch_size
+        
+        # ending of a batch given `index`
+        batch_end = batch_begin + batch_size      
+        
+        # sanity check on number of layers
+        assert 2 < len(self.dA_layers)
+        
+        hybrid_train_fns = []
+        for i in xrange(2,len(self.dA_layers)):
+
+            # get the subset of model params involved in the limited reconstruction
+            limited_params = self.params[:i*3]
+            # compute the gradients with respect to the partial model parameters
+            gparams = T.grad(self.reconstruction_error_limited(self.x, i), limited_params)
+            # modify the updates to account for momentum smoothing 
+            mod_updates = OrderedDict()
+            
+            for param, grad_update in zip(limited_params, gparams):
+                if param in self.updates:
+                    last_update = self.updates[param]
+                    #DEBUG: print out names for last_update, param
+                    print "hybrid_pretraining_functions: Retrieved " + last_update.name + " from self.updates with key " + param.name
+                    delta = momentum * last_update - grad_update
+                    mod_updates[param] = param + delta
+                    # update value of theano.shared in self.updates[param]
+                    mod_updates[last_update] = delta 
+                else:               
+                    mod_updates[param] = param - grad_update
+                
+                
+            # compile the theano function
+            fn = theano.function(inputs=[index,momentum], 
+                                 outputs=self.reconstruction_error_limited(self.x, i),
+                                 updates=mod_updates,
+                                 givens={self.x: train_set_x[batch_begin:
+                                                             batch_end]})
+            # append `fn` to the list of functions
+            hybrid_train_fns.append(fn)
+            
+        return hybrid_train_fns
+    
+    def build_finetune_full_reconstruction(self, datasets, batch_size, learning_rate):
         ''' 
         Generates a function `train` that implements one step of
         finetuning, a function `validate` that computes the reconstruction 
