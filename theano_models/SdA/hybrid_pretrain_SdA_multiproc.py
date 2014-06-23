@@ -58,7 +58,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     corruption_list = [shared_args_dict['corruption'] for i in arch_list]
     layer_types = parse_layer_type(shared_args_dict['layertype'], len(arch_list))    
     
-    output_filename = "stacked_denoising_autoencoder_" + "_".join(elem for elem in layer_types) + private_args['arch'] + "." + day + "." + hour
+    output_filename = "hybrid_pretraining_sda_" + "_".join(elem for elem in layer_types) + private_args['arch'] + "." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
     print >> output_file, "Run on " + str(datetime.now())    
@@ -156,11 +156,12 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
         
         # Do hybrid pretraining only on the middle layer(s)
         if i > 0 and i < sda.n_layers - 1:
-            hybrid_c = []
-            for batch_index in xrange(n_train_batches):
-                hybrid_c.append(hybrid_pretraining_fns[i-1](index=batch_index,momentum=shared_args_dict["momentum"]))  
-            print >> output_file, "Hybrid pre-training layer %i, cost" % (i),
-            print >> output_file, numpy.mean(hybrid_c)
+            for h_epoch in xrange(3):
+                hybrid_c = []
+                for batch_index in xrange(n_train_batches):
+                    hybrid_c.append(hybrid_pretraining_fns[i-1](index=batch_index,momentum=shared_args_dict["momentum"]))  
+                print >> output_file, "Hybrid pre-training layer %i, epoch %d, cost" % (i, h_epoch),
+                print >> output_file, numpy.mean(hybrid_c)
         
         # Reset the learning rate
         reset_learning_rate(numpy.asarray(pretrain_lr, dtype=numpy.float32))
@@ -248,7 +249,7 @@ if __name__ == '__main__':
     parser.add_option("-n","--normlimit", dest = "norm_limit", type = float, default = 3.0, help = "limit the norm of each vector in each W matrix to norm_limit")
     parser.add_option("-m","--method", dest = "opt_method", default = 'CM', help = "Use either classical momentum (CM) or Nesterov's Accelerated gradient (NAG)")
     parser.add_option("-s","--sparsity", dest = "sparse_init", type = int, default = -1, help = "Controls the sparsity of initial connections.  Use -1 for dense init.")
-    parser.add_option("-u","--unstick", dest = "unstick", type = "string", default = 0, help = "Perform these many epochs of reconstruction error on the partially formed SdA.")
+    
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
