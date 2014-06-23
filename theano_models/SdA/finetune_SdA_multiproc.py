@@ -95,7 +95,7 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.00001, max_momentum=0.9,
     datasets = (train_set_x,valid_set_x)
     
     print '... getting the finetuning functions'
-    train_fn, validate_model = sda.build_finetune_functions_reconstruction(
+    train_fn, validate_model = sda.build_finetune_full_reconstruction(
                 datasets=datasets, batch_size=batch_size,
                 learning_rate=finetune_lr)
 
