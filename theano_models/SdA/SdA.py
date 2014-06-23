@@ -249,10 +249,10 @@ class SdA(object):
         using only the first i (counting from 0) layers of the 'unrolled' SdA """
         
         X_prime = X
-        for dA in self.dA_layers[:i+1]:
+        for dA in self.dA_layers[:i]:
             X_prime = dA.get_hidden_values(X_prime)
         
-        for dA in self.dA_layers[i::-1]:
+        for dA in self.dA_layers[i-1::-1]:
             X_prime = dA.get_reconstructed_input(X_prime)
         return X_prime    
     
@@ -488,7 +488,7 @@ class SdA(object):
         # ending of a batch given `index`
         batch_end = batch_begin + batch_size      
         
-        # from the first two layers, up to but not including the last layer
+        # sanity check on number of layers
         assert 2 < len(self.dA_layers)
         
         hybrid_train_fns = []

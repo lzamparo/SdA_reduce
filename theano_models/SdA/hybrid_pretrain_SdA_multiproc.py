@@ -1,4 +1,4 @@
-""" SdA pretraining script that uses two GPUs, one per sub-process,
+""" SdA hybrid pretraining script that uses two GPUs, one per sub-process,
 via the Python multiprocessing module.  """
 
 
@@ -58,7 +58,6 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     corruption_list = [shared_args_dict['corruption'] for i in arch_list]
     layer_types = parse_layer_type(shared_args_dict['layertype'], len(arch_list))    
     
-    
     output_filename = "stacked_denoising_autoencoder_" + "_".join(elem for elem in layer_types) + private_args['arch'] + "." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
@@ -66,7 +65,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     
     # Get the training data sample from the input file
     data_set_file = openFile(str(shared_args_dict['input']), mode = 'r')
-    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 25, offset = shared_args_dict['offset'])
+    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 30, offset = shared_args_dict['offset'])
     train_set_x = load_data_unlabeled(datafiles)
     data_set_file.close()
 
@@ -155,14 +154,14 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
             decay_learning_rate()
             max_norm_regularization_fn(norm_limit=shared_args_dict['maxnorm'])
         
-        # Do hybrid pretraining here on middle layers
-        if i > 1 and i < sda.n_layers:
+        # Do hybrid pretraining only on the middle layer(s)
+        if i > 0 and i < sda.n_layers - 1:
             hybrid_c = []
             for batch_index in xrange(n_train_batches):
-                hybrid_c.append(hybrid_pretraining_fns[i-1](index=batch_index,momentum=shared_args_dict["momentum"]))
-                
+                hybrid_c.append(hybrid_pretraining_fns[i-1](index=batch_index,momentum=shared_args_dict["momentum"]))  
             print >> output_file, "Hybrid pre-training layer %i, cost" % (i),
             print >> output_file, numpy.mean(hybrid_c)
+        
         # Reset the learning rate
         reset_learning_rate(numpy.asarray(pretrain_lr, dtype=numpy.float32))
         

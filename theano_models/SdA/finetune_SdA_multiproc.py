@@ -69,9 +69,9 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.00001, max_momentum=0.9,
     
     # Get the training and validation data samples from the input file
     data_set_file = openFile(str(shared_args_dict['input']), mode = 'r')
-    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 45, offset = shared_args_dict['offset'])
+    datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 30, offset = shared_args_dict['offset'])
     train_set_x = load_data_unlabeled(datafiles)
-    validation_datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 5, offset = shared_args_dict['offset'] + 25)
+    validation_datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 5, offset = shared_args_dict['offset'] + 30)
     valid_set_x = load_data_unlabeled(validation_datafiles)    
     data_set_file.close()
 
