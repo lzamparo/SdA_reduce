@@ -270,7 +270,6 @@ if __name__ == '__main__':
     shared_args['maxnorm'] = options.norm_limit
     shared_args['opt_method'] = options.opt_method
     shared_args['sparse_init'] = options.sparse_init
-    shared_args['unstick_epochs'] = options.unstick
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes
