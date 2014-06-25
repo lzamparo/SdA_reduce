@@ -68,8 +68,8 @@ def test_gb_dA(options,learning_rate=0.001, training_epochs=10, hidden_layer_siz
     data_set_file.close()
     
     # Get the data on the host for comparison.
-    h_train = scale(datafiles[:,5:612])
-    h_train = h_train[:train_set_x.shape(0),:]
+    #h_train = scale(datafiles[:,5:612])
+    #h_train = h_train[:train_set_x.get_value(borrow=True).shape(0),:]
     
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
@@ -168,8 +168,8 @@ def test_relu_dA(options, learning_rate=0.001, training_epochs=10, hidden_layer_
     data_set_file.close()    
     
     # Get the data on the host for comparison.
-    h_train = scale(datafiles[:,5:612])
-    h_train = h_train[:train_set_x.shape(0),:]    
+    #h_train = scale(datafiles[:,5:612])
+    #h_train = h_train[:train_set_x.get_value(borrow=True).shape(0),:]    
     
     rng = numpy.random.RandomState(6789)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
