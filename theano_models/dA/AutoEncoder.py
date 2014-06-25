@@ -421,6 +421,29 @@ class GaussianAutoEncoder(AutoEncoder):
             
         return (cost, updates)
     
+    def get_cost_updates_debug(self, corruption_level, learning_rate):
+        """ Compute the reconstruction error over the mini-batched input
+       taking into account a certain level of corruption of the input, return intermediate results """
+        x_corrupted = super(GaussianAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
+        y = self.get_hidden_values(x_corrupted)
+        z = self.get_reconstructed_input(y)
+        
+        # Take the sum over columns
+        # Use the squared error loss function
+        L = T.sum((self.x - z) **2, axis = 1)
+            
+        cost = T.mean(L)
+        
+        # compute the gradients of the cost of the dA w.r.t the params
+        gparams = T.grad(cost, self.params)
+        
+        # populate the list of updates to each param
+        updates = []
+        for param, gparam in zip(self.params, gparams):
+            updates.append((param, param - learning_rate * gparam))
+            
+        return (cost, y, z, updates)    
+    
     def get_cost_gparams(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input (with corruption)
     
@@ -505,14 +528,14 @@ class ReluAutoEncoder(AutoEncoder):
             bhid_name = 'bhid'        
         
         if W is None:
-            initial_W = np.asarray(np.random.normal(loc=0.01, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
+            initial_W = np.asarray(np.random.normal(loc=0.05, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
             W = shared(value=initial_W, name=W_name)   
             
         if bvis is None:
-            bvis = shared(value=np.ones(n_visible, dtype = config.floatX), name = bvis_name)
+            bvis = shared(value=np.zeros(n_visible, dtype = config.floatX), name = bvis_name)
                         
         if bhid is None:
-            bhid = shared(value=np.ones(n_hidden, dtype = config.floatX), name = bhid_name)
+            bhid = shared(value=np.zeros(n_hidden, dtype = config.floatX), name = bhid_name)
                         
         
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name)
@@ -549,6 +572,7 @@ class ReluAutoEncoder(AutoEncoder):
         """ Apply ReLu elementwise to the transformed input """
         return T.maximum(T.dot(input, self.W) + self.b, 0.0)
     
+    
     def get_cost_updates(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input
        taking into account a certain level of corruption of the input """
@@ -571,6 +595,29 @@ class ReluAutoEncoder(AutoEncoder):
             updates.append((param, param - learning_rate * gparam))
             
         return (cost, updates)
+    
+    def get_cost_updates_debug(self, corruption_level, learning_rate):
+        """ Compute the reconstruction error over the mini-batched input
+           taking into account a certain level of corruption of the input, return intermediate results """
+        x_corrupted = super(ReluAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
+        y = self.get_hidden_values(x_corrupted)
+        z = self.get_reconstructed_input(y)
+        
+        # Take the sum over columns
+        # Use the squared error loss function
+        L = T.sum((self.x - z) **2, axis = 1)
+            
+        cost = T.mean(L)
+        
+        # compute the gradients of the cost of the dA w.r.t the params
+        gparams = T.grad(cost, self.params)
+        
+        # populate the list of updates to each param
+        updates = []
+        for param, gparam in zip(self.params, gparams):
+            updates.append((param, param - learning_rate * gparam))
+            
+        return (cost, y, z, updates)    
     
     def get_cost_gparams(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input (with corruption)
