@@ -69,14 +69,15 @@ def load_data_labeled(dataset, labels, ratios = np.array([0.8,0.1,0.1]), feature
     print '... loading data'
     
     # Calculate the indices where each split into training, test, validation set will take place
-    endpts = data_scaled.shape[0] * ratios 
+    endpts = data_scaled.shape[0] * ratios
+    endpts = endpts.astype(int)
     train_start, train_end = 0, endpts[0] -1
     test_start, test_end = endpts[0], endpts[0] + endpts[1] -1
     valid_start, valid_end = endpts[0] + endpts[1], dataset.shape[0] -1
     
-    train_set = (data_scaled[train_start:train_end, : ], labels_vec[train_start:train_end])
-    test_set = (data_scaled[test_start:test_end, : ], labels_vec[test_start:test_end])
-    valid_set = (data_scaled[valid_start:valid_end, : ], labels_vec[valid_start:valid_end])
+    train_set = (data_scaled[train_start:train_end,:], labels_vec[train_start:train_end])
+    test_set = (data_scaled[test_start:test_end,:], labels_vec[test_start:test_end])
+    valid_set = (data_scaled[valid_start:valid_end,:], labels_vec[valid_start:valid_end])
 
     print '... converting to shared vars'
 
