@@ -76,21 +76,9 @@ class AutoEncoder(object):
                 
         if not W:
             if sparse_init > 0:
-                initial_W = np.zeros((n_visible,n_hidden),dtype = config.floatX)
-                # Sparse initialization method of Martens (ICML 2010)
-                # make only sparse_init connections from hidden back to each visible unit
-                idx = np.arange(n_hidden)
-                for j in xrange(n_visible):
-                    np.random.shuffle(idx)
-                    initial_W[j,idx[:sparse_init]] = np.random.randn(sparse_init)
-                
+                initial_W = self.sparse_w(n_visible, n_hidden, sparse_init)
             else:
-                # Pick initial values for dense initialization for W, bvis, bhid based on some formula given by 
-                # a paper by Glorot and Bengio (AISTATS2010).                
-                initial_W = np.asarray(numpy_rng.uniform(
-                    low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
-                    high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
-                    size = (n_visible, n_hidden)), dtype = config.floatX)
+                initial_W = self.dense_w(n_visible, n_hidden)
             W = shared(value=initial_W, name=W_name)
         
         self.W = W
@@ -182,13 +170,31 @@ class AutoEncoder(object):
         :param prob: retain each unit in this layer with probability prob """
         
         return T.cast(self.theano_rng.binomial(size=layer.shape, n=1, p=prob),config.floatX) * layer
+    
+    def sparse_w(self, n_visible, n_hidden,sparsity):
+        ''' Return a numpy array for a sparse W matrix, the method of Martens (ICML 2010) '''
+        initial_W = np.zeros((n_visible,n_hidden),dtype = config.floatX)
+        # make only sparse_init connections from hidden back to each visible unit
+        idx = np.arange(n_hidden)
+        for j in xrange(n_visible):
+            np.random.shuffle(idx)
+            initial_W[j,idx[:sparsity]] = np.random.randn(sparsity)        
+        return initial_W
+    
+    def dense_w(self, n_visible, n_hidden):
+        ''' Return a numpy array for a dense W matrix, the method of Glorot and Bengio (AISTATS2010) '''            
+        initial_W = np.asarray(numpy_rng.uniform(
+            low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
+            high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
+            size = (n_visible, n_hidden)), dtype = config.floatX)
+        return initial_W
            
 
 
 class BernoulliAutoEncoder(AutoEncoder):
         
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None):
+                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None, sparse_init=-1):
         """
             
         A de-noising AutoEncoder with [0,1] inputs and hidden values 
@@ -231,10 +237,16 @@ class BernoulliAutoEncoder(AutoEncoder):
             
             :type bhid_name: string
             :param bhid_name: name to be assigned to the bhid vector.
+            
+            :type sparse_init: int
+            :param sparse_init:  Initialize the weight matrices using Martens sparse
+                    initialization (Martens ICML 2010) >0 specifies the number of units
+                    in the layer that have initial weights drawn from a N(0,1).  
+                    Use -1 for Glorot & Bengio (i.e dense) init.
         
         
         """        
-        super(BernoulliAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name)
+        super(BernoulliAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name,sparse_init)
         self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)
         
     @classmethod
@@ -317,7 +329,7 @@ class BernoulliAutoEncoder(AutoEncoder):
 class GaussianAutoEncoder(AutoEncoder):
         
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None):
+                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None, sparse_init=-1):
         """
             
         A de-noising AutoEncoder with Gaussian visible units
@@ -360,11 +372,17 @@ class GaussianAutoEncoder(AutoEncoder):
             
             :type bhid_name: string
             :param bhid_name: name to be assigned to the bhid vector.
+            
+            :type sparse_init: int
+            :param sparse_init:  Initialize the weight matrices using Martens sparse
+                    initialization (Martens ICML 2010) >0 specifies the number of units
+                    in the layer that have initial weights drawn from a N(0,1).  
+                    Use -1 for Glorot & Bengio (i.e dense) init.
         
         
         """
                
-        super(GaussianAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name)
+        super(GaussianAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name,sparse_init)
         self.output = T.nnet.sigmoid(T.dot(input, self.W) + self.b)    
 
     @classmethod
@@ -472,49 +490,55 @@ class GaussianAutoEncoder(AutoEncoder):
     
 class ReluAutoEncoder(AutoEncoder):        
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
-                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None):
+                 W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None, sparse_init=-1):
         """
             
         A de-noising AutoEncoder with ReLu visible units
             
-            :type numpy_rng: numpy.random.RandomState
-            :param numpy_rng: number random generator used to generate weights
+        :type numpy_rng: numpy.random.RandomState
+        :param numpy_rng: number random generator used to generate weights
         
-            :type theano_rng: theano.tensor.shared_randomstreams.RandomStreams
-            :param theano_rng: Theano random generator; if None is given one is generated
-                based on a seed drawn from `rng`
+        :type theano_rng: theano.tensor.shared_randomstreams.RandomStreams
+        :param theano_rng: Theano random generator; if None is given one is generated
+            based on a seed drawn from `rng`
         
-            :type input: theano.tensor.TensorType
-            :paran input: a symbolic description of the input or None for standalone
-                          dA
+        :type input: theano.tensor.TensorType
+        :paran input: a symbolic description of the input or None for standalone
+                      dA
         
-            :type n_visible: int
-            :param n_visible: number of visible units
+        :type n_visible: int
+        :param n_visible: number of visible units
         
-            :type n_hidden: int
-            :param n_hidden:  number of hidden units
+        :type n_hidden: int
+        :param n_hidden:  number of hidden units
         
-            :type W: theano.tensor.TensorType
-            :param W: Theano variable pointing to a set of weights that should be
-                      shared Theano variables connecting the visible and hidden layers.
-                      
+        :type W: theano.tensor.TensorType
+        :param W: Theano variable pointing to a set of weights that should be
+                  shared Theano variables connecting the visible and hidden layers.
+                  
         
-            :type bhid: theano.tensor.TensorType
-            :param bhid: Theano variable pointing to a set of biases values (for
-                         hidden units).
+        :type bhid: theano.tensor.TensorType
+        :param bhid: Theano variable pointing to a set of biases values (for
+                     hidden units).
         
-            :type bvis: theano.tensor.TensorType
-            :param bvis: Theano variable pointing to a set of biases values (for
-                         visible units).
-                         
-            :type W_name: string
-            :param W_name: name to be assigned to the W matrix.
-            
-            :type bvis_name: string
-            :param bvis_name: name to be assigned to the bvis vector.
-            
-            :type bhid_name: string
-            :param bhid_name: name to be assigned to the bhid vector.
+        :type bvis: theano.tensor.TensorType
+        :param bvis: Theano variable pointing to a set of biases values (for
+                     visible units).
+                     
+        :type W_name: string
+        :param W_name: name to be assigned to the W matrix.
+        
+        :type bvis_name: string
+        :param bvis_name: name to be assigned to the bvis vector.
+        
+        :type bhid_name: string
+        :param bhid_name: name to be assigned to the bhid vector.
+        
+        :type sparse_init: int
+        :param sparse_init:  Initialize the weight matrices using Martens sparse
+                initialization (Martens ICML 2010) >0 specifies the number of units
+                in the layer that have initial weights drawn from a N(0,1).  
+                Use -1 for Glorot & Bengio (i.e dense) init.
             
         
         """        
@@ -528,7 +552,10 @@ class ReluAutoEncoder(AutoEncoder):
             bhid_name = 'bhid'        
         
         if W is None:
-            initial_W = np.asarray(np.random.normal(loc=0.05, scale=0.01, size=(n_visible,n_hidden)), dtype = config.floatX)
+            if sparse_init > 0:
+                initial_W = super(ReluAutoEncoder,self).sparse_w(n_visible,n_hidden,sparse_init)
+            else:
+                initial_W = super(ReluAutoEncoder,self).dense_w(n_visible,n_hidden)
             W = shared(value=initial_W, name=W_name)   
             
         if bvis is None:
@@ -538,7 +565,7 @@ class ReluAutoEncoder(AutoEncoder):
             bhid = shared(value=np.zeros(n_hidden, dtype = config.floatX), name = bhid_name)
                         
         
-        super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name)
+        super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name,sparse_init)
         self.output = T.maximum(T.dot(input, self.W) + self.b, 0.0)
         
     @classmethod
