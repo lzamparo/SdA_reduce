@@ -15,12 +15,17 @@ W = theano.shared(init_W, name="W")
 
 index = T.scalar()
 
+test_dot = theano.function([index],T.dot(d,W) + bias, givens = {d: data[index,:]})
+
 test_max = theano.function([index],T.maximum(T.dot(d, W) + bias, 0.0), givens = {d: data[index,:]})
 
 for i in xrange(50):
     out = test_max(i)
+    mult = test_dot(i)
     if np.isnan(np.sum(out)):
         print "Got NaNs in test with T.maximum"
+    if np.isnan(np.sum(mult)):
+        print "God NaNs in T.dot(d,W)"
         
         
 
