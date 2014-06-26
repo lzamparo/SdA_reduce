@@ -177,6 +177,15 @@ def test_relu_dA(options, learning_rate=0.001, training_epochs=10, hidden_layer_
     
     rng = numpy.random.RandomState(6789)
     theano_rng = RandomStreams(rng.randint(2 ** 30))
+    
+    # compute number of minibatches for training, validation and testing
+    n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
+    n_cols = train_set_x.get_value(borrow=True).shape[1]	
+    
+    # allocate symbolic variables for the data
+    index = T.lscalar()    # index to a [mini]batch
+    x = T.matrix('x')  # the data matrix    
+    
  
     da = ReluAutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
                 n_visible=n_cols, n_hidden=hidden_layer_size, sparse_init=10)    
