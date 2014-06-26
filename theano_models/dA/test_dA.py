@@ -151,6 +151,10 @@ def test_relu_dA(options, learning_rate=0.001, training_epochs=10, hidden_layer_
     ##########
     # Build the ReLU dA
     ##########
+    today = datetime.today()
+    day = str(today.date())
+    hour = str(today.time())    
+    corruptn = str(options.corruption)
     output_filename = "relu_da." + "corruption_" + corruptn + "_" + day + "." + hour
     
     current_dir = os.getcwd()    
