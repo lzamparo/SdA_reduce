@@ -189,11 +189,21 @@ def test_relu_dA(options, learning_rate=0.001, training_epochs=10, hidden_layer_
     
  
     da = ReluAutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
-                n_visible=n_cols, n_hidden=hidden_layer_size, sparse_init=10)    
+                n_visible=n_cols, n_hidden=hidden_layer_size, sparse_init=10)  
+    
+    
+    #DEBUG: check for NaN in W,b
+    if numpy.isnan(numpy.sum(da.W.get_value(borrow=True))):
+        print "relu dA test 197: NaN found in W!"
+        
+    #DEBUG: check for NaN in W,b
+    if numpy.isnan(numpy.sum(da.b.get_value(borrow=True))):
+        print "relu dA test 201: NaN found in b!"    
+    
 
     cost, x_corrupted, hiddens, reconstructed, updates = da.get_cost_updates_debug(corruption_level=float(options.corruption),
                                         learning_rate=learning_rate)
-
+    
     debug_train = theano.function([index], [cost, x_corrupted, hiddens, reconstructed], updates=updates,
          givens={x: train_set_x[index * batch_size:
                                 (index + 1) * batch_size]})
