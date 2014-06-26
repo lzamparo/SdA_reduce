@@ -179,6 +179,10 @@ class AutoEncoder(object):
         for j in xrange(n_visible):
             np.random.shuffle(idx)
             initial_W[j,idx[:sparsity]] = np.random.randn(sparsity)        
+        
+        #DEBUG: sanity check on initial W matrix
+        if np.isnan(np.sum(initial_W)):
+            print "dA.sparse_w: NaN detected in initial W matrix"        
         return initial_W
     
     def dense_w(self, n_visible, n_hidden):
@@ -187,6 +191,9 @@ class AutoEncoder(object):
             low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
             high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
             size = (n_visible, n_hidden)), dtype = config.floatX)
+        #DEBUG: sanity check on initial W matrix
+        if np.isnan(np.sum(initial_W)):
+            print "dA.dense_w: NaN detected in initial W matrix"        
         return initial_W
            
 
@@ -595,7 +602,7 @@ class ReluAutoEncoder(AutoEncoder):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """
         return T.dot(hidden, self.W_prime) + self.b_prime
     
-    def get_hidden_values(self,input):
+    def get_hidden_values(self, input):
         """ Apply ReLu elementwise to the transformed input """
         return T.maximum(T.dot(input, self.W) + self.b, 0.0)
     
@@ -644,7 +651,7 @@ class ReluAutoEncoder(AutoEncoder):
         for param, gparam in zip(self.params, gparams):
             updates.append((param, param - learning_rate * gparam))
             
-        return (cost, y, z, updates)    
+        return (cost, x_corrupted, y, z, updates)    
     
     def get_cost_gparams(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input (with corruption)

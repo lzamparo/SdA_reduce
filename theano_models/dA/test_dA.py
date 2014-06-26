@@ -89,10 +89,10 @@ def test_gb_dA(options,learning_rate=0.001, training_epochs=10, hidden_layer_siz
     da = GaussianAutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
             n_visible=n_cols, n_hidden=hidden_layer_size, sparse_init=10)
 
-    cost, hiddens, reconstructed, updates = da.get_cost_updates_debug(corruption_level=options.corruption,
+    cost, x_corrupted, hiddens, reconstructed, updates = da.get_cost_updates_debug(corruption_level=options.corruption,
                                         learning_rate=learning_rate)
 
-    debug_train = theano.function([index], [cost, hiddens, reconstructed], updates=updates,
+    debug_train = theano.function([index], [cost, x_corrupted, hiddens, reconstructed], updates=updates,
          givens={x: train_set_x[index * batch_size:
                                 (index + 1) * batch_size]})
     
@@ -107,7 +107,7 @@ def test_gb_dA(options,learning_rate=0.001, training_epochs=10, hidden_layer_siz
         # go through training set
         c = []
         for batch_index in xrange(n_train_batches):
-            error, y, z = debug_train(batch_index)
+            error, x_corr, y, z = debug_train(batch_index)
             if numpy.isnan(numpy.sum(z)) or numpy.isnan(numpy.sum(y)):
                 print >> output_file, "number of nan values in hidden reps: %d " % numpy.sum(numpy.isnan(y))
                 print >> output_file, "number of nan values in reconstructed vals: %d " % numpy.sum(numpy.isnan(z))
@@ -148,52 +148,53 @@ def test_relu_dA(options, learning_rate=0.001, training_epochs=10, hidden_layer_
         :param batch_size: size of each minibatch
     
     """    
-    ##########
-    # Build the ReLU dA
-    ##########
+    current_dir = os.getcwd()    
+
+    os.chdir(options.dir)
     today = datetime.today()
     day = str(today.date())
-    hour = str(today.time())    
+    hour = str(today.time())
     corruptn = str(options.corruption)
-    output_filename = "relu_da." + "corruption_" + corruptn + "_" + day + "." + hour
-    
-    current_dir = os.getcwd()    
-    os.chdir(options.dir)    
+    output_filename = "test_relu_da." + "corruption_" + corruptn + "_" + day + "." + hour
     output_file = open(output_filename,'w')
-    os.chdir(current_dir)
-    print >> output_file, "Run on " + str(datetime.now())     
+    
+    print >> output_file, "Run on " + str(datetime.now())    
     
     os.chdir(current_dir)
-        
+    
     data_set_file = openFile(str(options.inputfile), mode = 'r')
     datafiles, labels = extract_labeled_chunkrange(data_set_file, num_files = 10)
     datasets = load_data_labeled(datafiles, labels)
     train_set_x, train_set_y = datasets[0]
-    data_set_file.close()    
+    data_set_file.close()
     
     # Get the data on the host for comparison.
     #h_train = scale(datafiles[:,5:612])
-    #h_train = h_train[:train_set_x.get_value(borrow=True).shape(0),:]    
-    
-    rng = numpy.random.RandomState(6789)
-    theano_rng = RandomStreams(rng.randint(2 ** 30))
+    #h_train = h_train[:train_set_x.get_value(borrow=True).shape(0),:]
     
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
     n_cols = train_set_x.get_value(borrow=True).shape[1]	
-    
+
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch
-    x = T.matrix('x')  # the data matrix    
+    x = T.matrix('x')  # the data matrix
+    
+    ##################################
+    # Build the ReLU dA #
+    ##################################
+
+    rng = numpy.random.RandomState(2345)
+    theano_rng = RandomStreams(rng.randint(2 ** 30))   
     
  
     da = ReluAutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
                 n_visible=n_cols, n_hidden=hidden_layer_size, sparse_init=10)    
 
-    cost, hiddens, reconstructed, updates = da.get_cost_updates_debug(corruption_level=float(options.corruption),
+    cost, x_corrupted, hiddens, reconstructed, updates = da.get_cost_updates_debug(corruption_level=float(options.corruption),
                                         learning_rate=learning_rate)
 
-    debug_train = theano.function([index], [cost, hiddens, reconstructed], updates=updates,
+    debug_train = theano.function([index], [cost, x_corrupted, hiddens, reconstructed], updates=updates,
          givens={x: train_set_x[index * batch_size:
                                 (index + 1) * batch_size]})
 
@@ -208,8 +209,9 @@ def test_relu_dA(options, learning_rate=0.001, training_epochs=10, hidden_layer_
         # go through trainng set
         c = []
         for batch_index in xrange(n_train_batches):
-            error, y, z = debug_train(batch_index)
-            if numpy.isnan(numpy.sum(z)) or numpy.isnan(numpy.sum(y)):
+            error, x_corr, y, z = debug_train(batch_index)
+            if numpy.isnan(numpy.sum(z)) or numpy.isnan(numpy.sum(y)) or numpy.isnan(numpy.sum(x_corr)):
+                print >> output_file, "number of nan values in corrupted input data: %d " % numpy.sum(numpy.isnan(x_corr))
                 print >> output_file, "number of nan values in hidden reps: %d " % numpy.sum(numpy.isnan(y))
                 print >> output_file, "number of nan values in reconstructed vals: %d " % numpy.sum(numpy.isnan(z))
             c.append(error)
