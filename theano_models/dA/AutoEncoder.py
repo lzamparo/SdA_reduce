@@ -462,7 +462,7 @@ class GaussianAutoEncoder(AutoEncoder):
         for param, gparam in zip(self.params, gparams):
             updates.append((param, param - learning_rate * gparam))
             
-        return (cost, x_corrupted, y, z, updates)    
+        return (cost, y, z, updates)    
     
     def get_cost_gparams(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input (with corruption)
@@ -645,8 +645,8 @@ class ReluAutoEncoder(AutoEncoder):
         updates = []
         for param, gparam in zip(self.params, gparams):
             updates.append((param, param - learning_rate * gparam))
-            
-        return (cost, x_corrupted, y, z, updates)    
+           
+        return (cost, y, z, updates)    
     
     def get_cost_gparams(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input (with corruption)
