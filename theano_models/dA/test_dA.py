@@ -92,7 +92,7 @@ def test_gb_dA(options,learning_rate=0.001, training_epochs=10, hidden_layer_siz
     cost, hiddens, reconstructed, updates = da.get_cost_updates_debug(corruption_level=options.corruption,
                                         learning_rate=learning_rate)
 
-    debug_train = theano.function([index], [cost, x_corrupted, hiddens, reconstructed], updates=updates,
+    debug_train = theano.function([index], [cost, hiddens, reconstructed], updates=updates,
          givens={x: train_set_x[index * batch_size:
                                 (index + 1) * batch_size]})
     
@@ -228,10 +228,9 @@ def test_relu_dA(options, learning_rate=0.001, training_epochs=10, hidden_layer_
         # go through trainng set
         c = []
         for batch_index in xrange(n_train_batches):
-            error, x_corr, y, z = debug_train(batch_index)
+            error, y, z = debug_train(batch_index)
             mult_output = dot_test(batch_index)
-            if numpy.isnan(numpy.sum(z)) or numpy.isnan(numpy.sum(y)) or numpy.isnan(numpy.sum(x_corr)):
-                print >> output_file, "number of nan values in corrupted input data: %d " % numpy.sum(numpy.isnan(x_corr))
+            if numpy.isnan(numpy.sum(z)) or numpy.isnan(numpy.sum(y))):
                 print >> output_file, "number of nan values in hidden reps: %d " % numpy.sum(numpy.isnan(y))
                 print >> output_file, "number of nan values in reconstructed vals: %d " % numpy.sum(numpy.isnan(z))
             if numpy.isnan(numpy.sum(mult_output)):
