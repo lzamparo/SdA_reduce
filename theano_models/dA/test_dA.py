@@ -230,7 +230,7 @@ def test_relu_dA(options, learning_rate=0.001, training_epochs=10, hidden_layer_
         for batch_index in xrange(n_train_batches):
             error, y, z = debug_train(batch_index)
             mult_output = dot_test(batch_index)
-            if numpy.isnan(numpy.sum(z)) or numpy.isnan(numpy.sum(y))):
+            if numpy.isnan(numpy.sum(z)) or numpy.isnan(numpy.sum(y)):
                 print >> output_file, "number of nan values in hidden reps: %d " % numpy.sum(numpy.isnan(y))
                 print >> output_file, "number of nan values in reconstructed vals: %d " % numpy.sum(numpy.isnan(z))
             if numpy.isnan(numpy.sum(mult_output)):
