@@ -179,10 +179,7 @@ class AutoEncoder(object):
         for j in xrange(n_visible):
             np.random.shuffle(idx)
             initial_W[j,idx[:sparsity]] = np.random.randn(sparsity)        
-        
-        #DEBUG: sanity check on initial W matrix
-        if np.isnan(np.sum(initial_W)):
-            print "dA.sparse_w: NaN detected in initial W matrix"        
+         
         return initial_W
     
     def dense_w(self, n_visible, n_hidden):
@@ -190,10 +187,8 @@ class AutoEncoder(object):
         initial_W = np.asarray(numpy_rng.uniform(
             low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
             high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
-            size = (n_visible, n_hidden)), dtype = config.floatX)
-        #DEBUG: sanity check on initial W matrix
-        if np.isnan(np.sum(initial_W)):
-            print "dA.dense_w: NaN detected in initial W matrix"        
+            size = (n_visible, n_hidden)), dtype = config.floatX)        
+        
         return initial_W
            
 
