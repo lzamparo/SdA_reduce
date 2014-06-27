@@ -174,11 +174,13 @@ class AutoEncoder(object):
     def sparse_w(self, n_visible, n_hidden, sparsity):
         ''' Return a numpy array for a sparse W matrix, the method of Martens (ICML 2010) '''
         initial_W = np.zeros((n_visible,n_hidden),dtype = config.floatX)
-        # make only sparse_init connections from each hidden unit back to each visible unit
+        # Make only sparse_init connections from each hidden unit back to each visible unit
         idx = np.arange(n_hidden)
+        # Don't make more connections than there are hidden units
+        n_connections = min(sparsity,n_hidden)
         for j in xrange(n_visible):
             np.random.shuffle(idx)
-            initial_W[j,idx[:sparsity]] = np.random.randn(sparsity)        
+            initial_W[j,idx[:n_connections]] = np.random.randn(n_connections)        
          
         return initial_W
     
