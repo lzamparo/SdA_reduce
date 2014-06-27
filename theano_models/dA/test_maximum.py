@@ -19,10 +19,10 @@ d = T.fmatrix(name='d')
 #  self.x: train_set_x[index * batch_size: (index + 1) * batch_size] 
 
 mat_mult = T.dot(d,W) + bias
-test_dot = theano.function([index],mat_mult, givens = {d: data[index : (index + 2)]})
+test_dot = theano.function([index],mat_mult, givens = {d: data[index : (index + 2),:]})
 
 relu_act = T.maximum(T.dot(d, W) + bias, 0.0)
-test_max = theano.function([index],relu_act, givens = {d: data[index : (index + 2)]})
+test_max = theano.function([index],relu_act, givens = {d: data[index : (index + 2),:]})
 
 for i in xrange(48):
     out = test_max(i)
