@@ -14,13 +14,13 @@ init_W.dtype = theano.config.floatX
 W = theano.shared(init_W, name="W")
 
 index = T.scalar()
-d = T.row(name='d', dtype=theano.config.floatX)
+d = T.fmatrix(name='d', dtype=theano.config.floatX)
 
-test_dot = theano.function([index],T.dot(d,W) + bias, givens = {d: data[index,:]})
+test_dot = theano.function([index],T.dot(d,W) + bias, givens = {d: data[index:index+2]})
 
-test_max = theano.function([index],T.maximum(T.dot(d, W) + bias, 0.0), givens = {d: data[index,:]})
+test_max = theano.function([index],T.maximum(T.dot(d, W) + bias, 0.0), givens = {d: data[index:index+2]})
 
-for i in xrange(50):
+for i in xrange(48):
     out = test_max(i)
     mult = test_dot(i)
     if np.isnan(np.sum(out)):
