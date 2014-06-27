@@ -78,7 +78,7 @@ class AutoEncoder(object):
             if sparse_init > 0:
                 initial_W = self.sparse_w(n_visible, n_hidden, sparse_init)
             else:
-                initial_W = self.dense_w(n_visible, n_hidden)
+                initial_W = self.dense_w(n_visible, n_hidden, numpy_rng)
             W = shared(value=initial_W, name=W_name)
         
         self.W = W
@@ -171,10 +171,10 @@ class AutoEncoder(object):
         
         return T.cast(self.theano_rng.binomial(size=layer.shape, n=1, p=prob),config.floatX) * layer
     
-    def sparse_w(self, n_visible, n_hidden,sparsity):
+    def sparse_w(self, n_visible, n_hidden, sparsity):
         ''' Return a numpy array for a sparse W matrix, the method of Martens (ICML 2010) '''
         initial_W = np.zeros((n_visible,n_hidden),dtype = config.floatX)
-        # make only sparse_init connections from hidden back to each visible unit
+        # make only sparse_init connections from each hidden unit back to each visible unit
         idx = np.arange(n_hidden)
         for j in xrange(n_visible):
             np.random.shuffle(idx)
@@ -182,7 +182,7 @@ class AutoEncoder(object):
          
         return initial_W
     
-    def dense_w(self, n_visible, n_hidden):
+    def dense_w(self, n_visible, n_hidden, numpy_rng):
         ''' Return a numpy array for a dense W matrix, the method of Glorot and Bengio (AISTATS2010) '''            
         initial_W = np.asarray(numpy_rng.uniform(
             low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
@@ -255,21 +255,26 @@ class BernoulliAutoEncoder(AutoEncoder):
     def class_from_values(cls, *args, **kwargs):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
             Args that always get specified in this constructor: numpy_rng, theano_rng, input, n_visible, n_hidden, W_name, bvis_name, bhid_name
-            Args that *sometimes* get specified in this constructor: W, bvis, bhid
+            Args that *sometimes* get specified in this constructor: W, bvis, bhid, sparse_init
         """  
         
         keys = kwargs.keys()
         if 'W' not in keys:
             kwargs['W'] = None
+            
         if 'bhid' not in keys:
             kwargs['bhid'] = None
+            
         if 'bvis' not in keys:
-            kwargs['bvis'] = None       
-        
+            kwargs['bvis'] = None 
+            
+        if 'sparse_init' not in keys:
+            kwargs['sparse_init'] = -1        
+             
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], 
                    n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'], W=kwargs['W'],
                    bhid=kwargs['bhid'], bvis=kwargs['bvis'], W_name=kwargs['W_name'], 
-                   bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'])        
+                   bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'], sparse_init=kwargs['sparse_init'])        
     
     def get_hidden_values(self, input):
         """ Compute the values of the hidden layer """    
@@ -391,7 +396,7 @@ class GaussianAutoEncoder(AutoEncoder):
     def class_from_values(cls, *args, **kwargs):
         """ This constructor is intended for dynamically constructing a dA layer subclass 
             Args that always get specified through this constructor: numpy_rng, theano_rng, input, n_visible, n_hidden, W_name, bvis_name, bhid_name.
-            Args that *might* be specified: W, bhid, bvis.
+            Args that *might* be specified: W, bhid, bvis, sparse_init.
         """
         
         keys = kwargs.keys()
@@ -402,13 +407,15 @@ class GaussianAutoEncoder(AutoEncoder):
             kwargs['bhid'] = None
             
         if 'bvis' not in keys:
-            kwargs['bvis']=None
-            
+            kwargs['bvis'] = None
+        
+        if 'sparse_init' not in keys:
+            kwargs['sparse_init'] = -1            
             
         return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], 
                    n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'],W=kwargs['W'],
                    bhid=kwargs['bhid'], bvis=kwargs['bvis'],W_name=kwargs['W_name'], 
-                   bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'])        
+                   bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'], sparse_init=kwargs['sparse_init'])        
     
     def get_hidden_values(self, input):
         """ Compute the values of the hidden layer """    
@@ -585,13 +592,16 @@ class ReluAutoEncoder(AutoEncoder):
             kwargs['bhid'] = None
             
         if 'bvis' not in keys:
-            kwargs['bvis']=None
-            
-            
-        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'], n_visible=kwargs['n_visible'],
-                   n_hidden=kwargs['n_hidden'], W=kwargs['W'],
-                   bhid=kwargs['bhid'], bvis=kwargs['bvis'],
-                   W_name=kwargs['W_name'], bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'])        
+            kwargs['bvis'] = None
+        
+        if 'sparse_init' not in keys:
+            kwargs['sparse_init'] = -1
+               
+        return cls(numpy_rng=kwargs['numpy_rng'], theano_rng=kwargs['theano_rng'], input=kwargs['input'],
+                   n_visible=kwargs['n_visible'], n_hidden=kwargs['n_hidden'], W=kwargs['W'],
+                   bhid=kwargs['bhid'], bvis=kwargs['bvis'], W_name=kwargs['W_name'], 
+                   bvis_name=kwargs['bvis_name'], bhid_name=kwargs['bhid_name'], 
+                   sparse_init=kwargs['sparse_init'])        
 
     def get_reconstructed_input(self, hidden):
         """ Use a linear decoder to compute the reconstructed input given the hidden rep'n """

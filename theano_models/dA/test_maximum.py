@@ -24,8 +24,12 @@ for i in xrange(50):
     mult = test_dot(i)
     if np.isnan(np.sum(out)):
         print "Got NaNs in test with T.maximum"
+    else:
+        print "No NaNs in test with T.maximum"
     if np.isnan(np.sum(mult)):
-        print "God NaNs in T.dot(d,W)"
+        print "Got NaNs with T.dot(d,W)"
+    else:
+        print "No NaNs in test with T.dot(d,W)"
         
         
 
