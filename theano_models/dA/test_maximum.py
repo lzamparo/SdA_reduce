@@ -14,7 +14,7 @@ init_W.dtype = theano.config.floatX
 W = theano.shared(init_W, name="W")
 
 index = T.scalar()
-d = T.fmatrix(name='d', dtype=theano.config.floatX)
+d = T.fmatrix(name='d')
 
 test_dot = theano.function([index],T.dot(d,W) + bias, givens = {d: data[index:index+2]})
 
