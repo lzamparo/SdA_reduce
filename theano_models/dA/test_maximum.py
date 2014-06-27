@@ -17,6 +17,8 @@ index = T.lscalar()
 d = T.fmatrix(name='d')
 
 #  self.x: train_set_x[index * batch_size: (index + 1) * batch_size] 
+assert data.get_value(borrow=True).shape == (50,50)
+assert W.get_value(borrow=True).shape == (50,50)
 
 mat_mult = T.dot(d,W) + bias
 test_dot = theano.function([index],mat_mult, givens = {d: data[index : (index + 2),:]})
