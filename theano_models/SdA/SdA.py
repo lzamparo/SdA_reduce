@@ -496,6 +496,14 @@ class SdA(object):
 
             # get the subset of model params involved in the limited reconstruction
             limited_params = self.params[:i*3]
+            
+            #DEBUG: which params are these?  Roll call.
+            for par in limited_params:
+                if isinstance(par, theano.shared.SharedVariable):
+                    print "... build finetune limited reconstruction: Found param ", par.name
+                else:
+                    print "... found something that isn't a theano.shared.SharedVariable : ", type(par)
+            
             # compute the gradients with respect to the partial model parameters
             gparams = T.grad(self.reconstruction_error_limited(self.x, i), limited_params)
             # modify the updates to account for momentum smoothing 
