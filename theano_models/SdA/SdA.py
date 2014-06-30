@@ -506,6 +506,11 @@ class SdA(object):
             
             # compute the gradients with respect to the partial model parameters
             gparams = T.grad(self.reconstruction_error_limited(self.x, i), limited_params)
+            
+            # DEBUG: verify the gradient on randomly generated data
+            fake_data = np.random.randn(2*607).reshape(2,607)
+            theano.gradient.verify_grad(self.reconstruction_error_limited(self.x, i), fake_data, rng=numpy.random)
+            
             # modify the updates to account for momentum smoothing 
             mod_updates = OrderedDict()
             
