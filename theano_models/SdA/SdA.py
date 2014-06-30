@@ -499,8 +499,8 @@ class SdA(object):
             
             #DEBUG: which params are these?  Roll call.
             for par in limited_params:
-                if isinstance(par, theano.shared.SharedVariable):
-                    print "... build finetune limited reconstruction: Found param ", par.name
+                if isinstance(par, theano.tensor.TensorSharedVariable):
+                    print "... build finetune limited reconstruction: Found shared variable param ", par.name
                 else:
                     print "... found something that isn't a theano.shared.SharedVariable : ", type(par)
             
