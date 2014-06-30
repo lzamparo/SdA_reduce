@@ -8,7 +8,9 @@ import theano.tensor as T
 data = theano.shared(np.eye(50, dtype=theano.config.floatX), name="testdata")
 bias = theano.shared(np.zeros(50, dtype=theano.config.floatX), name="bias", strict=False, allow_downcast=None)
 
-init_W = np.random.randn(50*50).reshape((50,50))
+init_W = np.zeros((50,50),dtype=theano.config.floatX)
+
+init_W[:] = np.random.randn(50*50).reshape((50,50))
 init_W.dtype = theano.config.floatX
 
 W = theano.shared(init_W, name="W")
