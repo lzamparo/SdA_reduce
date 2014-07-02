@@ -160,7 +160,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
                 hybrid_c = []
                 for batch_index in xrange(n_train_batches):
                     hybrid_c.append(hybrid_pretraining_fns[i-1](index=batch_index,momentum=shared_args_dict["momentum"]))  
-                print >> output_file, "Hybrid pre-training layer %i, epoch %d, cost" % (i, h_epoch),
+                print >> output_file, "Hybrid pre-training on layers %i, %i, epoch %d, cost" % (i, i-1, h_epoch),
                 print >> output_file, numpy.mean(hybrid_c)
         
         # Reset the learning rate
