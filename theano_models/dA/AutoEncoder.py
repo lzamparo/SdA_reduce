@@ -181,7 +181,8 @@ class AutoEncoder(object):
         for j in xrange(n_visible):
             np.random.shuffle(idx)
             initial_W[j,idx[:n_connections]] = np.random.randn(n_connections)        
-         
+        
+        print "... returned sparse init matrix " 
         return initial_W
     
     def dense_w(self, n_visible, n_hidden, numpy_rng):
@@ -190,7 +191,7 @@ class AutoEncoder(object):
             low = -4 * np.sqrt(6. / (n_hidden + n_visible)),
             high = 4 * np.sqrt(6. / (n_hidden + n_visible)),
             size = (n_visible, n_hidden)), dtype = config.floatX)        
-        
+        print "... returned dense init matrix "
         return initial_W
            
 
