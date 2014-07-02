@@ -499,17 +499,13 @@ class SdA(object):
             
             #DEBUG: which params are these?  Roll call.
             for par in limited_params:
-                if isinstance(par, theano.tensor.TensorSharedVariable):
-                    print "... build finetune limited reconstruction: Found shared variable param ", par.name
-                else:
-                    print "... found something that isn't a theano.shared.SharedVariable : ", type(par)
-            
+                print "... build finetune limited reconstruction: Found shared variable param ", par.name
+                
             # compute the gradients with respect to the partial model parameters
             gparams = T.grad(self.reconstruction_error_limited(self.x, i), limited_params)
             
-            # DEBUG: verify the gradient on randomly generated data
-            fake_data = np.random.randn(2*607).reshape(2,607)
-            theano.gradient.verify_grad(self.reconstruction_error_limited(self.x, i), fake_data, rng=numpy.random)
+            # Ensure that gparams has same size as limited_params
+            assert len(gparams) == len(limited_params)
             
             # modify the updates to account for momentum smoothing 
             mod_updates = OrderedDict()
@@ -519,12 +515,12 @@ class SdA(object):
                     last_update = self.updates[param]
                     #DEBUG: print out names for last_update, param
                     print "hybrid_pretraining_functions: Retrieved " + last_update.name + " from self.updates with key " + param.name
-                    delta = momentum * last_update - grad_update
+                    delta = momentum * last_update - learning_rate * grad_update
                     mod_updates[param] = param + delta
                     # update value of theano.shared in self.updates[param]
                     mod_updates[last_update] = delta 
                 else:               
-                    mod_updates[param] = param - grad_update
+                    mod_updates[param] = param - learning_rate * grad_update
                 
                 
             # compile the theano function
