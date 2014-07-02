@@ -567,7 +567,7 @@ class ReluAutoEncoder(AutoEncoder):
             if sparse_init > 0:
                 initial_W = super(ReluAutoEncoder,self).sparse_w(n_visible,n_hidden,sparse_init)
             else:
-                initial_W = super(ReluAutoEncoder,self).dense_w(n_visible,n_hidden)
+                initial_W = super(ReluAutoEncoder,self).dense_w(n_visible,n_hidden,numpy_rng)
             W = shared(value=initial_W, name=W_name)   
             
         if bvis is None:
