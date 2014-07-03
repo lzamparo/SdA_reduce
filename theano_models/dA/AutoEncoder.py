@@ -528,7 +528,6 @@ class ReluAutoEncoder(AutoEncoder):
         :param W: Theano variable pointing to a set of weights that should be
                   shared Theano variables connecting the visible and hidden layers.
                   
-        
         :type bhid: theano.tensor.TensorType
         :param bhid: Theano variable pointing to a set of biases values (for
                      hidden units).
@@ -556,25 +555,25 @@ class ReluAutoEncoder(AutoEncoder):
         """        
         
         # ReLU units require a different weight matrix initialization scheme
-        if W_name is None:
-            W_name = 'W'
-        if bvis_name is None:
-            bvis_name = 'bvis'
-        if bhid_name is None:
-            bhid_name = 'bhid'        
+        #if W_name is None:
+            #W_name = 'W'
+        #if bvis_name is None:
+            #bvis_name = 'bvis'
+        #if bhid_name is None:
+            #bhid_name = 'bhid'        
         
-        if W is None:
-            if sparse_init > 0:
-                initial_W = super(ReluAutoEncoder,self).sparse_w(n_visible,n_hidden,sparse_init)
-            else:
-                initial_W = super(ReluAutoEncoder,self).dense_w(n_visible,n_hidden,numpy_rng)
-            W = shared(value=initial_W, name=W_name)   
+        #if W is None:
+            #if sparse_init > 0:
+                #initial_W = super(ReluAutoEncoder,self).sparse_w(n_visible,n_hidden,sparse_init)
+            #else:
+                #initial_W = super(ReluAutoEncoder,self).dense_w(n_visible,n_hidden,numpy_rng)
+            #W = shared(value=initial_W, name=W_name)   
             
-        if bvis is None:
-            bvis = shared(value=np.zeros(n_visible, dtype = config.floatX), name = bvis_name)
+        #if bvis is None:
+            #bvis = shared(value=np.zeros(n_visible, dtype = config.floatX), name = bvis_name)
                         
-        if bhid is None:
-            bhid = shared(value=np.zeros(n_hidden, dtype = config.floatX), name = bhid_name)
+        #if bhid is None:
+            #bhid = shared(value=np.zeros(n_hidden, dtype = config.floatX), name = bhid_name)
                         
         
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name,sparse_init)
