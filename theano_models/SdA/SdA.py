@@ -467,7 +467,7 @@ class SdA(object):
 ##############################  Training functions ##########################
 
 
-    def pretraining_functions(self, train_set_x, batch_size, learning_rate):
+    def pretraining_functions(self, train_set_x, batch_size, learning_rate,method='cm'):
         ''' Generates a list of functions, each of them implementing one
         step in training the dA corresponding to the layer with same index.
         The function takes a minibatch index, and so training one dA layer
@@ -486,6 +486,9 @@ class SdA(object):
         
         :type learning_rate: theano.tensor.shared
         :param learning_rate: the learning rate for pretraining 
+        
+        :type method: string
+        :param method: specifies the flavour of SGD used to train each dA layer.  Accepted values are 'cm', 'adagrad', 'adagrad_momentum'
         '''
 
         # index to a minibatch
@@ -494,6 +497,8 @@ class SdA(object):
         corruption_level = T.scalar('corruption')
         # momentum rate to use
         momentum = T.scalar('momentum')  
+        
+        assert method in ['cm','adagrad','adagrad_momentum']
         
         # begining of a batch, given `index`
         batch_begin = index * batch_size
@@ -506,12 +511,19 @@ class SdA(object):
             # get the cost and the updates list
             cost, updates = dA.get_cost_gparams(corruption_level,learning_rate)
             
-            # modify the updates to account for momentum smoothing 
-            mod_updates = self.sgd_cm(learning_rate, momentum, updates)
+            # apply the updates in accordnace with the SGD method
+            if method == 'cm':
+                mod_updates = self.sgd_cm(learning_rate, momentum, updates)
+                input_list = [index,momentum,theano.Param(corruption_level, default=0.15)]
+            elif method == 'adagrad':
+                mod_updates = self.sgd_adagrad(learning_rate, updates)
+                input_list = [index,theano.Param(corruption_level, default=0.15)]
+            else:
+                mod_updates = self.sgd_adagrad_momentum(momentum, learning_rate, updates)
+                input_list = [index,momentum,theano.Param(corruption_level, default=0.15)]
                 
             # compile the theano function
-            fn = theano.function(inputs=[index,momentum,
-                              theano.Param(corruption_level, default=0.15)], 
+            fn = theano.function(inputs=input_list, 
                                  outputs=cost,
                                  updates=mod_updates,
                                  givens={self.x: train_set_x[batch_begin:
@@ -522,7 +534,7 @@ class SdA(object):
         return pretrain_fns
 
     
-    def build_finetune_limited_reconstruction(self, train_set_x, batch_size, learning_rate):
+    def build_finetune_limited_reconstruction(self, train_set_x, batch_size, learning_rate, method='cm'):
         ''' Generates a list of theano functions, each of them implementing one
         step in hybrid pretraining.  Hybrid pretraining is traning to minimize the 
         reconstruction error of the data against the representation produced using 
@@ -539,7 +551,10 @@ class SdA(object):
         :param batch_size: size of a [mini]batch
         
         :type learning_rate: theano.tensor.shared
-        :param learning_rate: the learning rate for pretraining '''
+        :param learning_rate: the learning rate for pretraining 
+        
+        :type method: string
+        :param method: specifies the flavour of SGD used to train each dA layer.  Accepted values are 'cm', 'adagrad', 'adagrad_momentum' '''
         
         # index to a minibatch
         index = T.lscalar('index') 
@@ -556,6 +571,9 @@ class SdA(object):
         # sanity check on number of layers
         assert 2 < len(self.dA_layers)
         
+        # Check on SGD method
+        assert method in ['cm','adagrad','adagrad_momentum']
+        
         hybrid_train_fns = []
         for i in xrange(2,len(self.dA_layers)):
 
@@ -568,11 +586,20 @@ class SdA(object):
             # Ensure that gparams has same size as limited_params
             assert len(gparams) == len(limited_params)
             
-            # modify the updates to account for momentum smoothing 
-            mod_updates = self.sgd_cm(learning_rate, momentum, zip(limited_params, gparams))
+            
+            # apply the updates in accordnace with the SGD method
+            if method == 'cm':
+                mod_updates = self.sgd_cm(learning_rate, momentum, gparams)
+                input_list = [index,momentum]
+            elif method == 'adagrad':
+                mod_updates = self.sgd_adagrad(learning_rate, gparams)
+                input_list = [index]
+            else:
+                mod_updates = self.sgd_adagrad_momentum(momentum, learning_rate, gparams)
+                input_list = [index,momentum]            
                 
             # compile the theano function
-            fn = theano.function(inputs=[index,momentum], 
+            fn = theano.function(inputs=input_list, 
                                  outputs=self.reconstruction_error_limited(self.x, i),
                                  updates=mod_updates,
                                  givens={self.x: train_set_x[batch_begin:

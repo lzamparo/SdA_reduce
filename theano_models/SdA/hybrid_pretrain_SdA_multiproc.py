@@ -110,12 +110,14 @@ def pretrain(shared_args,private_args,pretraining_epochs=10, pretrain_lr=0.00001
     print '... getting the pretraining functions'
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size,
-                                                learning_rate=learning_rate)
+                                                learning_rate=learning_rate,
+                                                method='adagrad')
 
     print '... getting the hybrid training functions'
     hybrid_pretraining_fns = sda.build_finetune_limited_reconstruction(train_set_x=train_set_x, 
                                                                       batch_size=batch_size, 
-                                                                      learning_rate=learning_rate)
+                                                                      learning_rate=learning_rate,
+                                                                      method='adagrad')
     
     # DEBUG: should only have n_layers - 2 hybrid pretraining functions
     assert len(hybrid_pretraining_fns) == sda.n_layers - 2
