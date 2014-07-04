@@ -20,7 +20,7 @@ from tables import openFile
 
 from datetime import datetime
 
-def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.00001, lr_decay = 0.98, batch_size=50): 
+def pretrain(shared_args,private_args,pretraining_epochs=10, pretrain_lr=0.00001, lr_decay = 0.98, batch_size=50): 
     """ Pretrain an SdA model for the given number of training epochs.  The model is either initialized from 
     scratch, or is reconstructed from a previously pickled model.
 
@@ -156,7 +156,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0000
         
         # Do hybrid pretraining only on the middle layer(s)
         if i > 0 and i < sda.n_layers - 1:
-            for h_epoch in xrange(3):
+            for h_epoch in xrange(5):
                 hybrid_c = []
                 for batch_index in xrange(n_train_batches):
                     hybrid_c.append(hybrid_pretraining_fns[i-1](index=batch_index,momentum=shared_args_dict["momentum"]))  

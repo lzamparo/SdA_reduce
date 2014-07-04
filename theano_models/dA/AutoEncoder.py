@@ -311,10 +311,9 @@ class BernoulliAutoEncoder(AutoEncoder):
         return (cost, updates)
     
     def get_cost_gparams(self, corruption_level, learning_rate):
-        """ Compute the reconstruction error over the mini-batched input (with corruption)
-       
-       But instead of returning a list of tuples (updates) were the rval has the form of an update to 
-       a theano.tensor variable (param, update_value), return instead (param, gparam)."""
+        """ Compute the reconstruction error over the mini-batched input (with corruption).
+        Instead of returning a list of tuples (updates) were the rval has the form of an update to 
+        a theano.tensor variable (param, update_value), return instead (param, gparam)."""
         x_corrupted = super(BernoulliAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
         y = self.get_hidden_values(x_corrupted)
         z = self.get_reconstructed_input(y)
@@ -328,10 +327,10 @@ class BernoulliAutoEncoder(AutoEncoder):
         # compute the gradients of the cost of the dA w.r.t the params
         gparams = T.grad(cost, self.params)
         
-        # populate the list of updates to each param
+        # populate the list of parameter, gradient tuples 
         updates = []
         for param, gparam in zip(self.params, gparams):
-            updates.append((param, learning_rate * gparam))
+            updates.append((param, gparam))
             
         return (cost, updates)    
     
@@ -340,9 +339,7 @@ class GaussianAutoEncoder(AutoEncoder):
         
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
                  W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None, sparse_init=-1):
-        """
-            
-        A de-noising AutoEncoder with Gaussian visible units
+        """ A de-noising AutoEncoder with Gaussian visible units
             
             :type numpy_rng: numpy.random.RandomState
             :param numpy_rng: number random generator used to generate weights
@@ -388,8 +385,6 @@ class GaussianAutoEncoder(AutoEncoder):
                     initialization (Martens ICML 2010) >0 specifies the number of units
                     in the layer that have initial weights drawn from a N(0,1).  
                     Use -1 for Glorot & Bengio (i.e dense) init.
-        
-        
         """
                
         super(GaussianAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name,sparse_init)
@@ -475,10 +470,10 @@ class GaussianAutoEncoder(AutoEncoder):
         return (cost, y, z, updates)    
     
     def get_cost_gparams(self, corruption_level, learning_rate):
-        """ Compute the reconstruction error over the mini-batched input (with corruption)
-    
-    But instead of returning a list of tuples (updates) were the rval has the form of an update to 
-    a theano.tensor variable (param, update_value), return instead (param, gparam)."""
+        """ Compute the reconstruction error over the mini-batched input (with corruption).
+        Instead of returning a list of tuples (updates) were the rval has the form of an update to 
+        a theano.tensor variable (param, update_value), return instead (param, gparam)."""
+        
         x_corrupted = super(GaussianAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
         y = self.get_hidden_values(x_corrupted)
         z = self.get_reconstructed_input(y)
@@ -492,10 +487,10 @@ class GaussianAutoEncoder(AutoEncoder):
         # compute the gradients of the cost of the dA w.r.t the params
         gparams = T.grad(cost, self.params)
         
-        # populate the list of updates to each param
+        # populate the list of parameter, gradient tuples
         updates = []
         for param, gparam in zip(self.params, gparams):
-            updates.append((param, learning_rate * gparam))
+            updates.append((param, gparam))
             
         return (cost, updates)    
     
@@ -503,9 +498,7 @@ class GaussianAutoEncoder(AutoEncoder):
 class ReluAutoEncoder(AutoEncoder):        
     def __init__(self, numpy_rng, theano_rng=None, input=None, n_visible=784, n_hidden=500, 
                  W=None, bhid=None, bvis=None, W_name=None, bvis_name=None, bhid_name=None, sparse_init=-1):
-        """
-            
-        A de-noising AutoEncoder with ReLu visible units
+        """ A de-noising AutoEncoder with ReLu visible units
             
         :type numpy_rng: numpy.random.RandomState
         :param numpy_rng: number random generator used to generate weights
@@ -678,9 +671,9 @@ class ReluAutoEncoder(AutoEncoder):
         # compute the gradients of the cost of the dA w.r.t the params
         gparams = T.grad(cost, self.params)
         
-        # populate the list of updates to each param
+        # populate the list of parameter, gradient tuples
         updates = []
         for param, gparam in zip(self.params, gparams):
-            updates.append((param, learning_rate * gparam))
+            updates.append((param, gparam))
             
         return (cost, updates)    
