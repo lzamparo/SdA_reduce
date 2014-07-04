@@ -431,7 +431,7 @@ class SdA(object):
         i.e the partial derivative of cost by each SdA parameter   '''
         
         updates = OrderedDict()
-        for param, grad_update in gparams:
+        for param, gparam in gparams:
             grad_sqrd_hist = self.updates[param]
             grad_sqrd = momentum * grad_sqrd_hist + (1 - momentum) * (gparam **2) 
             param_update_val = param - learning_rate * gparam / (1e-7 + (grad_sqrd)** 0.5)
@@ -453,7 +453,7 @@ class SdA(object):
         i.e the partial derivative of cost by each SdA parameter   '''  
         
         updates = OrderedDict()
-        for param, grad_update in gparams:
+        for param, gparam in gparams:
             grad_sqrd_hist = self.updates[param]
             grad_sqrd = grad_sqrd_hist + gparam **2
             param_update_val = param - learning_rate * gparam / (1e-7 + (grad_sqrd)** 0.5)
