@@ -589,13 +589,13 @@ class SdA(object):
             
             # apply the updates in accordnace with the SGD method
             if method == 'cm':
-                mod_updates = self.sgd_cm(learning_rate, momentum, gparams)
+                mod_updates = self.sgd_cm(learning_rate, momentum, zip(limited_params,gparams))
                 input_list = [index,momentum]
             elif method == 'adagrad':
-                mod_updates = self.sgd_adagrad(learning_rate, gparams)
+                mod_updates = self.sgd_adagrad(learning_rate, zip(limited_params,gparams))
                 input_list = [index]
             else:
-                mod_updates = self.sgd_adagrad_momentum(momentum, learning_rate, gparams)
+                mod_updates = self.sgd_adagrad_momentum(momentum, learning_rate, zip(limited_params,gparams))
                 input_list = [index,momentum]            
                 
             # compile the theano function
