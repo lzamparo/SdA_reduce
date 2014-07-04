@@ -147,8 +147,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=10, pretrain_lr=0.00001
             c = []
             for batch_index in xrange(n_train_batches):
                 c.append(pretraining_fns[i](index=batch_index,
-                         corruption=corruption_levels[i],
-                         momentum=shared_args_dict["momentum"]))
+                         corruption=corruption_levels[i]))
                                 
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
@@ -161,8 +160,8 @@ def pretrain(shared_args,private_args,pretraining_epochs=10, pretrain_lr=0.00001
             for h_epoch in xrange(5):
                 hybrid_c = []
                 for batch_index in xrange(n_train_batches):
-                    hybrid_c.append(hybrid_pretraining_fns[i-1](index=batch_index,momentum=shared_args_dict["momentum"]))  
-                print >> output_file, "Hybrid pre-training on layers %i, %i, epoch %d, cost" % (i, i-1, h_epoch),
+                    hybrid_c.append(hybrid_pretraining_fns[i-1](index=batch_index))  
+                print >> output_file, "Hybrid pre-training on layers %i and below, epoch %d, cost" % (i, h_epoch),
                 print >> output_file, numpy.mean(hybrid_c)
         
         # Reset the learning rate
