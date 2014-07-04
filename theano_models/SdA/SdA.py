@@ -387,7 +387,7 @@ class SdA(object):
         return fn    
         
 
-    def sgd_cm(self,learning_rate, momentum, gparams):
+    def sgd_cm(self, learning_rate, momentum, gparams):
         ''' Returns a dictionary of theano symbolic variables indicating how
         the shared variable parameters in the SdA should be updated, using classical 
         momentum. 
