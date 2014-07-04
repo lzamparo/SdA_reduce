@@ -349,6 +349,8 @@ class SdA(object):
         self.x_prime = X_prime
         return self.x_prime  
     
+##############################  Regularization functions  #########
+
     def max_norm_regularization(self):
         '''
         Define and return a list of theano function objects implementing max norm 
@@ -384,6 +386,83 @@ class SdA(object):
         fn = theano.function([momentum], [], updates = delta_t_updates)        
         return fn    
         
+
+    def sgd_cm(self,learning_rate, momentum, gparams):
+        ''' Returns a dictionary of theano symbolic variables indicating how
+        the shared variable parameters in the SdA should be updated, using classical 
+        momentum. 
+            
+        N.B: learning_rate should be a theano.shared variable declared in the
+        code driving the (pre)training of this SdA.
+    
+        :type momentum: theano.TensorVariable
+        :param momenum: momentum parameter for SGD parameter updates
+        
+        :type learning_rate: theano.tensor.shared
+        :param learning_rate: the learning rate for pretraining   
+        
+        :type gparams: list of tuples
+        :param gparams: list of tuples, each of which contains (param, gparam) 
+        i.e the partial derivative of cost by each SdA parameter '''       
+        
+        updates = OrderedDict()
+        for param, grad_update in gparams:
+            if param in self.updates:
+                last_update = self.updates[param]
+                delta = momentum * last_update - learning_rate * grad_update
+                updates[param] = param + delta
+                # update value of theano.shared in self.updates[param]
+                updates[last_update] = delta
+        return updates
+    
+    def sgd_adagrad_momentum(self, momentum, learning_rate, gparams):
+        ''' Returns a dictionary of theano symbolic variables indicating how
+        the shared variable parameters in the SdA should be updated, using AdaGrad
+        but with a decaying average of the gradients rather than sum
+    
+        :type momentum: theano.TensorVariable
+        :param momenum: momentum parameter for SGD parameter updates
+        
+        :type learning_rate: theano.tensor.shared
+        :param learning_rate: the base or master learning rate shared for all parameters
+        
+        :type gparams: list of tuples
+        :param gparams: list of tuples, each of which contains (param, gparam) 
+        i.e the partial derivative of cost by each SdA parameter   '''
+        
+        updates = OrderedDict()
+        for param, grad_update in gparams:
+            grad_sqrd_hist = self.updates[param]
+            grad_sqrd = momentum * grad_sqrd_hist + (1 - momentum) * (gparam **2) 
+            param_update_val = param - learning_rate * gparam / (1e-7 + (grad_sqrd)** 0.5)
+            updates[param] = param_update_val
+            # update value of theano.shared in self.updates[param]
+            updates[grad_sqrd_hist] = grad_sqrd
+                
+        return updates        
+    
+    def sgd_adagrad(self, learning_rate, gparams):
+        ''' Returns a dictionary of theano symbolic variables indicating how
+        the shared variable parameters in the SdA should be updated, using AdaGrad
+        
+        :type learning_rate: theano.tensor.shared
+        :param learning_rate: the base or master learning rate shared for all parameters
+        
+        :type gparams: list of tuples
+        :param gparams: list of tuples, each of which contains (param, gparam) 
+        i.e the partial derivative of cost by each SdA parameter   '''  
+        
+        updates = OrderedDict()
+        for param, grad_update in gparams:
+            grad_sqrd_hist = self.updates[param]
+            grad_sqrd = grad_sqrd_hist + gparam **2
+            param_update_val = param - learning_rate * gparam / (1e-7 + (grad_sqrd)** 0.5)
+            updates[param] = param_update_val
+            updates[grad_sqrd_hist] = grad_sqrd
+        
+        return updates
+                
+    
     
 ##############################  Training functions ##########################
 
@@ -407,8 +486,6 @@ class SdA(object):
         
         :type learning_rate: theano.tensor.shared
         :param learning_rate: the learning rate for pretraining 
-        
-
         '''
 
         # index to a minibatch
@@ -430,19 +507,7 @@ class SdA(object):
             cost, updates = dA.get_cost_gparams(corruption_level,learning_rate)
             
             # modify the updates to account for momentum smoothing 
-            mod_updates = OrderedDict()
-            for param, grad_update in updates:
-                if param in self.updates:
-                    last_update = self.updates[param]
-                    #DEBUG: print out names for last_update, param
-                    print "pretraining_functions: Retrieved " + last_update.name + " from self.updates with key " + param.name
-                    delta = momentum * last_update - grad_update
-                    mod_updates[param] = param + delta
-                    # update value of theano.shared in self.updates[param]
-                    mod_updates[last_update] = delta 
-                else:               
-                    mod_updates[param] = param - grad_update
-                
+            mod_updates = self.sgd_cm(learning_rate, momentum, updates)
                 
             # compile the theano function
             fn = theano.function(inputs=[index,momentum,
@@ -496,10 +561,6 @@ class SdA(object):
 
             # get the subset of model params involved in the limited reconstruction
             limited_params = self.params[:i*3]
-            
-            #DEBUG: which params are these?  Roll call.
-            for par in limited_params:
-                print "... build finetune limited reconstruction: Found shared variable param ", par.name
                 
             # compute the gradients with respect to the partial model parameters
             gparams = T.grad(self.reconstruction_error_limited(self.x, i), limited_params)
@@ -508,20 +569,7 @@ class SdA(object):
             assert len(gparams) == len(limited_params)
             
             # modify the updates to account for momentum smoothing 
-            mod_updates = OrderedDict()
-            
-            for param, grad_update in zip(limited_params, gparams):
-                if param in self.updates:
-                    last_update = self.updates[param]
-                    #DEBUG: print out names for last_update, param
-                    print "hybrid_pretraining_functions: Retrieved " + last_update.name + " from self.updates with key " + param.name
-                    delta = momentum * last_update - learning_rate * grad_update
-                    mod_updates[param] = param + delta
-                    # update value of theano.shared in self.updates[param]
-                    mod_updates[last_update] = delta 
-                else:               
-                    mod_updates[param] = param - learning_rate * grad_update
-                
+            mod_updates = self.sgd_cm(learning_rate, momentum, zip(limited_params, gparams))
                 
             # compile the theano function
             fn = theano.function(inputs=[index,momentum], 
@@ -575,9 +623,7 @@ class SdA(object):
         mod_updates = OrderedDict()
         for param, grad_update in updates:
             if param in self.updates:
-                last_update = self.updates[param]
-                #DEBUG: print out names for last_update, param
-                print "finetuning_functions: Retrieved " + last_update.name + " from self.updates with key " + param.name                
+                last_update = self.updates[param]                
                 delta = momentum * last_update - grad_update
                 mod_updates[param] = param + delta
                 # update value of theano.shared in self.updates[param]
