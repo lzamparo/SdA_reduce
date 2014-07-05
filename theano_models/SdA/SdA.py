@@ -514,13 +514,13 @@ class SdA(object):
             # apply the updates in accordnace with the SGD method
             if method == 'cm':
                 mod_updates = self.sgd_cm(learning_rate, momentum, updates)
-                input_list = [index,momentum,theano.Param(corruption_level, default=0.15)]
+                input_list = [index,momentum,theano.Param(corruption_level, default=0.25)]
             elif method == 'adagrad':
                 mod_updates = self.sgd_adagrad(learning_rate, updates)
-                input_list = [index,theano.Param(corruption_level, default=0.15)]
+                input_list = [index,theano.Param(corruption_level, default=0.25)]
             else:
                 mod_updates = self.sgd_adagrad_momentum(momentum, learning_rate, updates)
-                input_list = [index,momentum,theano.Param(corruption_level, default=0.15)]
+                input_list = [index,momentum,theano.Param(corruption_level, default=0.25)]
                 
             # compile the theano function
             fn = theano.function(inputs=input_list, 
