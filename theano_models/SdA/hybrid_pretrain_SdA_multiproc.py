@@ -111,7 +111,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=10, pretrain_lr=0.00001
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size,
                                                 learning_rate=learning_rate,
-                                                method='adagrad')
+                                                method='adagrad_momentum')
 
     print '... getting the hybrid training functions'
     hybrid_pretraining_fns = sda.build_finetune_limited_reconstruction(train_set_x=train_set_x, 
