@@ -16,7 +16,7 @@
 
 # To make substitutions from a higher up script: -a $FIRSTMODEL -b $SECONDMODEL -o $OFFSET -d $OUTDIRSUFFIX -l $LAYERTYPES
 cd $PBS_O_WORKDIR
-python ../pretrain_SdA_multiproc.py -d "${SCRATCH}/gpu_tests/SdA_results/5_layers/pretrain_output/$OUTDIRSUFFIX" -c 0.10 -a $FIRSTMODEL -b $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET -t $LAYERTYPES -l $LOSS
+python hybrid_pretrain_SdA_multiproc.py -d "${SCRATCH}/gpu_models/gb_hybrid_cm/3_layers/pretrain_output/$OUTDIRSUFFIX" -c 0.20 -a $FIRSTMODEL -b $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET -t $LAYERTYPES -l $LOSS -m NAG -s 15
 
 
 

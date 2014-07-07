@@ -40,19 +40,19 @@ do
     fi    
 done
 
-len=${#fiveLayerModelList[*]}
+#len=${#fiveLayerModelList[*]}
 
-for((i=1; i<=$len; i+=2 ))
-do
-    let prev=$i-1
-    first="${fiveLayerModelList[$i]}$outputLayer"
-    second="${fiveLayerModelList[$prev]}$outputLayer"
-    qsub submit_pretrain_gravity_5layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer",LAYERTYPES="$layerType",LOSS="$loss" 
-    ((offset+=5))
-    sleep 5
+#for((i=1; i<=$len; i+=2 ))
+#do
+#    let prev=$i-1
+#    first="${fiveLayerModelList[$i]}$outputLayer"
+#    second="${fiveLayerModelList[$prev]}$outputLayer"
+#    qsub submit_pretrain_gravity_5layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset",OUTDIRSUFFIX="$outputLayer",LAYERTYPES="$layerType",LOSS="$loss" 
+#    ((offset+=5))
+#    sleep 5
     
     # Each pair of jobs needs 30 data chunks, and there are 211 in total.  Reset the offset parameter if necessary.
-    if (( offset > 181 )); then 
-       offset=0
-    fi    
-done
+#    if (( offset > 181 )); then 
+#       offset=0
+#    fi    
+#done
