@@ -111,13 +111,13 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size,
                                                 learning_rate=learning_rate,
-                                                method='adagrad_momentum')
+                                                method='cm')
 
     print '... getting the hybrid training functions'
     hybrid_pretraining_fns = sda.build_finetune_limited_reconstruction(train_set_x=train_set_x, 
                                                                       batch_size=batch_size, 
                                                                       learning_rate=learning_rate,
-                                                                      method='adagrad_momentum')
+                                                                      method='cm')
     
     # DEBUG: should only have n_layers - 2 hybrid pretraining functions
     assert len(hybrid_pretraining_fns) == sda.n_layers - 2
@@ -152,7 +152,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             print >> output_file, learning_rate.get_value(borrow=True)
-            #decay_learning_rate()
+            decay_learning_rate()
             max_norm_regularization_fn(norm_limit=shared_args_dict['maxnorm'])
         
         # Do hybrid pretraining only on the middle layer(s)
@@ -165,7 +165,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
                 print >> output_file, numpy.mean(hybrid_c)
         
         # Reset the learning rate
-        #reset_learning_rate(numpy.asarray(pretrain_lr, dtype=numpy.float32))
+        reset_learning_rate(numpy.asarray(pretrain_lr, dtype=numpy.float32))
         
         if private_args.has_key('save'):
             print >> output_file, 'Pickling the model...'
