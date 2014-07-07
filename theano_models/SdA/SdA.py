@@ -379,9 +379,7 @@ class SdA(object):
         delta_t_updates = OrderedDict()
         for param in self.params:
             if param in self.updates:
-                delta_t = self.updates[param]
-                #DEBUG: print out names for delta_t, param
-                print "nag_param_update: Retrieved " + delta_t.name + " from self.updates with key " + param.name                
+                delta_t = self.updates[param]              
                 delta_t_updates[param] = param + momentum * delta_t
         fn = theano.function([momentum], [], updates = delta_t_updates)        
         return fn    

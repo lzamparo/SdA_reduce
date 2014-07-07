@@ -160,18 +160,9 @@ def finetune_SdA(shared_args,private_args,finetune_lr=0.00001, max_momentum=0.9,
             # apply max-norm regularization
             apply_max_norm_regularization(shared_args_dict['maxnorm'])          
 
-            if (t + 1) % validation_frequency == 0:
-                # DEBUG: do not rescale the weights, since they were trained with corruption and so might still get reduced activation. 
-                #Re-scale the weights, which will now all be used for activation
-                # to keep the expected activation fixed
-                # sda.scale_dA_weights(sda.dropout_rates)
-                
+            if (t + 1) % validation_frequency == 0:               
                 validation_losses = validate_model()
                 this_validation_loss = numpy.mean(validation_losses)
-                
-                # Re-scale the weights again, since after validation we're back to 
-                # less activation under dropout regularization               
-                # sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
                 
                 print >> output_file, ('epoch %i, minibatch %i/%i, validation error %f ' %
                       (epoch, minibatch_index + 1, n_train_batches,
