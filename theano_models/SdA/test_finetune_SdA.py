@@ -92,6 +92,12 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
     # Function to decrease the learning rate
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
                         updates={learning_rate: learning_rate * lr_decay})     
+
+    # Set up NAG parameter based updates if specified in the SdA
+    if sda.opt_method == 'NAG':
+        do_NAG = True
+        apply_last_update = sda.nag_param_update()
+
     
     print '... getting the finetuning functions'
     train_fn, validate_model = sda.build_finetune_functions_reconstruction(
@@ -180,6 +186,18 @@ def extract_arch(filename, model_regex):
     match = model_regex.match(filename)
     if match is not None:    
         return match.groups()[0]    
+
+def parse_dropout(d_string, model):
+    ''' Return a list of floats specified in d_string, describing how dropout should be applied.
+    Format for d_string is some part
+    Or, if d_string == 'none', make sure all components are kept for finetuning. '''
+    if d_string is not 'none':
+        parts = d_string.split('-')
+        assert len(parts) == len(model.split('_'))
+        return [float(f) / 100 for f in parts]
+    else:
+        model_parts = model.split('_')
+        return [1.0 for layer in model_parts]
     
 if __name__ == '__main__':
     
@@ -193,6 +211,7 @@ if __name__ == '__main__':
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
     parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, help = "limit the norm of each vector in each W matrix to norm_limit")
+    parser.add_option("-u","--dropout", dest = "dropout", default="none", help="String rep of dropout rates")
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -220,6 +239,10 @@ if __name__ == '__main__':
     p_args['arch'] = extract_arch(options.pr_file,model_name)
     q_args['arch'] = extract_arch(options.qr_file,model_name)
          
+	# Parse the droput parameters for both models
+    p_args['dropout'] = parse_dropout(options.dropout, p_args['arch'])
+    q_args['dropout'] = parse_dropout(options.dropout, q_args['arch'])
+
     # Determine where to load & save the first model
     parts = os.path.split(options.dir)
     pkl_load_file = os.path.join(parts[0],'pretrain_pkl_files',options.experiment,options.pr_file)

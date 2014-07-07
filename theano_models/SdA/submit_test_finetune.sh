@@ -18,7 +18,7 @@
 cd $PBS_O_WORKDIR
 FIRSTMODEL='SdA_600_300_10.pkl'
 SECONDMODEL='SdA_700_300_10.pkl'
-python test_finetune_SdA.py -d "${SCRATCH}/gpu_tests/SdA_results/3_layers/finetune_output" -e "10/relu" -x "10/relu" -p $FIRSTMODEL -q $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o 5 -n 50.0
+python test_finetune_SdA.py -d "${SCRATCH}/gpu_tests/SdA_results/sparse_init_nag/3_layers/finetune_output" -e "10/relu" -x "10/relu" -p $FIRSTMODEL -q $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o 5 -n 5.0 -u 80-80-100
 
 
 

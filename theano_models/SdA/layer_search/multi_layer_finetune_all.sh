@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Batch qsub submission script for 3,5 layer models 
+# Batch qsub submission script for 3,5 layer models
 
 # Submit 3 layer jobs
 
-three_arr=(`ls $SCRATCH/gpu_tests/SdA_results/3_layers/pretrain_pkl_files/10/relu`)
+three_arr=(`ls $SCRATCH/gpu_tests/SdA_results/sparse_init_nag/3_layers/pretrain_pkl_files/10/relu`)
 offset=0
 len=${#three_arr[*]}
 
@@ -16,16 +16,16 @@ do
     qsub submit_finetune_gravity_3layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset"
     ((offset+=5))
     sleep 5
-    
+
     # Each pair of jobs needs 30 data chunks, and there are 211 in total.  Reset the offset parameter if necessary.
-    if (( offset > 181 )); then 
+    if (( offset > 181 )); then
        offset=0
-    fi    
+    fi
 done
 
 # Submit 5 layer jobs
 
-five_arr=(`ls $SCRATCH/gpu_tests/SdA_results/5_layers/pretrain_pkl_files/10/relu`)
+five_arr=(`ls $SCRATCH/gpu_tests/SdA_results/sparse_init_nag/5_layers/pretrain_pkl_files/10/relu`)
 offset=0
 len=${#five_arr[*]}
 
@@ -37,11 +37,11 @@ do
     qsub submit_finetune_gravity_5layers.sh -v FIRSTMODEL="$first",SECONDMODEL="$second",OFFSET="$offset"
     ((offset+=5))
     sleep 5
-    
+
     # Each pair of jobs needs 30 data chunks, and there are 211 in total.  Reset the offset parameter if necessary.
-    if (( offset > 181 )); then 
+    if (( offset > 181 )); then
        offset=0
-    fi    
+    fi
 done
 
 

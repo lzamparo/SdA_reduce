@@ -4,9 +4,9 @@
 # N.B: PBS lines are interpreted by qsub.  Change these defaults as 
 # required
 #
-#PBS -l nodes=1:ppn=8:gpus=2,walltime=01:00:00
-#PBS -N Test_Pretrain_SdA
-#PBS -q arc
+#PBS -l nodes=1:ppn=12:gpus=2,walltime=04:00:00
+#PBS -N Test_Hybrid_Pretrain
+#PBS -q gravity
 
 # Load theano modules
 #cd ~/jobscripts
