@@ -596,7 +596,7 @@ class SdA(object):
                 mod_updates = self.sgd_adagrad_momentum(momentum, learning_rate, zip(limited_params,gparams))
                 input_list = [index,momentum]            
                 
-            # compile the theano function
+            # the hybrid pre-training function now takes into account the update algorithm and proper input
             fn = theano.function(inputs=input_list, 
                                  outputs=self.reconstruction_error_limited(self.x, i),
                                  updates=mod_updates,
@@ -607,7 +607,7 @@ class SdA(object):
             
         return hybrid_train_fns
     
-    def build_finetune_full_reconstruction(self, datasets, batch_size, learning_rate):
+    def build_finetune_full_reconstruction(self, datasets, batch_size, learning_rate, method='cm'):
         ''' 
         Generates a function `train` that implements one step of
         finetuning, a function `validate` that computes the reconstruction 
@@ -623,7 +623,11 @@ class SdA(object):
 
         :type learning_rate: theano.tensor.shared
         :param learning_rate: learning rate used during finetune stage
+        
+        :type method: string
+        :param method: specifies the flavour of SGD used to train each dA layer.  Accepted values are 'cm', 'adagrad', 'adagrad_momentum'
         '''
+        
         (train_set_x, valid_set_x) = datasets
         
         # compute number of minibatches for training, validation and testing
@@ -636,28 +640,23 @@ class SdA(object):
         gparams = T.grad(self.finetune_cost, self.params)       
         
         # momentum rate to use
-        momentum = T.scalar('momentum')        
-
-        # package up each param with it's gradient component * learning rate
-        updates = []
-        for param, gparam in zip(self.params, gparams):
-            updates.append((param, gparam * learning_rate))
-            
+        momentum = T.scalar('momentum')   
         
-        # modify the updates to account for momentum smoothing
-        mod_updates = OrderedDict()
-        for param, grad_update in updates:
-            if param in self.updates:
-                last_update = self.updates[param]                
-                delta = momentum * last_update - grad_update
-                mod_updates[param] = param + delta
-                # update value of theano.shared in self.updates[param]
-                mod_updates[last_update] = delta
-            else:               
-                mod_updates[param] = param - grad_update        
-                
+        assert method in ['cm','adagrad','adagrad_momentum']
 
-        train_fn = theano.function(inputs=[index, momentum],
+        # apply the updates in accordnace with the SGD method
+        if method == 'cm':
+            mod_updates = self.sgd_cm(learning_rate, momentum, zip(self.params,gparams))
+            input_list = [index,momentum]
+        elif method == 'adagrad':
+            mod_updates = self.sgd_adagrad(learning_rate, zip(self.params,gparams))
+            input_list = [index]
+        else:
+            mod_updates = self.sgd_adagrad_momentum(momentum, learning_rate, zip(self.params,gparams))
+            input_list = [index,momentum]        
+                
+        # compile the fine-tuning theano function, taking into account the update algorithm
+        train_fn = theano.function(inputs=input_list,
               outputs=self.finetune_cost,
               updates=mod_updates,
               givens={

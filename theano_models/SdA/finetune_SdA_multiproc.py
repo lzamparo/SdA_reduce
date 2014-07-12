@@ -19,7 +19,7 @@ from tables import openFile
 from datetime import datetime
 
 
-def finetune_SdA(shared_args, private_args, finetune_lr=0.0001, max_momentum=0.9, finetuning_epochs=50, lr_decay=0.99,
+def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9, finetuning_epochs=100, lr_decay=0.99,
              batch_size=50): 
     """ Finetune and validate a pre-trained SdA for the given number of training epochs.
     Batch size and finetuning epochs default values are picked to roughly match the reported values
@@ -97,12 +97,13 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.0001, max_momentum=0.9
     print '... getting the finetuning functions'
     train_fn, validate_model = sda.build_finetune_full_reconstruction(
                 datasets=datasets, batch_size=batch_size,
-                learning_rate=finetune_lr)
+                learning_rate=finetune_lr,
+                method='cm')
 
     print '... fine-tuning the model'    
 
     # early-stopping parameters
-    patience = 300 * n_train_batches  # look as this many batches regardless
+    patience = 50 * n_train_batches  # look as this many batches regardless
     patience_increase = 2.  # wait this much longer when a new best is
                             # found
     improvement_threshold = 0.995  # a relative improvement of this much is

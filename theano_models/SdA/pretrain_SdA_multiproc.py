@@ -111,7 +111,8 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     print '... getting the pretraining functions'
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size,
-                                                learning_rate=learning_rate)
+                                                learning_rate=learning_rate,
+                                                method='cm')
 
     print '... pre-training the model'
     start_time = time.clock()
