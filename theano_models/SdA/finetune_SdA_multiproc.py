@@ -137,9 +137,10 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9,
     #sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
     
     # Set up NAG parameter based updates if specified in the SdA
-    if sda.opt_method == 'NAG':
-        do_NAG = True
-        apply_last_update = sda.nag_param_update()
+    #if sda.opt_method == 'NAG':
+        #do_NAG = True
+        #apply_last_update = sda.nag_param_update()
+    do_NAG = False
 
     while (epoch < finetuning_epochs) and (not done_looping):
         epoch = epoch + 1
