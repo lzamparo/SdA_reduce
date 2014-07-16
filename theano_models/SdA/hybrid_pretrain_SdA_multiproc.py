@@ -67,6 +67,10 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     data_set_file = openFile(str(shared_args_dict['input']), mode = 'r')
     datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 30, offset = shared_args_dict['offset'])
     train_set_x = load_data_unlabeled(datafiles)
+
+    # DEBUG: get validation set too
+    validation_datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 5, offset = shared_args_dict['offset'] + 30)
+    valid_set_x = load_data_unlabeled(validation_datafiles)      
     data_set_file.close()
 
     # compute number of minibatches for training, validation and testing
@@ -119,6 +123,17 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
                                                                       learning_rate=learning_rate,
                                                                       method='cm')
     
+    # DEBUG: get full finetuning theano function
+    # get the training, validation function for the model
+    datasets = (train_set_x,valid_set_x)
+        
+    print '... getting the finetuning functions'
+    finetune_train_fn, validate_model = sda.build_finetune_full_reconstruction(
+                datasets=datasets, batch_size=batch_size,
+                learning_rate=learning_rate,
+                method='cm')    
+
+    
     # DEBUG: should only have n_layers - 2 hybrid pretraining functions
     assert len(hybrid_pretraining_fns) == sda.n_layers - 2
     
@@ -157,7 +172,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
         
         # Do hybrid pretraining only on the middle layer(s)
         if i > 0 and i < sda.n_layers - 1:
-            for h_epoch in xrange(10):
+            for h_epoch in xrange(20):
                 hybrid_c = []
                 for batch_index in xrange(n_train_batches):
                     hybrid_c.append(hybrid_pretraining_fns[i-1](index=batch_index,momentum=shared_args_dict['momentum']))  
@@ -176,9 +191,41 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
             f.close()
             os.chdir(current_dir)
 
+    print '... finetuning with final layer'
+    best_validation_loss = numpy.inf
+    for f_epoch in xrange(20):
+        for minibatch_index in xrange(n_train_batches):
+            minibatch_avg_cost = train_fn(minibatch_index, shared_args_dict['momentum'])
+                    
+            # DEBUG: monitor the training error
+            print >> output_file, ('Fine-tuning epoch %i, minibatch %i/%i, training error %f ' %
+                    (f_epoch, minibatch_index + 1, n_train_batches,
+                    minibatch_avg_cost))            
+    
+            # apply max-norm regularization
+            apply_max_norm_regularization(shared_args_dict['maxnorm'])          
+    
+        # validate every epoch               
+        validation_losses = validate_model()
+        this_validation_loss = numpy.mean(validation_losses)
+        
+        # save best model that achieved this best loss  
+        if this_validation_loss < best_validation_loss:  
+            print >> output_file, 'Pickling the model...'  
+            current_dir = os.getcwd()    
+            os.chdir(shared_args_dict['dir'])            
+            f = file(private_args['save'], 'wb')
+            cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
+            f.close()
+            os.chdir(current_dir)
+            
+        print >> output_file, ('epoch %i, minibatch %i/%i, validation error %f ' %
+              (f_epoch, minibatch_index + 1, n_train_batches,
+               this_validation_loss))        
+
     end_time = time.clock()
 
-    print >> output_file, ('The pretraining code for file ' +
+    print >> output_file, ('The hybrid training code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
     output_file.close()        
