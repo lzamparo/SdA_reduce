@@ -195,7 +195,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     best_validation_loss = numpy.inf
     for f_epoch in xrange(20):
         for minibatch_index in xrange(n_train_batches):
-            minibatch_avg_cost = train_fn(minibatch_index, shared_args_dict['momentum'])
+            minibatch_avg_cost = finetune_train_fn(minibatch_index, shared_args_dict['momentum'])
                     
             # DEBUG: monitor the training error
             print >> output_file, ('Fine-tuning epoch %i, minibatch %i/%i, training error %f ' %
