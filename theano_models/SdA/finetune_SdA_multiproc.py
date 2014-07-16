@@ -98,7 +98,7 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9,
     train_fn, validate_model = sda.build_finetune_full_reconstruction(
                 datasets=datasets, batch_size=batch_size,
                 learning_rate=finetune_lr,
-                method='cm')
+                method='adagrad_momentum')
 
     print '... fine-tuning the model'    
 
@@ -192,8 +192,8 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9,
             if patience <= t:
                 done_looping = True
                 break
-            
-        decay_learning_rate()
+        # not for adagrad and variants    
+        #decay_learning_rate()
 
     end_time = time.clock()
     print >> output_file, (('Optimization complete with best validation score of %f ') %
