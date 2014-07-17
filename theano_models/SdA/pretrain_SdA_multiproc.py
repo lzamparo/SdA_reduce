@@ -16,6 +16,7 @@ import numpy
 
 from extract_datasets import extract_unlabeled_chunkrange
 from load_shared import load_data_unlabeled
+from common_utils import get_arch_list, parse_layer_type, write_metadata
 from tables import openFile
 
 from datetime import datetime
@@ -58,7 +59,6 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     corruption_list = [shared_args_dict['corruption'] for i in arch_list]
     layer_types = parse_layer_type(shared_args_dict['layertype'], len(arch_list))    
     
-    
     output_filename = "stacked_denoising_autoencoder_" + "_".join(elem for elem in layer_types) + private_args['arch'] + "." + day + "." + hour
     output_file = open(output_filename,'w')
     os.chdir(current_dir)    
@@ -80,7 +80,6 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     # Set the initial value of the learning rate
     learning_rate = theano.shared(numpy.asarray(pretrain_lr, 
                                              dtype=theano.config.floatX))     
-    
     
     # Check if we can restore from a previously trained model,    
     # otherwise construct a new SdA
@@ -114,8 +113,6 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
                                                 learning_rate=learning_rate,
                                                 method='cm')
 
-    print '... pre-training the model'
-    start_time = time.clock()
     
     # Get corruption levels from the SdA.  
     corruption_levels = sda.corruption_levels
@@ -131,6 +128,14 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     
     # Set up functions for max norm regularization
     max_norm_regularization_fns = sda.max_norm_regularization()  
+
+    print '... writing meta-data to output file'
+    metadict = dict( (name,eval(name)) for name in ['n_train_batches','batch_size','pretraining_epochs','pretrain_lr'] )
+    metadict = dict(metadict.items() + shared_args_dict.items())
+    write_metadata(output_file, metadict)    
+
+    print '... pre-training the model'
+    start_time = time.clock()    
     
     for i in xrange(sda.n_layers):       
                 
@@ -165,55 +170,6 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
     output_file.close()        
-
-
-
-def get_arch_list(private_args):
-    """ Grab the string representation of the model architecture, put each layer element in a list
-    
-        :type private_args: dict
-        :param private_args: argument dictionary for the given models
-    
-    """
-    arch_str = private_args['arch']
-    arch_str_canonical = arch_str.replace('_','-')
-    arch_list_str = arch_str_canonical.split("-")
-    arch_list = [int(item) for item in arch_list_str]
-    if len(arch_list) > 1:
-        return arch_list
-    else:
-        errormsg = 'architecture is improperly specified : ' + arch_list[0] 
-        raise ValueError(errormsg)
-
-def parse_layer_type(layer_str, num_layers):
-    """ Return a list of strings identifying the types of layers to use when constructing this model.  
-    Acceptable configurations are: 
-        'gaussian': for a Gaussian-Bernoulli SdA
-        'bernoulli': for a purely Bernoulli SdA
-        'relu': for a ReLU SdA
-    
-    :type layer_str: string
-    :param layer_str: the string representation of the layer type
-        
-    :type num_layers: int
-    :param num_layers: number of layers
-    """
-    if layer_str.lower() == 'bernoulli':
-        layers = ['bernoulli' for i in xrange(num_layers)]
-        return layers
-    
-    elif layer_str.lower() == 'gaussian':
-        layers = ['bernoulli' for i in xrange(num_layers)]
-        layers[0] = layer_str.lower()
-        return layers
-    
-    elif layer_str.lower() == 'relu':
-        layers = ['relu' for i in xrange(num_layers)]
-        return layers
-    
-    else:
-        errormsg = 'incompatible layer type specified : ' + layer_str
-        raise ValueError(errormsg)
     
 
 if __name__ == '__main__':
@@ -245,7 +201,7 @@ if __name__ == '__main__':
     shared_args['input'] = options.inputfile
     shared_args['momentum'] = 0.8 # deprecated, should be max_momentum
     shared_args['weight_decay'] = 0.0
-    shared_args['learning_rate'] = 0.0001 # deprecated, should be initial learning rate that is then scheduled    
+    shared_args['learning_rate'] = 0.001 # deprecated, should be initial learning rate that is then scheduled    
     shared_args['corruption'] = options.corruption
     shared_args['offset'] = options.offset
     shared_args['layertype'] = options.layer_type

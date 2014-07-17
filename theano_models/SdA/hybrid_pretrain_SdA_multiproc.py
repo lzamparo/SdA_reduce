@@ -16,6 +16,8 @@ import numpy
 
 from extract_datasets import extract_unlabeled_chunkrange
 from load_shared import load_data_unlabeled
+from common_utils import get_arch_list, parse_layer_type, write_metadata
+
 from tables import openFile
 
 from datetime import datetime
@@ -137,6 +139,11 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     # DEBUG: should only have n_layers - 2 hybrid pretraining functions
     assert len(hybrid_pretraining_fns) == sda.n_layers - 2
     
+    print '... writing meta-data to output file'
+    metadict = dict( (name,eval(name)) for name in ['n_train_batches','batch_size','pretraining_epochs','pretrain_lr'] )
+    metadict = dict(metadict.items() + shared_args_dict.items())
+    write_metadata(output_file, metadict)    
+    
     print '... pre-training the model'
     start_time = time.clock()
     
@@ -230,54 +237,6 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
     output_file.close()        
 
-
-
-def get_arch_list(private_args):
-    """ Grab the string representation of the model architecture, put each layer element in a list
-    
-        :type private_args: dict
-        :param private_args: argument dictionary for the given models
-    
-    """
-    arch_str = private_args['arch']
-    arch_str_canonical = arch_str.replace('_','-')
-    arch_list_str = arch_str_canonical.split("-")
-    arch_list = [int(item) for item in arch_list_str]
-    if len(arch_list) > 1:
-        return arch_list
-    else:
-        errormsg = 'architecture is improperly specified : ' + arch_list[0] 
-        raise ValueError(errormsg)
-
-def parse_layer_type(layer_str, num_layers):
-    """ Return a list of strings identifying the types of layers to use when constructing this model.  
-    Acceptable configurations are: 
-        'gaussian': for a Gaussian-Bernoulli SdA
-        'bernoulli': for a purely Bernoulli SdA
-        'relu': for a ReLU SdA
-    
-    :type layer_str: string
-    :param layer_str: the string representation of the layer type
-        
-    :type num_layers: int
-    :param num_layers: number of layers
-    """
-    if layer_str.lower() == 'bernoulli':
-        layers = ['bernoulli' for i in xrange(num_layers)]
-        return layers
-    
-    elif layer_str.lower() == 'gaussian':
-        layers = ['bernoulli' for i in xrange(num_layers)]
-        layers[0] = layer_str.lower()
-        return layers
-    
-    elif layer_str.lower() == 'relu':
-        layers = ['relu' for i in xrange(num_layers)]
-        return layers
-    
-    else:
-        errormsg = 'incompatible layer type specified : ' + layer_str
-        raise ValueError(errormsg)
     
 
 if __name__ == '__main__':

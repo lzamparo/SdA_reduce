@@ -14,13 +14,14 @@ import numpy
 
 from extract_datasets import extract_unlabeled_chunkrange
 from load_shared import load_data_unlabeled
+from common_utils import extract_arch, parse_dropout, write_metadata
 from tables import openFile
 
 from datetime import datetime
 
 
-def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9, finetuning_epochs=100, lr_decay=0.99,
-             batch_size=50): 
+def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85, finetuning_epochs=300, lr_decay=0.99,
+             batch_size=100): 
     """ Finetune and validate a pre-trained SdA for the given number of training epochs.
     Batch size and finetuning epochs default values are picked to roughly match the reported values
     of Hinton & Salakhtudinov.   
@@ -84,6 +85,12 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9,
     sda = cPickle.load(f)
     f.close()        
     
+    print '... writing meta-data to output file'
+    metadict = dict( (name,eval(name)) for name in ['n_train_batches','batch_size','finetuning_epochs','finetune_lr'] )
+    metadict = dict(metadict.items() + shared_args_dict.items())
+    write_metadata(output_file, metadict)
+    
+    
     ########################
     # FINETUNING THE MODEL #
     ########################
@@ -103,7 +110,7 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9,
     print '... fine-tuning the model'    
 
     # early-stopping parameters
-    patience = 50 * n_train_batches  # look as this many batches regardless
+    patience = finetuning_epochs * n_train_batches  # look as this many batches regardless
     patience_increase = 2.  # wait this much longer when a new best is
                             # found
     improvement_threshold = 0.995  # a relative improvement of this much is
@@ -116,8 +123,6 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9,
 
     best_params = None
     best_validation_loss = numpy.inf
-    start_time = time.clock()
-
     done_looping = False
     epoch = 0
     
@@ -132,15 +137,10 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9,
     # Set up function for max norm regularization
     apply_max_norm_regularization = sda.max_norm_regularization()
     
-    # Set the dropout rates, and scale the weights up by the inverse of the dropout rates
-    sda.dropout_rates = private_args['dropout']
-    #sda.scale_dA_weights([1.0 / f for f in sda.dropout_rates])
-    
-    # Set up NAG parameter based updates if specified in the SdA
-    #if sda.opt_method == 'NAG':
-        #do_NAG = True
-        #apply_last_update = sda.nag_param_update()
+    # don't use NAG
     do_NAG = False
+    
+    start_time = time.clock()
 
     while (epoch < finetuning_epochs) and (not done_looping):
         epoch = epoch + 1
@@ -188,7 +188,6 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9,
                     cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
                     f.close()                    
                     
-
             if patience <= t:
                 done_looping = True
                 break
@@ -204,25 +203,6 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.9,
 
     output_file.close()        
     
-
-def extract_arch(filename, model_regex):
-    ''' Return the model architecture of this filename
-    Modle filenames look like SdA_1000_500_100_50.pkl'''
-    match = model_regex.match(filename)
-    if match is not None:    
-        return match.groups()[0]
-        
-def parse_dropout(d_string, model):
-    ''' Return a list of floats specified in d_string, describing how dropout should be applied.
-    Format for d_string is some part
-    Or, if d_string == 'none', make sure all components are kept for finetuning. '''
-    if d_string is not 'none':
-        parts = d_string.split('-')
-        assert len(parts) == len(model.split('_'))
-        return [float(f) / 100 for f in parts]
-    else:
-        model_parts = model.split('_')
-        return [1.0 for layer in model_parts]
         
 if __name__ == '__main__':
         
