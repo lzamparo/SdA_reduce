@@ -86,7 +86,7 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85
     f.close()        
     
     print '... writing meta-data to output file'
-    metadict = dict( (name,locals()[name]) for name in ['batch_size','finetuning_epochs','finetune_lr'] )
+    metadict = {'n_train_batches': n_train_batches, 'batch_size': batch_size,'finetuning_epochs': finetuning_epochs, 'finetune_lr': finetune_lr}
     metadict = dict(metadict.items() + shared_args_dict.items())
     write_metadata(output_file, metadict)
     
