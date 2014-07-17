@@ -140,7 +140,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     assert len(hybrid_pretraining_fns) == sda.n_layers - 2
     
     print '... writing meta-data to output file'
-    metadict = dict( (name,locals()[name]) for name in ['n_train_batches','batch_size','finetuning_epochs','finetune_lr'] )
+    metadict = dict( (name,locals()[name]) for name in ['batch_size','finetuning_epochs','finetune_lr'] )
     metadict = dict(metadict.items() + shared_args_dict.items())
     write_metadata(output_file, metadict)    
     

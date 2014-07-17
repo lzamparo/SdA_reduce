@@ -130,7 +130,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
     max_norm_regularization_fns = sda.max_norm_regularization()  
 
     print '... writing meta-data to output file'
-    metadict = dict( (name,locals()[name]) for name in ['n_train_batches','batch_size','finetuning_epochs','finetune_lr'] )
+    metadict = dict( (name,locals()[name]) for name in ['batch_size','finetuning_epochs','finetune_lr'] )
     metadict = dict(metadict.items() + shared_args_dict.items())
     write_metadata(output_file, metadict)       
 
