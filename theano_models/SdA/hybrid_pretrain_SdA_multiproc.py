@@ -153,7 +153,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
                 updates={learning_rate: lr_val})
     
     # Set up functions for max norm regularization
-    max_norm_regularization_fn = sda.max_norm_regularization()  
+    apply_max_norm_regularization = sda.max_norm_regularization()  
     
     for i in xrange(sda.n_layers):       
                 
@@ -168,7 +168,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
             print >> output_file, numpy.mean(c)
             print >> output_file, learning_rate.get_value(borrow=True)
             decay_learning_rate()
-            max_norm_regularization_fn(norm_limit=shared_args_dict['maxnorm'])
+            apply_max_norm_regularization(norm_limit=shared_args_dict['maxnorm'])
         
         # Do hybrid pretraining only on the middle layer(s)
         if i > 0 and i < sda.n_layers - 1:
