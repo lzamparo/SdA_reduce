@@ -105,7 +105,7 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85
     train_fn, validate_model = sda.build_finetune_full_reconstruction(
                 datasets=datasets, batch_size=batch_size,
                 learning_rate=finetune_lr,
-                method='adagrad_momentum')
+                method=shared_args_dict['sgd'])
 
     print '... fine-tuning the model'    
 
@@ -137,8 +137,11 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85
     # Set up function for max norm regularization
     apply_max_norm_regularization = sda.max_norm_regularization()
     
-    # don't use NAG
+    # Use NAG ?
     do_NAG = False
+    
+    # Use weight decay?
+    use_wd = shared_args_dict['sgd'].endswith('wd')
     
     start_time = time.clock()
 
@@ -152,7 +155,11 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85
             
             if do_NAG:
                 apply_last_update(momentum)
-            minibatch_avg_cost = train_fn(minibatch_index, momentum)
+                
+            if use_wd:
+                minibatch_avg_cost = train_fn(minibatch_index, momentum, shared_args_dict['weight_decay'])
+            else:
+                minibatch_avg_cost = train_fn(minibatch_index, momentum)
             
             # DEBUG: monitor the training error
             print >> output_file, ('epoch %i, minibatch %i/%i, training error %f ' %
@@ -160,7 +167,7 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85
                     minibatch_avg_cost))            
 
             # apply max-norm regularization
-            apply_max_norm_regularization(shared_args_dict['maxnorm'])          
+            #apply_max_norm_regularization(shared_args_dict['maxnorm'])          
 
             if (t + 1) % validation_frequency == 0:               
                 validation_losses = validate_model()
@@ -211,12 +218,13 @@ if __name__ == '__main__':
     parser.add_option("-d", "--dir", dest="dir", help="base output directory")
     parser.add_option("-e", "--pretrain_experiment", dest="experiment", help="directory name containing pre-trained pkl files for this experiment (below the base directory)")
     parser.add_option("-x", "--output_extension", dest="extension", help="output directory name below the base, named for this finetuning experiment")
-    parser.add_option("-p","--firstrestorefile",dest = "pr_file", help = "Restore the first model from this pickle file", default=None)
-    parser.add_option("-q","--secondrestorefile",dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
+    parser.add_option("-p","--firstrestorefile", dest="pr_file", help="Restore the first model from this pickle file", default=None)
+    parser.add_option("-q","--secondrestorefile", dest="qr_file", help="Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
-    parser.add_option("-n","--normlimit",dest = "norm_limit", type=float, default = 3.0, help = "limit the norm of each vector in each W matrix to norm_limit")
-    parser.add_option("-u","--dropout",dest = "dropout", default = "none", help = "A dash delimited string describing how dropout should be applied in finetuning, or 'none' for regular finetuning.")
+    parser.add_option("-n","--normlimit", dest = "norm_limit", type=float, default=3.0, help="limit the norm of each vector in each W matrix to norm_limit")
+    parser.add_option("-u","--dropout", dest="dropout", default="none", help="A dash delimited string describing how dropout should be applied in finetuning, or 'none' for regular finetuning.")
+    parser.add_option("-s","--sgdflavour", dest="sgd", default="cm", help="Variant of SGD to employ.  Currently accepting cm, adagrad, adagrad_momentum, cm_wd, adagrad_momentum_wd." )
     
     (options, args) = parser.parse_args()    
     
@@ -230,8 +238,9 @@ if __name__ == '__main__':
     shared_args['input'] = options.inputfile
     shared_args['offset'] = options.offset
     shared_args['momentum'] = 0.8
+    shared_args['weight_decay'] = 0.0001
     shared_args['maxnorm'] = options.norm_limit
-    
+    shared_args['sgd'] = options.sgd
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes

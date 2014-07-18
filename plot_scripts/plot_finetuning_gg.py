@@ -62,7 +62,7 @@ for f in model_files:
 
     if not training_dfs.has_key(f_model):
         training_dfs[f_model]= OrderedDict()
-        validation_dfs[f_model] = OrderedDict()
+        validation_dfs[f_model] = []
 
     infile = open(f, 'r')
 
@@ -72,12 +72,30 @@ for f in model_files:
         (epoch, mb_index, mb_total, phase, err) = parse_line(line,data_regex)
         if epoch is not None:
             if phase == 'validation':
-                validation_dfs[f_model][epoch] = [err]
+                validation_dfs[f_model].append(float(err))
                 continue
             if not training_dfs[f_model].has_key(epoch):
-                training_dfs[f_model][epoch] = [err]
+                training_dfs[f_model][epoch] = [float(err)]
             else:
-                training_dfs[f_model][epoch].append(err)
+                training_dfs[f_model][epoch].append(float(err))
     infile.close()
 
 print "...Done"
+
+print "...Subsampling from the validation scores to evenly get equal sized arrays"
+min_len = np.inf
+for key in validation_dfs:
+    f_len = len(validation_dfs[key])
+    if f_len < min_len:
+        min_len = f_len
+for key in validation_dfs:
+    validation_array = np.asarray(validation_dfs[key],dtype=np.float)
+    f_len = len(validation_array)
+    idx = np.arange(f_len)
+    np.random.shuffle(idx)
+    idx = idx[:min_len]
+    idx.sort()
+    validation_dfs[key] = validation_array[idx]
+    
+    
+

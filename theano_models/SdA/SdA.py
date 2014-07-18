@@ -413,6 +413,37 @@ class SdA(object):
                 updates[last_update] = delta
         return updates
     
+    def sgd_cm_wd(self, learning_rate, momentum, weight_decay, gparams):
+            ''' Returns a dictionary of theano symbolic variables indicating how
+            the shared variable parameters in the SdA should be updated, using classical 
+            momentum. 
+                
+            N.B: learning_rate should be a theano.shared variable declared in the
+            code driving the (pre)training of this SdA.
+        
+            :type momentum: theano.TensorVariable
+            :param momenum: momentum parameter for SGD parameter updates
+            
+            :type weight_decay: theano.TensorVariable
+            :param weight_decay: weight decay regularization parameter for SGD parameter updates
+            
+            :type learning_rate: theano.tensor.shared
+            :param learning_rate: the learning rate for pretraining   
+            
+            :type gparams: list of tuples
+            :param gparams: list of tuples, each of which contains (param, gparam) 
+            i.e the partial derivative of cost by each SdA parameter '''       
+            
+            updates = OrderedDict()
+            for param, grad_update in gparams:
+                if param in self.updates:
+                    last_update = self.updates[param]
+                    delta = momentum * last_update - learning_rate * grad_update - learning_rate * weight_decay * last_update
+                    updates[param] = param + delta
+                    # update value of theano.shared in self.updates[param]
+                    updates[last_update] = delta
+            return updates    
+    
     def sgd_adagrad_momentum(self, momentum, learning_rate, gparams):
         ''' Returns a dictionary of theano symbolic variables indicating how
         the shared variable parameters in the SdA should be updated, using AdaGrad
@@ -437,7 +468,36 @@ class SdA(object):
             # update value of theano.shared in self.updates[param]
             updates[grad_sqrd_hist] = grad_sqrd
                 
-        return updates        
+        return updates
+    
+    def sgd_adagrad_momentum_wd(self, momentum, learning_rate, weight_decay, gparams):
+            ''' Returns a dictionary of theano symbolic variables indicating how
+            the shared variable parameters in the SdA should be updated, using AdaGrad
+            but with a decaying average of the gradients rather than sum
+        
+            :type momentum: theano.TensorVariable
+            :param momenum: momentum parameter for SGD parameter updates
+            
+            :type weight_decay: theano.TensorVariable
+            :param weight_decay: weight decay regularization parameter for SGD parameter updates
+            
+            :type learning_rate: theano.tensor.shared
+            :param learning_rate: the base or master learning rate shared for all parameters
+            
+            :type gparams: list of tuples
+            :param gparams: list of tuples, each of which contains (param, gparam) 
+            i.e the partial derivative of cost by each SdA parameter   '''
+            
+            updates = OrderedDict()
+            for param, gparam in gparams:
+                grad_sqrd_hist = self.updates[param]
+                grad_sqrd = momentum * grad_sqrd_hist + (1 - momentum) * (gparam **2) 
+                param_update_val = param - learning_rate * gparam / (1e-7 + (grad_sqrd)** 0.5) - learning_rate * weight_decay * param
+                updates[param] = param_update_val
+                # update value of theano.shared in self.updates[param]
+                updates[grad_sqrd_hist] = grad_sqrd
+                    
+            return updates    
     
     def sgd_adagrad(self, learning_rate, gparams):
         ''' Returns a dictionary of theano symbolic variables indicating how
@@ -558,7 +618,10 @@ class SdA(object):
         index = T.lscalar('index') 
 
         # momentum rate to use
-        momentum = T.scalar('momentum')  
+        momentum = T.scalar('momentum')
+        
+        # weight decay to use
+        weight_decay = T.scalar('weight_decay')
         
         # begining of a batch, given `index`
         batch_begin = index * batch_size
@@ -570,7 +633,7 @@ class SdA(object):
         assert 2 < len(self.dA_layers)
         
         # Check on SGD method
-        assert method in ['cm','adagrad','adagrad_momentum']
+        assert method in ['cm','adagrad','adagrad_momentum','cm_wd','adagrad_momentum_wd']
         
         hybrid_train_fns = []
         for i in xrange(2,len(self.dA_layers)):
@@ -592,9 +655,15 @@ class SdA(object):
             elif method == 'adagrad':
                 mod_updates = self.sgd_adagrad(learning_rate, zip(limited_params,gparams))
                 input_list = [index]
-            else:
+            elif method == 'adagrad_momentum':
                 mod_updates = self.sgd_adagrad_momentum(momentum, learning_rate, zip(limited_params,gparams))
-                input_list = [index,momentum]            
+                input_list = [index,momentum]
+            elif method == 'cm_wd':
+                mod_updates = self.sgd_cm_wd(learning_rate, momentum, weight_decay, zip(limited_params,gparams))
+                input_list = [index,momentum,weight_decay]
+            else:
+                mod_updates = self.sgd_adagrad_momentum_wd(momentum, learning_rate, weight_decay, zip(limited_params,gparams))
+                input_list = [index,momentum,weight_decay]            
                 
             # the hybrid pre-training function now takes into account the update algorithm and proper input
             fn = theano.function(inputs=input_list, 
@@ -642,7 +711,10 @@ class SdA(object):
         # momentum rate to use
         momentum = T.scalar('momentum')   
         
-        assert method in ['cm','adagrad','adagrad_momentum']
+        # weight decay value to use
+        weight_decay = T.scalar('weight_decay')
+        
+        assert method in ['cm','adagrad','adagrad_momentum','cm_wd','adagrad_momentum_wd']
 
         # apply the updates in accordnace with the SGD method
         if method == 'cm':
@@ -651,9 +723,15 @@ class SdA(object):
         elif method == 'adagrad':
             mod_updates = self.sgd_adagrad(learning_rate, zip(self.params,gparams))
             input_list = [index]
-        else:
+        elif method == 'adagrad_momentum':
             mod_updates = self.sgd_adagrad_momentum(momentum, learning_rate, zip(self.params,gparams))
-            input_list = [index,momentum]        
+            input_list = [index,momentum]
+        elif method == 'cm_wd':
+            mod_updates = self.sgd_cm_wd(learning_rate, momentum, weight_decay, zip(self.params,gparams))
+            input_list = [index,momentum,weight_decay]
+        else:
+            mod_updates = self.sgd_adagrad_momentum_wd(momentum, learning_rate, weight_decay, zip(self.params,gparams))
+            input_list = [index,momentum,weight_decay]
                 
         # compile the fine-tuning theano function, taking into account the update algorithm
         train_fn = theano.function(inputs=input_list,
