@@ -238,7 +238,7 @@ if __name__ == '__main__':
     shared_args['input'] = options.inputfile
     shared_args['offset'] = options.offset
     shared_args['momentum'] = 0.8
-    shared_args['weight_decay'] = 0.0003
+    shared_args['weight_decay'] = 0.0001
     shared_args['maxnorm'] = options.norm_limit
     shared_args['sgd'] = options.sgd
     args[0] = shared_args
