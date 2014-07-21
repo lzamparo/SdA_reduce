@@ -69,7 +69,7 @@ def finetune_SdA(shared_args, private_args, finetuning_epochs=300, batch_size=10
     
     print >> output_file, 'Unpickling the model from %s ...' % (private_args['restore'])        
     f = file(private_args['restore'], 'rb')
-    sda = cPickle.load(f)
+    my_sda = cPickle.load(f)
     f.close()        
     
     print '... writing meta-data to output file'
@@ -85,7 +85,7 @@ def finetune_SdA(shared_args, private_args, finetuning_epochs=300, batch_size=10
     datasets = (train_set_x,valid_set_x)
     
     print '... getting the finetuning functions'
-    train_fn, validate_model = sda.build_finetune_full_reconstruction(
+    train_fn, validate_model = my_sda.build_finetune_full_reconstruction(
                 datasets=datasets, batch_size=batch_size,
                 learning_rate=finetune_lr,
                 method=shared_args_dict['sgd'])
