@@ -14,9 +14,9 @@
 
 # Run the job
 
-# To make substitutions from a higher up script: -a $FIRSTMODEL -b $SECONDMODEL -o $OFFSET
+# To make substitutions from a higher up script: -l $LEARNINGRATE -o $OFFSET
 cd $PBS_O_WORKDIR
-python hyperparam_multiproc.py -d "${SCRATCH}/gpu_models/SdA/hyper_opt/2013-06-26" -s learning_rate -a $FIRSTMODEL -b $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET
+python hyperparam_multiproc.py -d "${SCRATCH}/gpu_models/gb_hybrid_cm/hyperparam_search" -l $LEARNINGRATE -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET -t learning_rate
 
 
 
