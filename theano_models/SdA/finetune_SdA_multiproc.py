@@ -225,7 +225,7 @@ if __name__ == '__main__':
     parser.add_option("-n","--normlimit", dest = "norm_limit", type=float, default=3.0, help="limit the norm of each vector in each W matrix to norm_limit")
     parser.add_option("-u","--dropout", dest="dropout", default="none", help="A dash delimited string describing how dropout should be applied in finetuning, or 'none' for regular finetuning.")
     parser.add_option("-s","--sgdflavour", dest="sgd", default="cm", help="Variant of SGD to employ.  Currently accepting cm, adagrad, adagrad_momentum, cm_wd, adagrad_momentum_wd." )
-    
+    parser.add_option("-w","--weightdecay", dest = "weight_decay", type=float, default=0.0001, help="L2 weight decay penalty on layer params.")
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -238,7 +238,7 @@ if __name__ == '__main__':
     shared_args['input'] = options.inputfile
     shared_args['offset'] = options.offset
     shared_args['momentum'] = 0.8
-    shared_args['weight_decay'] = 0.0001
+    shared_args['weight_decay'] = options.weight_decay
     shared_args['maxnorm'] = options.norm_limit
     shared_args['sgd'] = options.sgd
     args[0] = shared_args
