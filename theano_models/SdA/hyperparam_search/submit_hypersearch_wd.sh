@@ -4,7 +4,7 @@
 # N.B: PBS lines are interpreted by qsub.  Change these defaults as 
 # required
 #
-#PBS -l nodes=1:ppn=12:gpus=2,walltime=12:00:00
+#PBS -l nodes=1:ppn=12:gpus=2,walltime=2:00:00
 #PBS -N SdA_hyperparams
 #PBS -q gravity
 
