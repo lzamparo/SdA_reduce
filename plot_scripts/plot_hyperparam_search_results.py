@@ -87,4 +87,10 @@ three_layer = master_df[master_df.model == '1000_400_20']
 three_layer = three_layer[["epoch","score","value","param"]]
 four_layer = master_df[master_df.model != '1000_400_20']
 four_layer = four_layer[["epoch","score","value","param"]]
-print ggplot(master_df, aes(x='epoch', y='score', color='value')) + geom_line() + facet_grid('param','model')
+
+three_layer.to_csv(path_or_buf="three_layer_model.csv")
+four_layer.to_csv(path_or_buf="four_layer_model.csv")
+master_df.to_csv(path_or_buf="both_models.csv")
+#print ggplot(three_layer, aes(x='epoch', y='score', color='value')) + \
+#      geom_line() + \
+#      facet_wrap("param")
