@@ -171,11 +171,13 @@ if __name__ == '__main__':
     parser.add_option("-d", "--dir", dest="dir", help="base output directory")
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
-    parser.add_option("-m","--momentum", dest="momentum", type=float, default=0.80, help="The auto-correlation coefficient for tracking the sum of squares of gradients for adagrad.")
+    parser.add_option("-m","--momentum", dest="momentum", type=float, default=0.90, help="The auto-correlation coefficient for tracking the sum of squares of gradients for adagrad.")
     parser.add_option("-l","--learningrate", dest="learningrate", type=float, default=0.001, help="Master learning rate for adagrad SGD flavour.")
     parser.add_option("-s","--sgdflavour", dest="sgd", default="adagrad_momentum_wd", help="Variant of SGD to employ.  Currently accepting cm, adagrad, adagrad_momentum, cm_wd, adagrad_momentum_wd." )
     parser.add_option("-w","--weightdecay", dest="weight_decay", type=float, default=0.0001, help="L2 weight decay penalty on layer params.")
     parser.add_option("-t","--tag", dest="tag", help="identifies which hyperparam is being tested in this experiment.")
+    parser.add_option("-n","--normlimit", dest = "norm_limit", type=float, default=3.0, help="limit the norm of each vector in each W matrix to norm_limit")
+    parser.add_option("-u","--dropout", dest="dropout", default="none", help="A dash delimited string describing how dropout should be applied in finetuning, or 'none' for regular finetuning.")    
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes

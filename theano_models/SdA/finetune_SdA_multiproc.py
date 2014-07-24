@@ -20,20 +20,15 @@ from tables import openFile
 from datetime import datetime
 
 
-def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85, finetuning_epochs=300, lr_decay=0.99,
+def finetune_SdA(shared_args, private_args, finetune_lr=0.0001, finetuning_epochs=300, lr_decay=0.99,
              batch_size=100): 
     """ Finetune and validate a pre-trained SdA for the given number of training epochs.
     Batch size and finetuning epochs default values are picked to roughly match the reported values
     of Hinton & Salakhtudinov.   
 
-    
     :type finetune_lr: float
     :param finetune_lr: learning rate used in the finetune stage
     (factor for the stochastic gradient)
-
-    :type max_momentum: float
-    :param momentum: the maximum value for momentum given to the previous update when 
-    calculating the present update to the weights
     
     :type lr_decay: float
     :param lr_decay: the rate at which the learning rate decays after each epoch
@@ -89,14 +84,10 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85
     metadict = {'n_train_batches': n_train_batches, 'batch_size': batch_size,'finetuning_epochs': finetuning_epochs, 'finetune_lr': finetune_lr}
     metadict = dict(metadict.items() + shared_args_dict.items())
     write_metadata(output_file, metadict)
-    
-    
+      
     ########################
     # FINETUNING THE MODEL #
     ########################
-
-    # Set the dropout rates, and scale the weights up by the inverse of the dropout rates
-    sda.dropout_rates = private_args['dropout']
 
     # get the training, validation function for the model
     datasets = (train_set_x,valid_set_x)
@@ -134,12 +125,6 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
                     updates={learning_rate: learning_rate * lr_decay})    
     
-    # Set up function for max norm regularization
-    apply_max_norm_regularization = sda.max_norm_regularization()
-    
-    # Use NAG ?
-    do_NAG = False
-    
     # Use weight decay?
     use_wd = shared_args_dict['sgd'].endswith('wd')
     
@@ -150,24 +135,17 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85
         
         for minibatch_index in xrange(n_train_batches):
             # Calculate momentum value
-            t = (epoch - 1) * n_train_batches + minibatch_index
-            momentum = numpy.asarray(min(1 - numpy.power(2,-1 - numpy.log2(numpy.floor(t / finetuning_epochs) +1)), max_momentum),dtype=numpy.float32)          
-            
-            if do_NAG:
-                apply_last_update(momentum)
+            t = (epoch - 1) * n_train_batches + minibatch_index          
                 
             if use_wd:
-                minibatch_avg_cost = train_fn(minibatch_index, momentum, shared_args_dict['weight_decay'])
+                minibatch_avg_cost = train_fn(minibatch_index, shared_args_dict['momentum'], shared_args_dict['weight_decay'])
             else:
-                minibatch_avg_cost = train_fn(minibatch_index, momentum)
+                minibatch_avg_cost = train_fn(minibatch_index, shared_args_dict['momentum'])
             
             # DEBUG: monitor the training error
             print >> output_file, ('epoch %i, minibatch %i/%i, training error %f ' %
                     (epoch, minibatch_index + 1, n_train_batches,
-                    minibatch_avg_cost))            
-
-            # apply max-norm regularization
-            #apply_max_norm_regularization(shared_args_dict['maxnorm'])          
+                    minibatch_avg_cost))                 
 
             if (t + 1) % validation_frequency == 0:               
                 validation_losses = validate_model()
@@ -198,8 +176,6 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.001, max_momentum=0.85
             if patience <= t:
                 done_looping = True
                 break
-        # not for adagrad and variants    
-        #decay_learning_rate()
 
     end_time = time.clock()
     print >> output_file, (('Optimization complete with best validation score of %f ') %
@@ -218,14 +194,13 @@ if __name__ == '__main__':
     parser.add_option("-d", "--dir", dest="dir", help="base output directory")
     parser.add_option("-e", "--pretrain_experiment", dest="experiment", help="directory name containing pre-trained pkl files for this experiment (below the base directory)")
     parser.add_option("-x", "--output_extension", dest="extension", help="output directory name below the base, named for this finetuning experiment")
-    parser.add_option("-p","--firstrestorefile", dest="pr_file", help="Restore the first model from this pickle file", default=None)
-    parser.add_option("-q","--secondrestorefile", dest="qr_file", help="Restore the second model from this pickle file", default=None)
+    parser.add_option("-p", "--firstrestorefile", dest="pr_file", help="Restore the first model from this pickle file", default=None)
+    parser.add_option("-q", "--secondrestorefile", dest="qr_file", help="Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
     parser.add_option("-o", "--offset", dest="offset", type="int", help="use this offset for reading input from the hdf5 file")
-    parser.add_option("-n","--normlimit", dest = "norm_limit", type=float, default=3.0, help="limit the norm of each vector in each W matrix to norm_limit")
-    parser.add_option("-u","--dropout", dest="dropout", default="none", help="A dash delimited string describing how dropout should be applied in finetuning, or 'none' for regular finetuning.")
-    parser.add_option("-s","--sgdflavour", dest="sgd", default="cm", help="Variant of SGD to employ.  Currently accepting cm, adagrad, adagrad_momentum, cm_wd, adagrad_momentum_wd." )
-    parser.add_option("-w","--weightdecay", dest = "weight_decay", type=float, default=0.0001, help="L2 weight decay penalty on layer params.")
+    parser.add_option("-m", "--momentum", dest="momentum", type=float, default=0.90, help="The auto-correlation coefficient for tracking the sum of squares of gradients for adagrad.")
+    parser.add_option("-s", "--sgdflavour", dest="sgd", default="cm", help="Variant of SGD to employ.  Currently accepting cm, adagrad, adagrad_momentum, cm_wd, adagrad_momentum_wd." )
+    parser.add_option("-w", "--weightdecay", dest = "weight_decay", type=float, default=0.0001, help="L2 weight decay penalty on layer params.")
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -237,9 +212,8 @@ if __name__ == '__main__':
     shared_args['dir'] = os.path.join(options.dir,options.extension)
     shared_args['input'] = options.inputfile
     shared_args['offset'] = options.offset
-    shared_args['momentum'] = 0.8
+    shared_args['momentum'] = 0.9
     shared_args['weight_decay'] = options.weight_decay
-    shared_args['maxnorm'] = options.norm_limit
     shared_args['sgd'] = options.sgd
     args[0] = shared_args
     
