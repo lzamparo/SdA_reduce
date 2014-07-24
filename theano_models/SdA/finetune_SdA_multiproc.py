@@ -228,10 +228,6 @@ if __name__ == '__main__':
     model_name = re.compile(".*?_([\d_]+).pkl")    
     p_args['arch'] = extract_arch(options.pr_file,model_name)
     q_args['arch'] = extract_arch(options.qr_file,model_name)
-    
-    # Parse the droput parameters for both models
-    p_args['dropout'] = parse_dropout(options.dropout, p_args['arch'])
-    q_args['dropout'] = parse_dropout(options.dropout, q_args['arch'])
          
     # Determine where to load & save the first model
     parts = os.path.split(options.dir)
