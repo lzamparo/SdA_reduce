@@ -37,13 +37,13 @@ import numpy as np
 import pandas as pd
 from collections import OrderedDict
 
-from ggplot import *
-
 # Extract the model name from each filename.
 def extract_model_and_params(regex,filename):
     match = regex.match(filename)
     if match is not None:
-        return match.groups()
+        method, layertypes, arch = match.groups()
+        layertype = layertypes.split('_')[0]
+        return [method,layertype,arch]
 
 # Extract the layer and cost from a line
 def parse_line(line,data_regex):
@@ -51,66 +51,57 @@ def parse_line(line,data_regex):
     if match is not None:
         return match.groups()
     else:
-        return (None, None, None, None, None)
+        return (None, None, None)
 
-input_dir = '/data/sda_output_data/test_hyperparam_output'
-
-# read a list of all files in the directory that match model output files
+input_dir = '/data/sda_output_data/init_exps'
 currdir = os.getcwd()
-os.chdir(input_dir)
-model_files = os.listdir(".")
 
 # compile a regex to extract the model from a given filename
 model_and_param = re.compile("hybrid_pretraining_([a-z]+)_([a-z_]+)([\d_]+)")
-data_regex = re.compile("[a-zA-Z-]+ ([\d])\, epoch ([\d])\, cost ([\d.]+)")
+data_regex = re.compile("Pre-training layer (\d), epoch (\d), cost  ([\d.]+)")
 
-# Store the contents of each file as a DataFrame, add it to the hyperparam_dfs list.
-hyperparam_dfs = []
-print "...Processing files"
+# Parse each file and add the resultant DataFrame to this list
+df_lists = []
 
-# for each file: 
-for f in model_files:
-    validation_model = []
-    epoch_list = []
-    if not f.startswith("Pre-training"):
-        continue
-    f_model,h_param = extract_model_and_params(model_and_param, f)
-
-    infile = open(f, 'r')
-    for line in infile:
-        if line.startswith(h_param):
-            h_value = float(line.strip().split()[1])
-        if not line.startswith("epoch"):
-            continue
-        (epoch, mb_index, mb_total, phase, err) = parse_line(line,data_regex)
-        if epoch is not None and phase == 'validation':
-            epoch_list.append(int(epoch))
-            validation_model.append(float(err))
-            
-    infile.close()
+for init in ['dense','sparse']:
+    print ("...Processing %s files") % init
+    os.chdir(os.path.join(input_dir,init))
+    model_files = os.listdir(".")   
     
-    # build the df, store in list
-    model_list = [f_model for i in xrange(len(validation_model))]
-    h_param_list = [h_param for i in xrange(len(validation_model))]
-    h_value_list = [str(h_value) for i in xrange(len(validation_model))]
-    f_dict = {"model": model_list, "param": h_param_list, "value": h_value_list, "score": validation_model, "epoch": epoch_list}
-    hyperparam_dfs.append(pd.DataFrame(data=f_dict))
+    for f in model_files:
+        epoch_list = []
+        layer_list = []
+        score_list = []
+        if not f.startswith("hybrid_pretraining"):
+            continue
+        method,layertype,arch = extract_model_and_params(model_and_param, f)
+    
+        infile = open(f, 'r')
+        for line in infile:
+            if not line.startswith("Pre-training"):
+                continue
+            (layer, epoch, err) = parse_line(line,data_regex)
+            if epoch is not None:
+                epoch_list.append(int(epoch))
+                score_list.append(float(err))
+                layer_list.append(int(layer))
+                
+        infile.close()
+        
+        # build the df, store in list
+        arch_list = [arch for i in xrange(len(score_list))]
+        init_list = [init for i in xrange(len(score_list))]
+        model_list = [layertype for i in xrange(len(score_list))]
+        f_dict = {"arch": arch_list, "init": init_list, "units": model_list, "layer": layer_list, "score": score_list, "epoch": epoch_list}
+        df_lists.append(pd.DataFrame(data=f_dict))
     
 print "...Done"
 print "...rbinding DataFrames"
-master_df = hyperparam_dfs[0]
-for i in xrange(1,len(hyperparam_dfs)):
-    master_df = master_df.append(hyperparam_dfs[i])
+master_df = df_lists[0]
+for i in xrange(1,len(df_lists)):
+    master_df = master_df.append(df_lists[i])
 print "...Done"    
 
-three_layer = master_df[master_df.model == '1000_400_20']
-three_layer = three_layer[["epoch","score","value","param"]]
-four_layer = master_df[master_df.model != '1000_400_20']
-four_layer = four_layer[["epoch","score","value","param"]]
-
-three_layer.to_csv(path_or_buf="three_layer_model.csv")
-four_layer.to_csv(path_or_buf="four_layer_model.csv")
-master_df.to_csv(path_or_buf="both_models.csv")
-print ggplot(three_layer, aes(x='epoch', y='score', color='value')) + \
-      geom_line() + \
-      facet_wrap("param")
+os.chdir(input_dir)
+master_df.to_csv(path_or_buf="sparse_vs_dense.csv",index=False)
+os.chdir(currdir)

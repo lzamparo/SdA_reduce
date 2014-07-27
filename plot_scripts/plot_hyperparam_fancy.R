@@ -1,7 +1,7 @@
 library(ggplot2)
 
 curr_dir <- getwd()
-setwd('~/projects/sda_output_data/test_hyperparam_output')
+setwd('/data/sda_output_data/test_hyperparam_output')
 
 # load the data, ditch the first column, which is epochs numbered from zero
 three_layers <- read.csv('three_layer_model.csv', colClasses=c('numeric','numeric','numeric','factor','factor'))
