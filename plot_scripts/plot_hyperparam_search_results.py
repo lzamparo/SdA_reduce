@@ -33,7 +33,7 @@ def parse_line(line,data_regex):
     else:
         return (None, None, None, None, None)
 
-input_dir = '/home/lee/projects/sda_output_data/test_hyperparam_output'
+input_dir = '/data/sda_output_data/test_hyperparam_output'
 
 # read a list of all files in the directory that match model output files
 currdir = os.getcwd()
