@@ -15,6 +15,7 @@ import time
 import numpy
 
 from extract_datasets import extract_unlabeled_chunkrange, store_unlabeled_byarray
+from common_utils import extract_arch
 from load_shared import load_data_unlabeled
 from tables import openFile, Filters 
 
@@ -73,7 +74,7 @@ def feedforward_SdA(shared_args,private_args):
     f.close()    
     
     datafile = extract_unlabeled_chunkrange(data_set_file, num_files=len(arrays_list))
-    this_x = load_data_unlabeled(datafile)    
+    this_x = load_data_unlabeled(datafile)  
     
     print '... getting the encoding function'
     encode_fn = sda.build_encoding_functions(dataset=this_x)    
@@ -90,13 +91,6 @@ def feedforward_SdA(shared_args,private_args):
     data_set_file.close()
     h5file.close()       
     
-
-def extract_arch(filename, model_regex):
-    ''' Return the model architecture of this filename
-    Modle filenames look like SdA_1000_500_100_50.pkl'''
-    match = model_regex.match(filename)
-    if match is not None:    
-        return match.groups()[0]
 
 def calculate_offsets(arrays_list):
     ''' Return the names and endpoint tuples of each chunk 
