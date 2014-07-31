@@ -1,5 +1,4 @@
 from sklearn import metrics
-from sklearn.cluster import KMeans
 from sklearn.mixture import GMM
 from sklearn.preprocessing import scale
 from sklearn.manifold import LocallyLinearEmbedding
@@ -59,37 +58,29 @@ datafile.close()
 
 # Build the output arrays
 cells = opts.high / opts.step
-lle_kmeans_results = np.zeros((cells,opts.iters))
 lle_gmm_results = np.zeros((cells,opts.iters))
 
 D = scale(X[:,0:612])
 
 n_samples, n_features = D.shape
-n_neighbors = 20
+# chosen by hyperparam search in a separate test.
+n_neighbors = 35
 
 # For the specified number of principal components, do the clustering
 dimension_list = range(opts.low, opts.high + 1, opts.step)
 for i in dimension_list:
     index = (i / opts.step) - 1     
-    clf = LocallyLinearEmbedding(n_neighbors, n_components=i, method='standard')
-    X_lle = clf.fit_transform(D)
+    lle = LocallyLinearEmbedding(n_neighbors, n_components=i, method='standard')
+    X_lle = lle.fit_transform(D)
     
     for j in range(0,opts.iters,1):
-        km = KMeans(n_clusters=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  
-        #print "Clustering LLE data with %s" % km
-        gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=100)
-        
-        km.fit(X_lle)
+        gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=1000)
         gaussmix.fit(X_lle)
-        gaussmix_labels = gaussmix.predict(X_lle)
-        print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)      
+        gaussmix_labels = gaussmix.predict(X_lle)    
         print "Gaussian mixture homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], gaussmix_labels)
-        lle_kmeans_results[index,j] = metrics.homogeneity_score(labels[:,0], km.labels_)
         lle_gmm_results[index,j] = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
 # Take the mean across runs?
 #lle_means = lle_results.mean(axis=1)
 
 # Save the data to a file:
-#np.savetxt("lle_results.txt", lle_means)
-np.save(opts.outputfile + "_kmeans", lle_kmeans_results)
 np.save(opts.outputfile + "_gmm", lle_gmm_results)

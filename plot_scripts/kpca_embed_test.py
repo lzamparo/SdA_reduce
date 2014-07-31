@@ -1,5 +1,4 @@
 from sklearn import metrics
-from sklearn.cluster import KMeans
 from sklearn.mixture import GMM
 from sklearn.decomposition import KernelPCA
 from sklearn.preprocessing import scale
@@ -58,7 +57,6 @@ datafile.close()
 
 # Build the output arrays
 cells = opts.high / opts.step
-kpca_km_results = np.zeros((cells,opts.iters))
 kpca_gmm_results = np.zeros((cells,opts.iters))
 
 D = scale(X[:,0:612])
@@ -71,19 +69,12 @@ for i in dimension_list:
     D_kpca = kpca.fit_transform(D)
     
     for j in range(0,opts.iters,1):
-        km = KMeans(n_clusters=true_k, init='k-means++', max_iter=1000, n_init=10, verbose=1)  
-        gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=100)        
-        km.fit(D_kpca[:,0:(i-1)])
+        gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=1000)       
         gaussmix.fit(D_kpca[:,0:(i-1)])
         gaussmix_labels = gaussmix.predict(D_kpca[:,0:(i-1)])
-        print "K-means homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], km.labels_)
         print "Gaussian mixture homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], gaussmix_labels)
-        kpca_km_results[index,j] = metrics.homogeneity_score(labels[:,0], km.labels_)
         kpca_gmm_results[index,j] = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
         
-        
-         
-       
+               
 # Save the data to a file:
-np.save(opts.outputfile + "_kmeans", kpca_km_results)
 np.save(opts.outputfile + "_gmm", kpca_gmm_results)
