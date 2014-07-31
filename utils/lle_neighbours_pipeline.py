@@ -16,7 +16,7 @@ import pickle
 from optparse import OptionParser
 from tables import *
 
-from sklearn.manifold import Isomap
+from sklearn.manifold import LocallyLinearEmbedding
 from sklearn.cluster import KMeans
 from sklearn.metrics import v_measure_score, make_scorer, homogeneity_score
 from extract_datasets import extract_labeled_chunkrange
@@ -88,17 +88,17 @@ datafile.close()
 neighbours = np.arange(5,50,5)
 
 # Set up the method -> kmeans -> h-measure && LLE -> kmeans -> h-measure pipelines
-isomap = Isomap(n_neighbors=5, n_components=30)
+lle =  LocallyLinearEmbedding(n_neighbors=5, n_components=30)
 kmeans = KMeans(n_clusters=3)
 
 # Make a scoring function for the pipeline
 v_measure_scorer = make_scorer(v_measure_score)
 homogeneity_scorer = make_scorer(homogeneity_score)
 
-pipe = Pipeline(steps=[('isomap', isomap), ('kmeans', kmeans)])
+pipe = Pipeline(steps=[('lle', lle), ('kmeans', kmeans)])
 
 # Set the model parameters to cycle over using '__' a prefix
-estimator = GridSearchCV(pipe, dict(isomap__n_neighbors=neighbours), scoring=homogeneity_scorer, n_jobs=opts.jobs)
+estimator = GridSearchCV(pipe, dict(lle__n_neighbors=neighbours), scoring=homogeneity_scorer, n_jobs=opts.jobs)
 estimator.fit(D_scaled,D_labels)
 
 # Dump the estimator to a file
