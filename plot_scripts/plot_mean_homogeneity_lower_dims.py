@@ -91,7 +91,7 @@ if opts.sdainput is not None:
 
 P.xlim(0,6)
 P.ylim(0,0.50)
-P.title('3-component Gaussian mixture model test')
+P.title('Homogeneity test: mixture of 3 gaussians')
 P.xlabel('Dimension of the Data')
 P.ylabel('Average Homogeneity')
 locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
@@ -100,6 +100,9 @@ P.legend(loc = 7,numpoints=1)    # legend centre right
 
 outfile = opts.outfile + ".gmm.pdf"
 P.savefig(outfile, dpi=100, format="pdf")
+
+
+
 
 ####################  K-means test ####################
 
