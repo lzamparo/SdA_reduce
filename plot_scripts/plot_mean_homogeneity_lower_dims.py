@@ -82,7 +82,7 @@ if opts.sdainput is not None:
     sda_results = []
     
     for i, dim in enumerate(dims_list):
-        parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'gmm'))
+        parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim)))
         results_dict = return_top(parsed_vals,n)
         labels, scores= [list(t) for t in zip(*results_dict)]
         sda_results.append(scores)
