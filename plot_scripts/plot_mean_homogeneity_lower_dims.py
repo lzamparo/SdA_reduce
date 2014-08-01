@@ -96,7 +96,7 @@ P.xlabel('Dimension of the Data')
 P.ylabel('Average Homogeneity')
 locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
 P.xticks(locs,['',50,40,30,20,10])
-P.legend(loc = 'upper right',numpoints=1)  
+P.legend(loc = 'lower right',numpoints=1)  
 
 outfile = opts.outfile + ".gmm.pdf"
 P.savefig(outfile, dpi=100, format="pdf")
