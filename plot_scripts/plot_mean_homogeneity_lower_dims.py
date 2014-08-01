@@ -90,7 +90,7 @@ if opts.sdainput is not None:
         ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA" if i == 0 else "_no_legend",markersize=9)
 
 P.xlim(0,6)
-P.ylim(0,0.50)
+P.ylim(0,0.80)
 P.title('Homogeneity test: mixture of 3 gaussians')
 P.xlabel('Dimension of the Data')
 P.ylabel('Average Homogeneity')
