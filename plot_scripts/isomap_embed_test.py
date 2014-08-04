@@ -83,7 +83,7 @@ for i in dimension_list:
         
 
 # Save the data to a file:
-np.save(opts.outputfile+ "_gmm",isomap_gmm_results)
+#np.save(opts.outputfile+ "_gmm",isomap_gmm_results)
 
 # Save the data to a DataFrame
 data = isomap_gmm_results.ravel()
