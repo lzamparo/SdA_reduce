@@ -83,15 +83,15 @@ for i in dimension_list:
         
 
 # Save the data to a file:
-#np.save(opts.outputfile+ "_gmm",isomap_gmm_results)
+np.save(opts.outputfile+ "_gmm",isomap_gmm_results)
 
 # Save the data to a DataFrame
-data = isomap_gmm_results.ravel()
-dims = ['10' for i in xrange(opts.iters)]
-dims.extend(['20' for i in xrange(opts.iters)])
-dims.extend(['30' for i in xrange(opts.iters)])
-dims.extend(['40' for i in xrange(opts.iters)])
-dims.extend(['50' for i in xrange(opts.iters)])
-method = ['isomap' for i in xrange(len(dimension_list) * int(opts.iters))]
-results_df = pd.DataFrame({"data": data, "dimension": dims, "method": method})
-results_df.to_csv(opts.outputfile+"_df.csv", index=False)
+#data = isomap_gmm_results.ravel()
+#dims = ['10' for i in xrange(opts.iters)]
+#dims.extend(['20' for i in xrange(opts.iters)])
+#dims.extend(['30' for i in xrange(opts.iters)])
+#dims.extend(['40' for i in xrange(opts.iters)])
+#dims.extend(['50' for i in xrange(opts.iters)])
+#method = ['isomap' for i in xrange(len(dimension_list) * int(opts.iters))]
+#results_df = pd.DataFrame({"data": data, "dimension": dims, "method": method})
+#results_df.to_csv(opts.outputfile+"_df.csv", index=False)
