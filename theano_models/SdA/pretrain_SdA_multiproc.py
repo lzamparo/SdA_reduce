@@ -127,7 +127,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
                 updates={learning_rate: lr_val})
     
     # Set up functions for max norm regularization
-    max_norm_regularization_fns = sda.max_norm_regularization()  
+    #max_norm_regularization_fns = sda.max_norm_regularization()  
 
     print '... writing meta-data to output file'
     metadict = {'n_train_batches': n_train_batches,'batch_size': batch_size, 'pretraining_epochs': pretraining_epochs, 'pretrain_lr': pretrain_lr}
@@ -146,7 +146,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001
                 c.append(pretraining_fns[i](index=batch_index,
                          corruption=corruption_levels[i],
                          momentum=shared_args_dict["momentum"]))
-                scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])                
+                #scales = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])                
             print >> output_file, 'Pre-training layer %i, epoch %d, cost ' % (i, epoch),
             print >> output_file, numpy.mean(c)
             print >> output_file, learning_rate.get_value(borrow=True)
