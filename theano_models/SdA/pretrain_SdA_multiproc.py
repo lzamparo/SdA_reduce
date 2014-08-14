@@ -21,7 +21,7 @@ from tables import openFile
 
 from datetime import datetime
 
-def pretrain(shared_args,private_args,pretraining_epochs=100, pretrain_lr=0.0001, lr_decay = 0.98, batch_size=50): 
+def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, lr_decay = 0.98, batch_size=50): 
     """ Pretrain an SdA model for the given number of training epochs.  The model is either initialized from 
     scratch, or is reconstructed from a previously pickled model.
 
