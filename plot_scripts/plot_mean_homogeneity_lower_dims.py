@@ -82,7 +82,7 @@ if opts.sdainput is not None:
     sda_results = []
     
     for i, dim in enumerate(dims_list):
-        parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim),'gmm'))
+        parsed_vals = parse_dir(os.path.join(opts.sdainput,str(dim)))
         results_dict = return_top(parsed_vals,n)
         labels, scores= [list(t) for t in zip(*results_dict)]
         sda_results.append(scores)
@@ -90,16 +90,19 @@ if opts.sdainput is not None:
         ax.plot(x_vals.tolist(),sda_results[i],'y*',label="SdA" if i == 0 else "_no_legend",markersize=9)
 
 P.xlim(0,6)
-P.ylim(0,0.50)
-P.title('3-component Gaussian mixture model test')
+P.ylim(0,0.80)
+P.title('Homogeneity test: mixture of 3 gaussians')
 P.xlabel('Dimension of the Data')
 P.ylabel('Average Homogeneity')
 locs, labels = P.xticks()   # get the xtick location and labels, re-order them so they match the experimental data
 P.xticks(locs,['',50,40,30,20,10])
-P.legend(loc = 7,numpoints=1)    # legend centre right
+P.legend(loc = 'lower right',numpoints=1)  
 
 outfile = opts.outfile + ".gmm.pdf"
 P.savefig(outfile, dpi=100, format="pdf")
+
+
+
 
 ####################  K-means test ####################
 

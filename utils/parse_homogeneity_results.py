@@ -33,6 +33,30 @@ def parse_dir(input_dir):
 
     return results
 
+def parse_dir_raw(input_dir):
+    """ Read all .npy file provided in input_dir, output a dict with an array of the raw homogeneity results (value) for each model (key)"""
+    os.chdir(input_dir)
+    model_files = os.listdir(".")
+
+    # Store the results of the model search in this dictionary
+    # keys are model name, values are mean homogeneity scores
+    results = {}
+    for f in model_files:
+        # if this file is not an .npy file, ignore it
+        if not f.endswith(".npy"):
+            continue
+        
+        # read the file, populate results dict with mean homogeneity value
+        parts = f.split('.')
+        f_model = parts[0].strip('gmm')
+        if f_model is None:
+            continue
+        
+        homog_results = np.load(f)
+        results[f_model] = homog_results.mean()       
+
+    return results
+
 def parse_dir_meanstd(input_dir):
     """ Read all .npy file provided in input_dir, output two dicts (mean, std) for homogeneity results (values) for each model (key)"""
     os.chdir(input_dir)
