@@ -201,7 +201,7 @@ if __name__ == '__main__':
     shared_args['input'] = options.inputfile
     shared_args['momentum'] = 0.8 # deprecated, should be max_momentum
     shared_args['weight_decay'] = 0.0
-    shared_args['learning_rate'] = 0.0001 # deprecated, should be initial learning rate that is then scheduled    
+    shared_args['learning_rate'] = 0.00001 # initial learning rate   
     shared_args['corruption'] = options.corruption
     shared_args['offset'] = options.offset
     shared_args['layertype'] = options.layer_type
