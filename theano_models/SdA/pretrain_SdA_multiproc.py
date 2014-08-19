@@ -21,7 +21,7 @@ from tables import openFile
 
 from datetime import datetime
 
-def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, lr_decay = 0.98, batch_size=50): 
+def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.00001, lr_decay = 0.98, batch_size=50): 
     """ Pretrain an SdA model for the given number of training epochs.  The model is either initialized from 
     scratch, or is reconstructed from a previously pickled model.
 
@@ -78,7 +78,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.001, 
     numpy_rng = numpy.random.RandomState(89677)
     
     # Set the initial value of the learning rate
-    learning_rate = theano.shared(numpy.asarray(pretrain_lr, 
+    learning_rate = theano.shared(numpy.asarray(shared_args_dict['learning_rate'], 
                                              dtype=theano.config.floatX))     
     
     # Check if we can restore from a previously trained model,    
@@ -201,7 +201,7 @@ if __name__ == '__main__':
     shared_args['input'] = options.inputfile
     shared_args['momentum'] = 0.8 # deprecated, should be max_momentum
     shared_args['weight_decay'] = 0.0
-    shared_args['learning_rate'] = 0.001 # deprecated, should be initial learning rate that is then scheduled    
+    shared_args['learning_rate'] = 0.0001 # deprecated, should be initial learning rate that is then scheduled    
     shared_args['corruption'] = options.corruption
     shared_args['offset'] = options.offset
     shared_args['layertype'] = options.layer_type
