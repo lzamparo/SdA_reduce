@@ -20,24 +20,16 @@ from tables import openFile
 from datetime import datetime
 
 
-def finetune_SdA(shared_args, private_args, finetune_lr=0.0001, finetuning_epochs=300, lr_decay=0.99,
-             batch_size=100): 
+def finetune_SdA(shared_args, private_args): 
     """ Finetune and validate a pre-trained SdA for the given number of training epochs.
     Batch size and finetuning epochs default values are picked to roughly match the reported values
     of Hinton & Salakhtudinov.   
 
-    :type finetune_lr: float
-    :param finetune_lr: learning rate used in the finetune stage
-    (factor for the stochastic gradient)
+    :type shared_args: dict
+    :param shared_args: dict containing all the arguments common to both models.
     
-    :type lr_decay: float
-    :param lr_decay: the rate at which the learning rate decays after each epoch
-
-    :type finetuning_epochs: int
-    :param finetuning_epochs: number of epoch to do finetuning
-    
-    :type batch_size: int
-    :param batch_size: size of the mini-batches
+    :type private_args: dict
+    :param private_args: dict containing all the arguments specific to each model spawned off this first process.
     
     """
     
@@ -73,7 +65,7 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.0001, finetuning_epoch
 
     # compute number of minibatches for training, validation and testing
     n_train_batches, n_features = train_set_x.get_value(borrow=True).shape
-    n_train_batches /= batch_size
+    n_train_batches /= shared_args_dict['batch_size']
     
     print >> output_file, 'Unpickling the model from %s ...' % (private_args['restore'])        
     f = file(private_args['restore'], 'rb')
@@ -81,7 +73,7 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.0001, finetuning_epoch
     f.close()        
     
     print '... writing meta-data to output file'
-    metadict = {'n_train_batches': n_train_batches, 'batch_size': batch_size,'finetuning_epochs': finetuning_epochs, 'finetune_lr': finetune_lr}
+    metadict = {'n_train_batches': n_train_batches}
     metadict = dict(metadict.items() + shared_args_dict.items())
     write_metadata(output_file, metadict)
       
@@ -94,14 +86,14 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.0001, finetuning_epoch
     
     print '... getting the finetuning functions'
     train_fn, validate_model = sda.build_finetune_full_reconstruction(
-                datasets=datasets, batch_size=batch_size,
-                learning_rate=finetune_lr,
+                datasets=datasets, batch_size=shared_args_dict['batch_size'],
+                learning_rate=shared_args_dict['finetune_lr'],
                 method=shared_args_dict['sgd'])
 
     print '... fine-tuning the model'    
 
     # early-stopping parameters
-    patience = finetuning_epochs * n_train_batches  # look as this many batches regardless
+    patience = shared_args_dict['finetuning_epochs'] * n_train_batches  # look as this many batches regardless
     patience_increase = 2.  # wait this much longer when a new best is
                             # found
     improvement_threshold = 0.995  # a relative improvement of this much is
@@ -118,19 +110,19 @@ def finetune_SdA(shared_args, private_args, finetune_lr=0.0001, finetuning_epoch
     epoch = 0
     
     # Set the initial value of the learning rate
-    learning_rate = theano.shared(numpy.asarray(finetune_lr, 
+    learning_rate = theano.shared(numpy.asarray(shared_args_dict['finetune_lr'], 
                                                  dtype=theano.config.floatX)) 
     
     # Function to decrease the learning rate
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
-                    updates={learning_rate: learning_rate * lr_decay})    
+                    updates={learning_rate: learning_rate * shared_args_dict['lr_decay']})    
     
     # Use weight decay?
     use_wd = shared_args_dict['sgd'].endswith('wd')
     
     start_time = time.clock()
 
-    while (epoch < finetuning_epochs) and (not done_looping):
+    while (epoch < shared_args_dict['finetuning_epochs']) and (not done_looping):
         epoch = epoch + 1
         
         for minibatch_index in xrange(n_train_batches):
@@ -215,6 +207,10 @@ if __name__ == '__main__':
     shared_args['momentum'] = 0.9
     shared_args['weight_decay'] = options.weight_decay
     shared_args['sgd'] = options.sgd
+    shared_args['finetune_lr'] = 0.0001
+    shared_args['finetuning_epochs'] = 300
+    shared_args['lr_decay'] = 0.99
+    shared_args['batch_size'] = 100   
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes

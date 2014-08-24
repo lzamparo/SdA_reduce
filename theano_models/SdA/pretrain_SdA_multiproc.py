@@ -21,21 +21,15 @@ from tables import openFile
 
 from datetime import datetime
 
-def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.00001, lr_decay = 0.98, batch_size=50): 
+def pretrain(shared_args,private_args): 
     """ Pretrain an SdA model for the given number of training epochs.  The model is either initialized from 
     scratch, or is reconstructed from a previously pickled model.
 
-    :type pretraining_epochs: int
-    :param pretraining_epochs: number of epoch to do pretraining
+    :type shared_args: dict
+    :param shared_args: dict containing all the arguments common to both models.
 
-    :type pretrain_lr: float
-    :param pretrain_lr: learning rate to be used during pre-training
-    
-    :type lr_decay: float
-    :param lr_decay: decay the learning rate exponentially by this rate
-
-    :type batch_size: int
-    :param batch_size: train in mini-batches of this size """
+    :type private_args: dict
+    :param private_args: dict containing all the arguments specific to each model spawned off this first process. """
     
     # Import sandbox.cuda to bind the specified GPU to this subprocess
     # then import the remaining theano and model modules.
@@ -72,7 +66,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.00001
 
     # compute number of minibatches for training, validation and testing
     n_train_batches, n_features = train_set_x.get_value(borrow=True).shape
-    n_train_batches /= batch_size
+    n_train_batches /= shared_args_dict['batch_size']
     
     # numpy random generator
     numpy_rng = numpy.random.RandomState(89677)
@@ -109,7 +103,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.00001
     
     print '... getting the pretraining functions'
     pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
-                                                batch_size=batch_size,
+                                                batch_size=shared_args_dict['batch_size'],
                                                 learning_rate=learning_rate,
                                                 method='cm')
 
@@ -119,9 +113,9 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.00001
     
     # Function to decrease the learning rate
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
-                updates={learning_rate: learning_rate * lr_decay})  
+                updates={learning_rate: learning_rate * shared_args_dict['lr_decay']})  
     
-    # Function to reset the learning rate to pretrain_lr
+    # Function to reset the learning rate
     lr_val = T.scalar('original_lr')
     reset_learning_rate = theano.function(inputs=[lr_val], outputs=learning_rate,
                 updates={learning_rate: lr_val})
@@ -130,7 +124,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.00001
     #max_norm_regularization_fns = sda.max_norm_regularization()  
 
     print '... writing meta-data to output file'
-    metadict = {'n_train_batches': n_train_batches,'batch_size': batch_size, 'pretraining_epochs': pretraining_epochs, 'pretrain_lr': pretrain_lr}
+    metadict = {'n_train_batches': n_train_batches}
     metadict = dict(metadict.items() + shared_args_dict.items())
     write_metadata(output_file, metadict)       
 
@@ -139,7 +133,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.00001
     
     for i in xrange(sda.n_layers):       
                 
-        for epoch in xrange(pretraining_epochs):
+        for epoch in xrange(shared_args_dict['pretraining_epochs']):
             # go through the training set
             c = []
             for batch_index in xrange(n_train_batches):
@@ -153,7 +147,7 @@ def pretrain(shared_args,private_args,pretraining_epochs=50, pretrain_lr=0.00001
             decay_learning_rate()
         
         # Reset the learning rate
-        reset_learning_rate(numpy.asarray(pretrain_lr, dtype=numpy.float32))
+        reset_learning_rate(numpy.asarray(shared_args_dict['pretrain_lr'], dtype=numpy.float32))
         
         if private_args.has_key('save'):
             print >> output_file, 'Pickling the model...'
@@ -209,6 +203,11 @@ if __name__ == '__main__':
     shared_args['maxnorm'] = options.norm_limit
     shared_args['opt_method'] = options.opt_method
     shared_args['sparse_init'] = options.sparse_init
+    shared_args['pretraining_epochs'] = 50
+    shared_args['pretrain_lr'] = 0.00001
+    shared_args['lr_decay'] = 0.98
+    shared_args['batch_size'] = 50    
+    
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes
