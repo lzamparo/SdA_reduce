@@ -207,7 +207,7 @@ if __name__ == '__main__':
     shared_args['momentum'] = 0.9
     shared_args['weight_decay'] = options.weight_decay
     shared_args['sgd'] = options.sgd
-    shared_args['finetune_lr'] = 0.00001
+    shared_args['finetune_lr'] = 0.001
     shared_args['finetuning_epochs'] = 300
     shared_args['lr_decay'] = 0.99
     shared_args['batch_size'] = 100   
