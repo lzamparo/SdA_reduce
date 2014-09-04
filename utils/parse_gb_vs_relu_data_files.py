@@ -17,8 +17,6 @@ import numpy as np
 import pandas as pd
 from collections import OrderedDict
 
-from ggplot import *
-
 # Extract the model name from each filename.
 def extract_model_and_param(regex,filename):
     match = regex.match(filename)
