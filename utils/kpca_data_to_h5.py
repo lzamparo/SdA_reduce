@@ -50,6 +50,7 @@ zlib_filters = Filters(complib='zlib', complevel=5)
 datafile.close()
 
 ###############################################################################
+name_dict = {10: 'dim10', 20: 'dim20', 30: 'dim30', 40: 'dim40', 50: 'dim50'}
 
 D = scale(X[:,0:612])
 
@@ -57,7 +58,7 @@ for i in [10,20,30,40,50]:
     kpca = KernelPCA(n_components=i, kernel="rbf", gamma=0.0028942661247167516)
     D_kpca = kpca.fit_transform(D)
     atom = Atom.from_dtype(D_kpca.dtype)
-    ds = h5file.createCArray(where=arrays_group, name=str(i), atom=atom, shape=D_kpca.shape, filters=zlib_filters)
+    ds = h5file.createCArray(where=arrays_group, name=name_dict[i], atom=atom, shape=D_kpca.shape, filters=zlib_filters)
     ds[:] = D_kpca
     h5file.flush()    
         

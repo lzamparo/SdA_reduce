@@ -54,13 +54,15 @@ pca = PCA(n_components=50)
 D = scale(X[:,0:612])
 pca.fit(D)
 X_pca = pca.transform(D)
-
+ 
+name_dict = {10: 'dim10', 20: 'dim20', 30: 'dim30', 40: 'dim40', 50: 'dim50'}
 
 # For the specified number of principal components, do the clustering
 for i in [10,20,30,40,50]:
+    D_pca = X_pca[:,0:(i-1)]
     atom = Atom.from_dtype(X_pca.dtype)
-    ds = h5file.createCArray(where=arrays_group, name=str(i), atom=atom, shape=X_pca.shape, filters=zlib_filters)
-    ds[:] = X_pca[:,0:(i-1)]
+    ds = h5file.createCArray(where=arrays_group, name=name_dict[i], atom=atom, shape=D_pca.shape, filters=zlib_filters)
+    ds[:] = D_pca
     h5file.flush()     
 
 h5file.close()

@@ -57,11 +57,13 @@ n_samples, n_features = D.shape
 # chosen by hyperparam search in a separate test.
 n_neighbors = 35
 
+name_dict = {10: 'dim10', 20: 'dim20', 30: 'dim30', 40: 'dim40', 50: 'dim50'}
+
 for i in [10,20,30,40,50]:     
     lle = LocallyLinearEmbedding(n_neighbors, n_components=i, method='standard')
     X_lle = lle.fit_transform(D)
     atom = Atom.from_dtype(X_lle.dtype)
-    ds = h5file.createCArray(where=arrays_group, name=str(i), atom=atom, shape=X_lle.shape, filters=zlib_filters)
+    ds = h5file.createCArray(where=arrays_group, name=name_dict[i], atom=atom, shape=X_lle.shape, filters=zlib_filters)
     ds[:] = X_lle
     h5file.flush()    
     
