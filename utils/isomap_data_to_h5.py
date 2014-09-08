@@ -32,7 +32,7 @@ np.random.seed(0)
 datafile = openFile(opts.inputfile, mode = "r", title = "Data is stored here")
 
 # Open and prepare an hdf5 file 
-filename = options.outputfile
+filename = opts.outputfile
 h5file = openFile(filename, mode = "w", title = "Reduced Data File")
 
 # Create a new group under "/" (root)
