@@ -7,7 +7,7 @@ import pandas as pd
 from collections import OrderedDict
 from tables import *
 from extract_datasets import extract_unlabeled_byarray
-from scipy.spatial.distance import pdist
+from sklearn.metrics.pairwise import pairwise_distances
 
 import contextlib,time
 @contextlib.contextmanager
@@ -16,12 +16,36 @@ def timeit():
   yield
   print(time.time()-t,"sec")
 
-input_dir = '/data/sda_output_data/homogeneity/csv_data'
-output_dir = '/data/sda_output_data/homogeneity/csv_data/dfs'
+input_dir = '/scratch/z/zhaolei/lzamparo/sm_rep1_data'
+output_dir = '/scratch/z/zhaolei/lzamparo/sm_rep1_data/dfs'
+
+try:
+  limit = sys.argv[1] # define the number of points to try and sample
+  cores = sys.argv[2]
+except IndexError:
+  limit = 1000 # the default.  The lazy man's arg_parse().
+  cores = 8
+
+def make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores):
+  used_labels = np.unique(labels)[0:3]
+  label_dfs = []
+  for label in used_labels:
+    
+      subset = labeled_data[labeled_data[:,0] == label,1:]   # select all those elements with this label
+      # sub-sample the stratified subset
+      num_samples = min(limit,subset.shape[0])
+      indices = np.arange(subset.shape[0])
+      np.random.shuffle(indices)
+      sampled_pts = subset[indices[:num_samples],:]        
+      distances = pairwise_distances(sampled_pts, n_jobs=-1)
+      num_records = distances.shape[0]
+      label_dfs.append(pd.DataFrame({"distances": distances, "dimension": [dims for i in xrange(num_records)], "label": [label_dict[label] for i in xrange(num_records)], "algorithm": [algorithm_name for i in xrange(num_records)]}))
+  return label_dfs
+
 
 print "...Grabbing the labels for the validation set"
 start = 0
-data_set_file = openFile('/data/sm_rep1_screen/sample.h5')
+data_set_file = openFile('/scratch/z/zhaolei/lzamparo/sm_rep1_data/sample.h5')
 labels_list = data_set_file.listNodes("/labels", classname='Array')
 labels = np.empty(labels_list[start].shape)
 empty = True
@@ -40,11 +64,12 @@ os.chdir(input_dir)
 
 label_dict = {0.: "WT", 1.: "Foci", 2.:"Non-Round nuclei"}
 labels = labels[:,0]
-
 data_frames = []
-count = 0  # index for the line-by-line df.  I feel dirty.
+
 for infile in ["isomap_data.h5", "kpca_data.h5", "lle_data.h5", "pca_data.h5"]:
     print "...processing " + infile
+    algorithm_name = infile.split("_")[0]
+    os.chdir(input_dir)
     data_set_file = openFile(infile,'r')
     for dims in ["dim10","dim20","dim30","dim40","dim50"]:
         data = data_set_file.getNode("/recarrays", dims)
@@ -52,24 +77,18 @@ for infile in ["isomap_data.h5", "kpca_data.h5", "lle_data.h5", "pca_data.h5"]:
         labeled_data = np.hstack((labels[:cutoff,np.newaxis],data[:cutoff,:]))
         
         # split on label, select elements, calculate distance matrix, shove mean & var into DF
-        used_labels = np.unique(labels)[0:3]
-        for label in used_labels:
-            subset = labeled_data[labeled_data[:,0] == label,1:]   # select all those elements with this label
-            with timeit():
-              distances = pdist(subset)
-            data_frames.append(pd.DataFrame({"mean": distances.mean(), "var": distances.var(), "dimension": dims, "label": label_dict[label], "algorithm": infile.split("_")[0]}, index=[count]))
-            count = count + 1
-
-    data_set_file.close()             
-
-master_df = data_frames[0]
-for i in xrange(1,len(data_frames)):
-    master_df = master_df.append(data_frames[i])
-print "...Done"    
-os.chdir(output_dir)
-master_df.to_csv(path_or_buf="comparators_euclidean.csv",index=False)        
+        with timeit():
+          label_dfs = make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores)
         
-    
+        # write to file
+        master_df = label_dfs[0]
+        for i in xrange(1,len(label_dfs)):
+            master_df = master_df.append(label_dfs[i])
+        print "...Done"    
+        os.chdir(output_dir)
+        outfile = algorithm_name + "_" + dims + ".csv"
+        master_df.to_csv(path_or_buf=outfile,index=False)       
+    data_set_file.close()            
     
 #data_frames = []
 #print "...Processing 3,4 layer SdA .npy files"
