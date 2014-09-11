@@ -21,7 +21,8 @@ output_dir = '/scratch/z/zhaolei/lzamparo/sm_rep1_data/dfs'
 
 try:
   limit = sys.argv[1] # define the number of points to try and sample
-  cores = sys.argv[2]
+  cores = sys.argv[2] # use this many cores
+  infile = sys.argv[3] # use this .h5 file as input
 except IndexError:
   limit = 1000 # the default.  The lazy man's arg_parse().
   cores = 8
@@ -43,7 +44,7 @@ def make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores)
   return label_dfs
 
 
-print "...Grabbing the labels for the validation set"
+print("...Grabbing the labels for the validation set")
 start = 0
 data_set_file = openFile('/scratch/z/zhaolei/lzamparo/sm_rep1_data/sample.h5')
 labels_list = data_set_file.listNodes("/labels", classname='Array')
@@ -58,7 +59,7 @@ for labelnode in labels_list:
 data_set_file.close()
 
 
-print "...Processing top level .h5 files"
+print("...Processing top level .h5 files")
 
 os.chdir(input_dir)
 
@@ -66,29 +67,28 @@ label_dict = {0.: "WT", 1.: "Foci", 2.:"Non-Round nuclei"}
 labels = labels[:,0]
 data_frames = []
 
-for infile in ["isomap_data.h5", "kpca_data.h5", "lle_data.h5", "pca_data.h5"]:
-    print "...processing " + infile
-    algorithm_name = infile.split("_")[0]
-    os.chdir(input_dir)
-    data_set_file = openFile(infile,'r')
-    for dims in ["dim10","dim20","dim30","dim40","dim50"]:
-        data = data_set_file.getNode("/recarrays", dims)
-        cutoff = min([data.shape[0],labels.shape[0]])
-        labeled_data = np.hstack((labels[:cutoff,np.newaxis],data[:cutoff,:]))
-        
-        # split on label, select elements, calculate distance matrix, shove mean & var into DF
-        with timeit():
-          label_dfs = make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores)
-        
-        # write to file
-        master_df = label_dfs[0]
-        for i in xrange(1,len(label_dfs)):
-            master_df = master_df.append(label_dfs[i])
-        print "...Done"    
-        os.chdir(output_dir)
-        outfile = algorithm_name + "_" + dims + ".csv"
-        master_df.to_csv(path_or_buf=outfile,index=False)       
-    data_set_file.close()            
+print "...processing " + infile
+algorithm_name = infile.split("_")[0]
+os.chdir(input_dir)
+data_set_file = openFile(infile,'r')
+for dims in ["dim10","dim20","dim30","dim40","dim50"]:
+    data = data_set_file.getNode("/recarrays", dims)
+    cutoff = min([data.shape[0],labels.shape[0]])
+    labeled_data = np.hstack((labels[:cutoff,np.newaxis],data[:cutoff,:]))
+    
+    # split on label, select elements, calculate distance matrix, shove mean & var into DF
+    with timeit():
+      label_dfs = make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores)
+    
+    # write to file
+    master_df = label_dfs[0]
+    for i in xrange(1,len(label_dfs)):
+        master_df = master_df.append(label_dfs[i])
+    print "...Done"    
+    os.chdir(output_dir)
+    outfile = algorithm_name + "_" + dims + ".csv"
+    master_df.to_csv(path_or_buf=outfile,index=False)       
+data_set_file.close()            
     
 #data_frames = []
 #print "...Processing 3,4 layer SdA .npy files"
