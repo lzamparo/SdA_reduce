@@ -1,5 +1,7 @@
 """ Read all the .h5 files and .npy files in the directories below input, and compute the mean and var of class-wise distance distributions """
 
+### N.B: this is meant to run in python 3!
+
 import sys, re, os
 import numpy as np
 import pandas as pd
@@ -40,7 +42,7 @@ def make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores)
       sampled_pts = subset[indices[:num_samples],:]        
       distances = pairwise_distances(sampled_pts, n_jobs=-1)
       num_records = distances.shape[0]
-      label_dfs.append(pd.DataFrame({"distances": distances, "dimension": [dims for i in xrange(num_records)], "label": [label_dict[label] for i in xrange(num_records)], "algorithm": [algorithm_name for i in xrange(num_records)]}))
+      label_dfs.append(pd.DataFrame({"distances": distances, "dimension": [dims for i in range(num_records)], "label": [label_dict[label] for i in range(num_records)], "algorithm": [algorithm_name for i in range(num_records)]}))
   return label_dfs
 
 
@@ -67,7 +69,7 @@ label_dict = {0.: "WT", 1.: "Foci", 2.:"Non-Round nuclei"}
 labels = labels[:,0]
 data_frames = []
 
-print "...processing " + infile
+print("...processing ", infile)
 algorithm_name = infile.split("_")[0]
 os.chdir(input_dir)
 data_set_file = openFile(infile,'r')
