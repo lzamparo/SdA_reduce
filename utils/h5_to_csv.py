@@ -86,7 +86,7 @@ for dims in ["dim10","dim20","dim30","dim40","dim50"]:
     master_df = label_dfs[0]
     for i in xrange(1,len(label_dfs)):
         master_df = master_df.append(label_dfs[i])
-    print "...Done"    
+    print("...Done")    
     os.chdir(output_dir)
     outfile = algorithm_name + "_" + dims + ".csv"
     master_df.to_csv(path_or_buf=outfile,index=False)       
@@ -114,14 +114,14 @@ data_set_file.close()
             #f_dict = {"model": model_list, "group": group_list, "dimension": dimension_list}
             #data_files.append(pd.concat([pd.DataFrame(data=f_dict),pd.DataFrame(data)],axis=1))
     
-#print "...Done"
-#print "...rbinding DataFrames"
+#print("...Done") 
+#print("...rbinding DataFrames")
 
 #master_df = data_files[0]
 #for i in xrange(1,len(data_files)):
     #master_df = master_df.append(data_files[i])
     
-#print "...Done"    
+#print("...Done")    
 #os.chdir(output_dir)
 #master_df.to_csv(path_or_buf="all_sda_models.csv",index=False)
 
