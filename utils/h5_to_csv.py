@@ -85,7 +85,7 @@ for dims in ["dim10","dim20","dim30","dim40","dim50"]:
     
     # write to file
     master_df = label_dfs[0]
-    for i in xrange(1,len(label_dfs)):
+    for i in range(1,len(label_dfs)):
         master_df = master_df.append(label_dfs[i])
     print("...Done")    
     os.chdir(output_dir)
