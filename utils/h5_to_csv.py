@@ -21,11 +21,11 @@ input_dir = '/scratch/z/zhaolei/lzamparo/sm_rep1_data'
 output_dir = '/scratch/z/zhaolei/lzamparo/sm_rep1_data/dfs'
 
 try:
-  limit = sys.argv[1] # define the number of points to try and sample
-  cores = sys.argv[2] # use this many cores
+  limit = int(sys.argv[1]) # define the number of points to try and sample
+  cores = int(sys.argv[2]) # use this many cores
   infile = sys.argv[3] # use this .h5 file as input
 except IndexError:
-  limit = int(1000) # the default.  The lazy man's arg_parse().
+  limit = 1000 # the default.  The lazy man's arg_parse().
   cores = 8
 
 def make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores):
