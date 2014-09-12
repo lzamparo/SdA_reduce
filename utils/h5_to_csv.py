@@ -25,7 +25,7 @@ try:
   cores = sys.argv[2] # use this many cores
   infile = sys.argv[3] # use this .h5 file as input
 except IndexError:
-  limit = 1000 # the default.  The lazy man's arg_parse().
+  limit = int(1000) # the default.  The lazy man's arg_parse().
   cores = 8
 
 def make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores):
