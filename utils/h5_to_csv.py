@@ -40,8 +40,10 @@ def make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores)
       np.random.shuffle(indices)
       sampled_pts = subset[indices[:num_samples],:]        
       distances = pairwise_distances(sampled_pts, n_jobs=-1)
-      num_records = distances.shape[0]
-      label_dfs.append(pd.DataFrame({"distances": distances, "dimension": [dims for i in range(num_records)], "label": [label_dict[label] for i in range(num_records)], "algorithm": [algorithm_name for i in range(num_records)]}))
+      lt_distances = np.tril(distances,k=-1)
+      distances_nozeros = lt_distances[lt_distances != 0.].ravel()
+      num_records = distances_nonzeros.shape[0]
+      label_dfs.append(pd.DataFrame({"distances": distances_nozeros, "dimension": [dims for i in range(num_records)], "label": [label_dict[label] for i in range(num_records)], "algorithm": [algorithm_name for i in range(num_records)]}))
   return label_dfs
 
 
