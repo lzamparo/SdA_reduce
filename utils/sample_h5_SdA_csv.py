@@ -78,7 +78,7 @@ data_frames = []
 
 # grab the input files for this job from files dict
 for infile in files_dict[dimension].split():
-    os.chdir(input_dir)
+    os.chdir(os.path.join(input_dir,dimension))
     print("...processing ", infile)
     algorithm_name = infile.split(".")[1] # file names look like reduce_SdA.1000_100_10.2014-07-29.15:59:12.705796.h5, we want the model ID
 
