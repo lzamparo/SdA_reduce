@@ -24,7 +24,6 @@ try:
   limit = int(sys.argv[1]) # define the number of points to try and sample
   cores = int(sys.argv[2]) # use this many cores
   dimension = sys.argv[3]
-  infiles = sys.argv[4:] # use this .h5 file as input
 except IndexError:
   limit = 1000 # the default.  The lazy man's arg_parse().
   cores = 8
@@ -46,6 +45,13 @@ def make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores)
       num_records = distances_nozeros.shape[0]
       label_dfs.append(pd.DataFrame({"distances": distances_nozeros, "dimension": [dims for i in range(num_records)], "label": [label_dict[label] for i in range(num_records)], "algorithm": [algorithm_name for i in range(num_records)]}))
   return label_dfs
+
+# inputs for each of the files
+files_dict = {'10': "reduce_SdA.1000_100_10.2014-07-29.15:59:12.705796.h5 reduce_SdA.1000_300_10.2014-07-29.16:29:01.593674.h5 reduce_SdA.800_200_10.2014-07-29.16:26:52.251526.h5 reduce_SdA.1100_100_10.2014-07-29.16:08:38.229130.h5 reduce_SdA.900_200_10.2014-07-29.16:01:00.278056.h5",
+              '20': "reduce_SdA.900_300_20.2014-07-29.18:04:09.355089.h5 reduce_SdA.800_200_20.2014-07-29.17:54:33.993608.h5 reduce_SdA.1100_100_20.2014-07-29.17:43:01.427113.h5 reduce_SdA.1100_300_20.2014-07-29.17:44:54.000147.h5 reduce_SdA.1000_400_20.2014-07-29.17:41:05.616614.h5",
+              '30': "reduce_SdA.900_400_30.2014-07-30.12:30:14.356660.h5 reduce_SdA.1000_400_30.2014-07-30.12:14:19.860421.h5 reduce_SdA.900_100_30.2014-07-30.12:24:31.040876.h5 reduce_SdA.800_400_30.2014-07-30.12:28:30.891435.h5 reduce_SdA.1000_100_30.2014-07-30.12:16:04.832854.h5",
+              '40': "reduce_SdA.1000_300_40.2014-07-30.14:44:24.686603.h5 reduce_SdA.900_400_40.2014-07-30.14:54:27.386360.h5 reduce_SdA.800_200_40.2014-07-30.14:43:53.788722.h5 reduce_SdA.1100_100_40.2014-07-30.14:39:16.064727.h5 reduce_SdA.1000_400_40.2014-07-30.15:29:20.505129.h5",
+              '50': "reduce_SdA.1000_200_50.2014-07-30.16:42:25.771075.h5 reduce_SdA.900_300_50.2014-07-30.16:39:27.750323.h5 reduce_SdA.1100_300_50.2014-07-30.16:34:43.896636.h5 reduce_SdA.800_400_50.2014-07-30.16:16:57.887608.h5 reduce_SdA.1000_100_50.2014-07-30.16:12:45.977627.h5"}
 
 
 print("...Grabbing the labels for the validation set")
@@ -70,7 +76,8 @@ label_dict = {0.: "WT", 1.: "Foci", 2.:"Non-Round nuclei"}
 labels = labels[:,0]
 data_frames = []
 
-for infile in infiles:
+# grab the input files for this job from files dict
+for infile in files_dict[dimension].split():
     os.chdir(input_dir)
     print("...processing ", infile)
     algorithm_name = infile.split(".")[1] # file names look like reduce_SdA.1000_100_10.2014-07-29.15:59:12.705796.h5, we want the model ID
