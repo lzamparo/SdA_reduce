@@ -9,12 +9,28 @@ sda_df <- read.csv('all_sda_models.csv')
 three_layers <- sda_df %>% filter(Layers == "3_layers") %>% group_by(Dimension) %>% filter(min_rank(desc(Homogeneity)) < 6)
 four_layers <- sda_df %>% filter(Layers == "4_layers") %>% group_by(Dimension) %>% filter(min_rank(desc(Homogeneity)) < 6)
 
-# Load the comparators reduced statistics data (not really a good description, but I have to go so it will have to do)
-setwd("/data/sda_output_data/homogeneity/csv_data/dfs")
-comparators_m <- read.csv("comparators_mahalanobis.csv")
-comparators_e <- read.csv("comparators_euclidean.csv")
+# Load the comparators reduced distances data 
+setwd("/data/sda_output_data/distances/csv_data/comparators")
+isomap_10 <- read.csv("isomap_dim10.csv")
+kpca_10 <- read.csv("kpca_dim10.csv")
+pca_10 <- read.csv("pca_dim10.csv")
+lle_10 <- read.csv("lle_dim10.csv")
+comparators <- rbind(isomap_10, kpca_10, pca_10, lle_10)
+rm(isomap_10,lle_10,pca_10,kpca_10)
 
-dim10 <- comparators_e %>% filter(dimension == "dim10") %>% group_by(algorithm,label)
-dim10_samples <- comparators_e %>% filter(dimension == "dim10") %>% group_by(algorithm,label) %>% rowwise() %>% do(samples = rnorm(10,mean = .$mean, sd = sqrt(.$var)))
+# Load the SdA reduced distances data, rbind in one df
+setwd("/data/sda_output_data/distances/csv_data/sda_3layers")
+one <- read.csv("1000_100_10.csv")
+two <- read.csv("1000_300_10.csv")
+three <- read.csv("1100_100_10.csv")
+four <- read.csv("800_200_10.csv")
+five <- read.csv("900_200_10.csv")
+sdas <- rbind(one,two,three,four,five)
+rm(one,two,three,four,five)
 
-# Breaking from Hadley Wickham: use rowwise() and do() at the end of the dplyr chain to generate samples w rnorm. 
+distances <- rbind(subset(comparators, select = -dimension),subset(sda_distances, select = -dimension))
+
+# Plot densities of the distances between pts of a similar label
+gp <- ggplot(distances, aes(x=label, fill=algorithm)) + geom_density(alpha=.3)
+gp
+

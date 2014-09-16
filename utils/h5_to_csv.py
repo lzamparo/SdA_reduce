@@ -93,36 +93,6 @@ for dims in ["dim10","dim20","dim30","dim40","dim50"]:
     master_df.to_csv(path_or_buf=outfile,index=False)       
 data_set_file.close()            
     
-#data_frames = []
-#print "...Processing 3,4 layer SdA .npy files"
 
-## for each SdA .npy file:
-#for group in ["3_layers","4_layers"]:
-    #for dimension in ['10','20','30','40','50']:
-        ## read a list of all files in the directory that match model output files
-        #os.chdir(os.path.join(input_dir,group,dimension))
-        #model_files = os.listdir(".")        
-        #for f in model_files:
-            #if not f.endswith(".npy"):
-                #continue
-            #data = np.load(infile)
-            #model_name = infile.split("gmm")[0]
-            #nrows = data.shape[0]
-            ## build the df, store in list
-            #model_list = [model_name for i in xrange(nrows)]
-            #group_list = [group for i in xrange(nrows)]
-            #dimension_list = [dimension for i in xrange(nrows)]
-            #f_dict = {"model": model_list, "group": group_list, "dimension": dimension_list}
-            #data_files.append(pd.concat([pd.DataFrame(data=f_dict),pd.DataFrame(data)],axis=1))
-    
-#print("...Done") 
-#print("...rbinding DataFrames")
 
-#master_df = data_files[0]
-#for i in xrange(1,len(data_files)):
-    #master_df = master_df.append(data_files[i])
-    
-#print("...Done")    
-#os.chdir(output_dir)
-#master_df.to_csv(path_or_buf="all_sda_models.csv",index=False)
 
