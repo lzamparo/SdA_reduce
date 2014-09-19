@@ -1,5 +1,6 @@
 library(ggplot2)
 library(dplyr)
+library(gridExtra)
 
 # Load the SdA models data
 setwd("/data/sda_output_data/homogeneity")
@@ -15,8 +16,6 @@ isomap_10 <- read.csv("isomap_dim10.csv")
 kpca_10 <- read.csv("kpca_dim10.csv")
 pca_10 <- read.csv("pca_dim10.csv")
 lle_10 <- read.csv("lle_dim10.csv")
-comparators <- rbind(isomap_10, kpca_10, pca_10, lle_10)
-rm(isomap_10,lle_10,pca_10,kpca_10)
 
 # Load the SdA reduced distances data, rbind in one df
 setwd("/data/sda_output_data/distances/csv_data/sda_3layers")
@@ -25,12 +24,51 @@ two <- read.csv("1000_300_10.csv")
 three <- read.csv("1100_100_10.csv")
 four <- read.csv("800_200_10.csv")
 five <- read.csv("900_200_10.csv")
-sdas <- rbind(one,two,three,four,five)
-rm(one,two,three,four,five)
 
-distances <- rbind(subset(comparators, select = -dimension),subset(sda_distances, select = -dimension))
+sda_lle <- rbind(lle_10,one)
+sda_pca <- rbind(pca_10,two)
+sda_kpca <- rbind(kpca_10,three)
+sda_isomap <- rbind(isomap_10,four)
 
-# Plot densities of the distances between pts of a similar label
-gp <- ggplot(distances, aes(x=label, fill=algorithm)) + geom_density(alpha=.3)
-gp
+# I'd like to plot densities of the distances between pts of a similar label
+# This is complicated by the sheer number of points involved, as well as the 
+# different scales of distances
+
+# Second try: a grid of 3 separate 3-facet_wrap plots: each facet is SdA versus <comparator> in <label>?
+
+
+# sda_vs_lle <- ggplot(sda_lle, aes(x=distances, fill=algorithm)) + geom_density(alpha=.5)
+# sda_vs_lle <- sda_vs_lle + facet_wrap(~ label)
+# 
+# sda_vs_kpca <- ggplot(sda_kpca, aes(x=distances, fill=algorithm)) + geom_density(alpha=.5)
+# sda_vs_kpca <- sda_vs_kpca + facet_wrap(~ label)
+# 
+# sda_vs_isomap <- ggplot(sda_isomap, aes(x=distances, fill=algorithm)) + geom_density(alpha=.5)
+# sda_vs_isomap <- sda_vs_isomap + facet_wrap(~ label)
+# 
+# sda_vs_pca <- ggplot(sda_pca, aes(x=distances, fill=algorithm)) + geom_density(alpha=.5)
+# sda_vs_pca <- sda_vs_pca + facet_wrap(~ label)
+
+# Third try: box + whisker plots
+sda_vs_lle <- ggplot(sda_lle, aes(x=algorithm, y=distances, fill=algorithm)) + geom_boxplot() +
+  guides(fill=FALSE)
+sda_vs_lle <- sda_vs_lle + facet_wrap(~ label)
+
+sda_vs_pca <- ggplot(sda_pca, aes(x=algorithm, y=distances, fill=algorithm)) + geom_boxplot() +
+  guides(fill=FALSE)
+sda_vs_pca <- sda_vs_pca + facet_wrap(~ label)
+
+sda_vs_isomap <- ggplot(sda_isomap, aes(x=algorithm, y=distances, fill=algorithm)) + geom_boxplot() +
+  guides(fill=FALSE)
+sda_vs_isomap <- sda_vs_isomap + facet_wrap(~ label)
+
+sda_vs_kpca <- ggplot(sda_kpca, aes(x=algorithm, y=distances, fill=algorithm)) + geom_boxplot() +
+  guides(fill=FALSE)
+sda_vs_kpca <- sda_vs_kpca + facet_wrap(~ label)
+
+# stack these 
+grid.arrange( sda_vs_lle, sda_vs_kpca, sda_vs_isomap, sda_vs_pca, nrow=4)
+
+
+
 
