@@ -66,9 +66,10 @@ sda_vs_kpca <- ggplot(sda_kpca, aes(x=algorithm, y=distances, fill=algorithm)) +
   guides(fill=FALSE)
 sda_vs_kpca <- sda_vs_kpca + facet_wrap(~ label)
 
-# stack these 
-grid.arrange( sda_vs_lle, sda_vs_kpca, sda_vs_isomap, sda_vs_pca, nrow=4)
-
+stack these, save to file. 
+pdf("sda_vs_comparators_intra_distances.pdf")
+grid.arrange(sda_vs_lle, sda_vs_kpca, sda_vs_isomap, sda_vs_pca, nrow=4)
+dev.off()
 
 
 
