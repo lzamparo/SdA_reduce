@@ -31,7 +31,6 @@ except IndexError:
 def make_sample_df(labels, np, labeled_data, limit, algorithm_name, dims, cores):
   used_labels = np.unique(labels)[0:3]
   label_dfs = []
-  np.random.shuffle(used_labels)
   label = used_labels[0]
   
   # sub-sample the stratified subset
