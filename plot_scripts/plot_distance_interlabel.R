@@ -41,7 +41,11 @@ sda_vs_kpca <- ggplot(sda_kpca, aes(x=algorithm, y=distances, fill=algorithm)) +
   guides(fill=FALSE)
 sda_vs_kpca <- sda_vs_kpca + facet_wrap(~ label)
 
+# Here's a nice density plot if needed
+# sda_vs_lle <- ggplot(sda_lle, aes(x=distances, fill=algorithm)) + geom_density(alpha = 0.3)
+
 # stack these, save to file. 
+setwd("~/meetings/committee_meetings/sda_paper/images")
 pdf("sda_vs_comparators_inter_distances.pdf")
 grid.arrange(sda_vs_lle, sda_vs_kpca, sda_vs_isomap, sda_vs_pca, nrow=4)
 dev.off()
