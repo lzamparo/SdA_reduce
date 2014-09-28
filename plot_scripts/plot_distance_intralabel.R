@@ -25,17 +25,18 @@ three <- read.csv("1100_100_10.csv")
 four <- read.csv("800_200_10.csv")
 five <- read.csv("900_200_10.csv")
 
-sda_lle <- rbind(lle_10,one)
-sda_pca <- rbind(pca_10,two)
-sda_kpca <- rbind(kpca_10,three)
-sda_isomap <- rbind(isomap_10,four)
+sda_lle <- rbind(subset(lle_10, select = -dimension),subset(one, select = -dimension))
+sda_pca <- rbind(subset(pca_10, select = -dimension),subset(two, select = -dimension))
+sda_kpca <- rbind(subset(kpca_10, select = -dimension),subset(three, select = -dimension))
+sda_isomap <- rbind(subset(isomap_10, select = -dimension),subset(four, select = -dimension))
+
+
 
 # I'd like to plot densities of the distances between pts of a similar label
 # This is complicated by the sheer number of points involved, as well as the 
 # different scales of distances
 
 # Second try: a grid of 3 separate 3-facet_wrap plots: each facet is SdA versus <comparator> in <label>?
-
 
 # sda_vs_lle <- ggplot(sda_lle, aes(x=distances, fill=algorithm)) + geom_density(alpha=.5)
 # sda_vs_lle <- sda_vs_lle + facet_wrap(~ label)
