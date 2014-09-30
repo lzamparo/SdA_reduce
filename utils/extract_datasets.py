@@ -11,11 +11,11 @@ def extract_labeled_chunkrange(data_set_file, num_files = 1, offset = 0):
     
     
     if num_files > len(arrays_list):
-        print "Error!  Asking for %d data files when only %d are available" % (num_files, len(arrays_list))
+        print("Error!  Asking for", num_files, "data files when only ", len(arrays_list), "are available") 
         return None
     
     if num_files + offset > len(arrays_list):
-        print "Error!  Asking for %d data files beginning at %d, but only %d are available from start to end" % (num_files, offset, (len(arrays_list) - offset))
+        print("Error!  Asking for", num_files, "data files beginning at", offset, "but only ", (len(arrays_list) - offset),"are available from start to end")
         return None
         
     empty = True
@@ -43,11 +43,11 @@ def extract_unlabeled_chunkrange(data_set_file, num_files = 1, offset = 0):
     arrays_list = data_set_file.listNodes("/recarrays", classname='Array')
     
     if num_files > len(arrays_list):
-        print "Error!  Asking for more data than is available"
+        print("Error!  Asking for more data than is available")
         return None
     
     if num_files + offset > len(arrays_list):
-        print "Error!  Asking for %d data files beginning at %d, but only %d are available from start to end" % (num_files, offset, (len(arrays_list) - offset))
+        print("Error!  Asking for", num_files, "data files beginning at", offset, "but only ", (len(arrays_list) - offset),"are available from start to end")
         return None    
     
     empty = True
@@ -70,7 +70,7 @@ def extract_unlabeled_byarray(data_set_file, chunk = 1):
     arrays_list = data_set_file.listNodes("/recarrays", classname='Array')
     
     if chunk > len(arrays_list):
-        print "Error!  Asking for more data than is available"
+        print("Error!  Asking for more data than is available")
         return None
     
     data = np.empty(arrays_list[chunk].shape)
@@ -86,7 +86,7 @@ def extract_labeled_byarray(data_set_file, chunk = 1):
     labels_list = data_set_file.listNodes("/labels", classname='Array')
     
     if chunk > len(arrays_list):
-        print "Error!  Asking for more data than is available"
+        print("Error!  Asking for more data than is available")
         return None
     
     data = np.empty(arrays_list[chunk].shape)
