@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO,
 
 # Parse commandline arguments
 op = OptionParser()
-op.add_option("--unlabeled",
+op.add_option("--h5file",
               dest="inputfile", help="Read unlabeled data from this hdf5 file.")
 op.add_option("--size",
               dest="size", type="int", help="Use this many chunks of labeled data for the test.")
