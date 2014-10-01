@@ -47,11 +47,11 @@ X_unlabeled = extract_unlabeled_chunkrange(unlabeled_datafile, opts.size)
 unlabeled_datafile.close()
 
 # Fit a Dirichlet process mixture of Gaussians using five components
-dpgmm = mixture.DPGMM(n_components=10, covariance_type='full')
+dpgmm = DPGMM(n_components=10, covariance_type='full')
 
 # fit different models with different sizes; what's the empirical time it takes to fit these models?
 for size in np.arange(1000, opts.size, step = 10000):
-  dpgmm = mixture.DPGMM(n_components=10, covariance_type='full')
+  dpgmm = DPGMM(n_components=10, covariance_type='full')
   print("fitting a model with", size, "data points")
   indices = range(0,X_unlabeled.shape[0])
   np.random.shuffle(indices)
