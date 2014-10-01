@@ -1,4 +1,4 @@
-from sklean.mixture import DPGMM
+from sklearn.mixture import DPGMM
 import sys
 import logging, os
 from optparse import OptionParser
