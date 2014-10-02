@@ -2,6 +2,13 @@
 from tables import *
 import numpy as np
 
+def extract_chunk_sizes(data_set_file):
+    """ Return a nd array of data chunk sizes """
+    arrays_list = data_set_file.listNodes("/recarrays", classname='Array')
+    chunk_sizes = np.zeros((len(arrays_list),))
+    for i,dataNode in enumerate(arrays_list):
+        chunk_sizes[i] = dataNode.nrows
+    return chunk_sizes    
 
 def extract_labeled_chunkrange(data_set_file, num_files = 1, offset = 0):
     """ Take a reference to an open hdf5 pytables file, extract the first num_files chunks, stack 

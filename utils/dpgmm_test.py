@@ -5,7 +5,7 @@ from optparse import OptionParser
 
 import numpy as np
 from tables import *
-from extract_datasets import extract_unlabeled_chunkrange
+from extract_datasets import extract_unlabeled_chunkrange, extract_chunk_sizes
 
 import contextlib,time
 @contextlib.contextmanager
@@ -29,6 +29,10 @@ op.add_option("--size",
 
 np.random.seed(0)
 
+# there is a max of 211 chunks of data in sm_rep1, so cap opts.size to this
+if opts.size > 211:
+  opts.size = 211
+
 ###############################################################################
 # The unlabeled data h5 file
 unlabeled_datafile = openFile(opts.inputfile, mode = "r")
@@ -38,6 +42,7 @@ unlabeled_datafile = openFile(opts.inputfile, mode = "r")
 
 # Load the reduced data from a different file
 X_unlabeled = extract_unlabeled_chunkrange(unlabeled_datafile, opts.size)
+chunk_sizes = extract_chunk_sizes(unlabeled_datafile)
 
 # Extract some of the dataset from the datafile
 # X_labeled, labels = extract_labeled_chunkrange(labeled_datafile, opts.size)
@@ -46,16 +51,17 @@ X_unlabeled = extract_unlabeled_chunkrange(unlabeled_datafile, opts.size)
 #labeled_datafile.close()
 unlabeled_datafile.close()
 
-# Fit a Dirichlet process mixture of Gaussians using five components
-dpgmm = DPGMM(n_components=10, covariance_type='full')
-
-# fit different models with different sizes; what's the empirical time it takes to fit these models?
-for size in np.arange(1000, opts.size, step = 10000):
+for chunks in np.arange(1, opts.size, step = 3):
+  # Sample the specified number of points from X_unlabeled
+  size = np.cumsum(chunk_sizes[:chunks])[-1]
+  
+  # Fit a Dirichlet process mixture of Gaussians using up to  ten components
   dpgmm = DPGMM(n_components=10, covariance_type='full')
-  print("fitting a model with", size, "data points")
   indices = range(0,X_unlabeled.shape[0])
   np.random.shuffle(indices)
   X = X_unlabeled[indices[:size],]
+  
+  print("fitting a model with", size, "data points")
   with timeit():
     dpgmm.fit(X)
   print("Done!")
