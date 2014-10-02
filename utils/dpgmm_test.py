@@ -57,7 +57,7 @@ for chunks in np.arange(1, opts.size, step = 3):
   
   # Fit a Dirichlet process mixture of Gaussians using up to  ten components
   dpgmm = DPGMM(n_components=10, covariance_type='full')
-  indices = range(0,X_unlabeled.shape[0])
+  indices = np.arange(X_unlabeled.shape[0])
   np.random.shuffle(indices)
   X = X_unlabeled[indices[:size],]
   
