@@ -24,8 +24,11 @@ levels(four_layers_homog$Model) <- rep("SdA 4", length(levels(four_layers_homog$
 
 master_df <- rbind(master_df,three_layers_homog,four_layers_homog)
 
+# Use a different colour palette
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
 # Plot the data
-homog <- ggplot(master_df, aes(Dimension,Homogeneity, colour = Model))
+homog <- ggplot(master_df, aes(Dimension,Homogeneity, colour = Model)) + scale_colour_manual(values=cbPalette)
 homog <- homog + geom_point(alpha = 1/4)
 homog <- homog + stat_smooth()
 homog <- homog + scale_x_reverse()
