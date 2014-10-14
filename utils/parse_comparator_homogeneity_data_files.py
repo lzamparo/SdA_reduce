@@ -18,13 +18,14 @@ os.chdir(input_dir)
 
 # for each file: 
 for infile in ["ietdata_gmm.npy", "ketdata_gmm.npy", "letdata_gmm.npy", "petdata_gmm.npy"]:
-    homog_results = np.load(f)
+    homog_results = np.load(infile)
     # in homog_results: rows are dimension, columns are replicates.  So homog_results[i,j] is the jth replicate for dimension (i+1) * 10
     f_model = filename_to_model[infile]
-    
-    # build the one line df, store in list
-    f_dict = {"Model": [f_model], "Layers": [layers], "Dimension": [dimension], "Homogeneity": [homog_results.mean()]}
-    data_files.append(pd.DataFrame(data=f_dict))
+    for i,row in enumerate(homog_results):
+        # build the one line df, store in list
+        dimension = str((i+1)*10)
+        f_dict = {"Model": [f_model for j in range(0,row.shape[0])], "Dimension": [dimension for j in range(0,row.shape[0])], "Homogeneity": row}
+        data_files.append(pd.DataFrame(data=f_dict))
     
 print "...Done"
 print "...rbinding DataFrames"
