@@ -3,13 +3,9 @@ library(dplyr)
 
 # Load the data
 setwd("/data/sda_output_data/homogeneity")
-isomap_df <- read.csv("isomap_df.csv")
-kpca_df <- read.csv('kpca_df.csv')
-pca_df <- read.csv('pca_df.csv')
-lle_df <- read.csv('lle_df.csv')
-master_df <- rbind(isomap_df,kpca_df,pca_df,lle_df)
-levels(master_df$method) <- c("Isomap","k-PCA","PCA","LLE")
-colnames(master_df) <- c("Homogeneity","Dimension","Model")
+
+comparators_df <- read.csv("all_comparator_models.csv")
+levels(comparators_df$Model) <- c("Isomap","k-PCA","LLE","PCA")
 
 # get the SdA data 
 sda_df <- read.csv('all_sda_models.csv')
@@ -18,14 +14,14 @@ three_layers <- sda_df %>% filter(Layers == "3_layers") %>% group_by(Dimension) 
 four_layers <- sda_df %>% filter(Layers == "4_layers") %>% group_by(Dimension) %>% filter(min_rank(desc(Homogeneity)) < 6)
 # re-label
 three_layers_homog <- three_layers[,c("Dimension","Homogeneity","Model")]
-levels(three_layers_homog$Model) <- rep("SdA 3", length(levels(three_layers_homog$Model)))
+levels(three_layers_homog$Model) <- rep("SdA 3 layers", length(levels(three_layers_homog$Model)))
 four_layers_homog <- four_layers[,c("Dimension","Homogeneity","Model")]
-levels(four_layers_homog$Model) <- rep("SdA 4", length(levels(four_layers_homog$Model)))
+levels(four_layers_homog$Model) <- rep("SdA 4 layers", length(levels(four_layers_homog$Model)))
 
-master_df <- rbind(master_df,three_layers_homog,four_layers_homog)
+master_df <- rbind(comparators_df,three_layers_homog,four_layers_homog)
 
 # Use a different colour palette
-cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Plot the data
 homog <- ggplot(master_df, aes(Dimension,Homogeneity, colour = Model)) + scale_colour_manual(values=cbPalette)
