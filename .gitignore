@@ -1,10 +1,19 @@
 # No compiled python files
 *.pyc
+
 # No temporary files kicking around
 *~
+
 # No data files
 *.gz
+
 # No error or output files from scinet, or the job_reports directory on scinet
 *.e*
 *.o*
 job_reports
+
+# No project files from wing
+*.wpr
+*.wpu
+
+

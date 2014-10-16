@@ -30,7 +30,8 @@ sda_pca <- rbind(subset(pca_10, select = -dimension),subset(two, select = -dimen
 sda_kpca <- rbind(subset(kpca_10, select = -dimension),subset(three, select = -dimension))
 sda_isomap <- rbind(subset(isomap_10, select = -dimension),subset(four, select = -dimension))
 
-
+# Use a different colour palette
+cbPalette <- c("#E69F00", "#F0E442", "#000000", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7")
 
 # I'd like to plot densities of the distances between pts of a similar label
 # This is complicated by the sheer number of points involved, as well as the 
@@ -52,20 +53,23 @@ sda_isomap <- rbind(subset(isomap_10, select = -dimension),subset(four, select =
 
 # Third try: box + whisker plots
 sda_vs_lle <- ggplot(sda_lle, aes(x=algorithm, y=distances, fill=algorithm)) + geom_boxplot() +
-  guides(fill=FALSE)
+  guides(fill=FALSE) + scale_fill_manual(values=cbPalette)
 sda_vs_lle <- sda_vs_lle + facet_wrap(~ label)
 
 sda_vs_pca <- ggplot(sda_pca, aes(x=algorithm, y=distances, fill=algorithm)) + geom_boxplot() +
-  guides(fill=FALSE)
+  guides(fill=FALSE) + scale_fill_manual(values=cbPalette)
 sda_vs_pca <- sda_vs_pca + facet_wrap(~ label)
 
 sda_vs_isomap <- ggplot(sda_isomap, aes(x=algorithm, y=distances, fill=algorithm)) + geom_boxplot() +
-  guides(fill=FALSE)
+  guides(fill=FALSE) + scale_fill_manual(values=cbPalette)
 sda_vs_isomap <- sda_vs_isomap + facet_wrap(~ label)
 
 sda_vs_kpca <- ggplot(sda_kpca, aes(x=algorithm, y=distances, fill=algorithm)) + geom_boxplot() +
-  guides(fill=FALSE)
-sda_vs_kpca <- sda_vs_kpca + facet_wrap(~ label)
+  guides(fill=FALSE) + scale_fill_manual(values=cbPalette)
+sda_vs_kpca <- sda_vs_kpca + facet_wrap(~ label) 
+sda_vs_kpca <- sda_vs_kpca + theme(strip.text.x = element_text(size = 13))
+sda_vs_kpca <- sda_vs_kpca + theme(axis.text = element_text(size = 13))
+sda_vs_kpca <- sda_vs_kpca + theme(axis.title = element_text(size = 13))  
 
 # stack these, save to file. 
 pdf("sda_vs_comparators_intra_distances.pdf")
