@@ -65,7 +65,12 @@ sda_vs_isomap <- ggplot(sda_isomap, aes(x=algorithm, y=distances, fill=algorithm
 sda_vs_isomap <- sda_vs_isomap + facet_wrap(~ label)
 
 sda_vs_kpca <- ggplot(sda_kpca, aes(x=algorithm, y=distances, fill=algorithm)) + geom_boxplot() +
-  guides(fill=FALSE) + scale_fill_manual(values=cbPalette)
+  guides(fill=FALSE) 
+
+# set the colour palette for the fill
+sda_vs_kpca <- sda_vs_kpca + scale_fill_brewer(palette="Set1")
+#sda_vs_kpca <- sda_vs_kpca + scale_fill_manual(values=cbPalette)
+
 sda_vs_kpca <- sda_vs_kpca + facet_wrap(~ label) 
 sda_vs_kpca <- sda_vs_kpca + theme(strip.text.x = element_text(size = 13))
 sda_vs_kpca <- sda_vs_kpca + theme(axis.text = element_text(size = 13))
