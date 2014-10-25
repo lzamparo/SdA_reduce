@@ -8,8 +8,21 @@ import theano.tensor as T
 import numpy as np
 from sklearn.preprocessing import scale
 
+import pickle as pkl
 
-def load_data_unlabeled(dataset, features = (5,612), borrow=True):
+def apply_constraints(data,constraints_file):
+    """ Read constraints from constraints file, filter rows that do not satisfy the constraints, return the array """
+    with open(constraints_file, mode='rb') as filename:
+        zipped_headers, thresholds = pkl.load(filename)
+    #Pare away rows that do not satisfy the constraints
+    for i,position_tup in enumerate(zipped_headers):
+        position, name = position_tup
+        lower, upper = thresholds[name]
+        data = data[(data[:,position] > lower) & (data[:,position] < upper)]
+    return data
+
+
+def load_data_unlabeled(dataset, features = (5,916), borrow=True, do_filter=False, constraints='/scratch/z/zhaolei/lzamparo/sm_rep1_data/Cells_thresholds.pkl'):
     """ Take an unpacked dataset (from extract_datasets), scale it, and return as a shared theano variable.
     
     :type dataset: numpy ndarray
@@ -18,8 +31,13 @@ def load_data_unlabeled(dataset, features = (5,612), borrow=True):
     :type features: tuple
     :param features: keep only those features indexed between features[0],features[1]  """
     
+    if do_filter:
+        data_filtered = apply_constraints(dataset, constraints)
+    else:
+        data_filtered = dataset
+    
     # Scale the data: centre, and unit-var.
-    data_scaled = scale(dataset)
+    data_scaled = scale(data_filtered)
     
     # if features tuple is defined, throw away unwanted columns
     if features:
@@ -31,7 +49,7 @@ def load_data_unlabeled(dataset, features = (5,612), borrow=True):
     return theano.shared(np.asarray(data_scaled, dtype=theano.config.floatX), borrow=borrow)    
     
 
-def load_data_labeled(dataset, labels, ratios = np.array([0.8,0.1,0.1]), features = (5,612)):
+def load_data_labeled(dataset, labels, ratios = np.array([0.8,0.1,0.1]), features = (5,916), do_filter=False, constraints='/scratch/z/zhaolei/lzamparo/sm_rep1_data/Cells_thresholds.pkl'):
     ''' Take an unpacked dataset (from extract_datasets), scale it, and return 
     as shared theano variables.  The form of the returned data is meant to mimic the form MNIST data
     is packaged and returned in load_data from logistic_sgd, part of the theano tutorial
@@ -53,6 +71,16 @@ def load_data_labeled(dataset, labels, ratios = np.array([0.8,0.1,0.1]), feature
     # Take only the first column of the labels.  The other two are image, object numbers.
     labels_vec = labels[:,0]
     
+    if do_filter:
+        dataset_augmented = np.hstack((dataset,labels_vec[:,np.newaxis]))
+        dataset_filtered = apply_constraints(dataset_augmented,constraints)
+        labels_vec = dataset_filtered[:,-1]
+        data_scaled = scale(dataset_filtered[:,:-1])
+        
+    else:
+        dataset_filtered = dataset
+        data_scaled = scale(dataset)
+    
     # train_set, valid_set, test_set format: tuple(input, target)
     # input is an numpy.ndarray of 2 dimensions (a matrix)
     # which rows correspond to an example. labels is a
@@ -60,7 +88,7 @@ def load_data_labeled(dataset, labels, ratios = np.array([0.8,0.1,0.1]), feature
     # the number of rows in the input.   
     
     # Scale the data: centre, and unit-var.
-    data_scaled = scale(dataset)
+    
     
     # if features tuple is defined, throw away unwanted columns
     if features:
