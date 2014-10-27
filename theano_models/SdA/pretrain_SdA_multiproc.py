@@ -61,6 +61,12 @@ def pretrain(shared_args,private_args):
     # Get the training data sample from the input file
     data_set_file = openFile(str(shared_args_dict['input']), mode = 'r')
     datafiles = extract_unlabeled_chunkrange(data_set_file, num_files = 30, offset = shared_args_dict['offset'])
+    if datafiles is None:
+        print("No data was returned, exiting.")
+        data_set_file.close()
+        output_file.close()
+        return    
+    
     train_set_x = load_data_unlabeled(datafiles)
     data_set_file.close()
 

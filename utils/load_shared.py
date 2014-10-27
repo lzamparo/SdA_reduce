@@ -49,6 +49,20 @@ def load_data_unlabeled(dataset, features = (5,916), borrow=True, do_filter=Fals
     return theano.shared(np.asarray(data_scaled, dtype=theano.config.floatX), borrow=borrow)    
     
 
+def test_load_data_unlabeled(dataset, features = (5,916), do_filter=True, constraints='/data/sm_rep1_screen/Cells_thresholds.pkl'):
+    print '... applying Area Shape filters to the dataset'
+    data_filtered = apply_constraints(dataset, constraints)
+    
+    # Scale the data: centre, and unit-var.
+    print '... scaling the data set'
+    data_scaled = scale(data_filtered)
+    
+    # if features tuple is defined, throw away unwanted columns
+    if features:
+        data_scaled = data_scaled[:,features[0]:features[1]]
+        
+    return data_scaled
+
 def load_data_labeled(dataset, labels, ratios = np.array([0.8,0.1,0.1]), features = (5,916), do_filter=False, constraints='/scratch/z/zhaolei/lzamparo/sm_rep1_data/Cells_thresholds.pkl'):
     ''' Take an unpacked dataset (from extract_datasets), scale it, and return 
     as shared theano variables.  The form of the returned data is meant to mimic the form MNIST data
