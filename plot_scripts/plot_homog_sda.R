@@ -20,14 +20,28 @@ levels(four_layers_homog$Model) <- rep("SdA 4 layers", length(levels(four_layers
 
 master_df <- rbind(comparators_df,three_layers_homog,four_layers_homog)
 
-# Use a different colour palette
-cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
 
 # Plot the data
-homog <- ggplot(master_df, aes(Dimension,Homogeneity, colour = Model)) + scale_colour_manual(values=cbPalette)
+homog <- ggplot(master_df, aes(Dimension,Homogeneity, colour = Model))
+
+# Set the colour palette
+homog <- homog + scale_colour_brewer(palette="Set1")
+
+# Use the manual colour-blind friendly palette
+#cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+#homog <- homog + scale_colour_manual(values=cbPalette)
+
+# Chang the background theme
+#homog <- homog + theme_bw()
+
+# Plot the points, trend-line, error-ribbons
 homog <- homog + geom_point(alpha = 1/4)
-homog <- homog + stat_smooth()
-homog <- homog + scale_x_reverse()
+homog <- homog + stat_smooth(size=1.5,alpha=1/2)
+
+# Don't reverse the x axis
+#homog <- homog + scale_x_reverse()
+
 homog <- homog + labs(colour = "Model")
 homog <- homog + ggtitle("Average Homogeneity vs Dimension")
 homog <- homog + theme(plot.title = element_text(size=15, face = "bold"))

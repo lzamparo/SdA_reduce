@@ -5,7 +5,7 @@ import numpy as np
 def extract_chunk_sizes(data_set_file):
     """ Return a nd array of data chunk sizes """
     arrays_list = data_set_file.listNodes("/recarrays", classname='Array')
-    chunk_sizes = np.zeros((len(arrays_list),))
+    chunk_sizes = np.zeros((len(arrays_list),),dtype=int)
     for i,dataNode in enumerate(arrays_list):
         chunk_sizes[i] = dataNode.nrows
     return chunk_sizes    
@@ -23,6 +23,10 @@ def extract_labeled_chunkrange(data_set_file, num_files = 1, offset = 0):
     
     if num_files + offset > len(arrays_list):
         print("Error!  Asking for", num_files, "data files beginning at", offset, "but only ", (len(arrays_list) - offset),"are available from start to end")
+        return None
+    
+    if num_files == 0:
+        print("Error!  Do you really want 0 files?")
         return None
         
     empty = True
