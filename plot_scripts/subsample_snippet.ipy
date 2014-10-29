@@ -1,0 +1,12 @@
+# coding: utf-8
+from numpy.random import shuffle
+indices = [shuffle(v) for k, v in groups.groups.iteritems()]
+indices
+indices = [v[:3] for k, v in groups.groups.iteritems()]
+indices
+indices = [item for sublist in l for l in indices]
+indices = [item for sublist in indices for item in sublist]
+indices
+df.iloc[indices,:]
+get_ipython().magic(u'pinfo save')
+get_ipython().magic(u'save subsample_snippet.ipy 34-44')
