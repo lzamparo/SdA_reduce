@@ -2,18 +2,32 @@
 theano shared variables.  The default values for features to be trimmed correspond to the useful object features
 from the foci data set pipeline. """
 
-import theano
-import theano.tensor as T
-
 import numpy as np
 from sklearn.preprocessing import scale
 
 import pickle as pkl
 
+@contextmanager
+def opened_w_error(filename, mode="r"):
+    try:
+        f = open(filename, mode)
+    except IOError, err:
+        yield None, err
+    else:
+        try:
+            yield f, None
+        finally:
+            f.close()
+
 def apply_constraints(data,constraints_file):
     """ Read constraints from constraints file, filter rows that do not satisfy the constraints, return the array """
-    with open(constraints_file, mode='rb') as filename:
-        zipped_headers, thresholds = pkl.load(filename)
+    with opened_w_error(constraints_file, mode='rb') as (filename,err):
+        if err:
+            print('IOError ', err)
+            raise err
+        else:
+            zipped_headers, thresholds = pkl.load(filename)
+            
     #Pare away rows that do not satisfy the constraints
     for i,position_tup in enumerate(zipped_headers):
         position, name = position_tup
@@ -30,9 +44,11 @@ def load_data_unlabeled(dataset, features = (5,916), borrow=True, do_filter=Fals
     
     :type features: tuple
     :param features: keep only those features indexed between features[0],features[1]  """
+    import theano
     
     if do_filter:
         data_filtered = apply_constraints(dataset, constraints)
+        
     else:
         data_filtered = dataset
     
@@ -49,7 +65,7 @@ def load_data_unlabeled(dataset, features = (5,916), borrow=True, do_filter=Fals
     return theano.shared(np.asarray(data_scaled, dtype=theano.config.floatX), borrow=borrow)    
     
 
-def test_load_data_unlabeled(dataset, features = (5,916), do_filter=True, constraints='/data/sm_rep1_screen/Cells_thresholds.pkl'):
+def test_load_data_unlabeled(dataset, features = (5,916), do_filter=True, constraints='/scratch/z/zhaolei/lzamparo/sm_rep1_data/Cells_thresholds.pkl'):
     print '... applying Area Shape filters to the dataset'
     data_filtered = apply_constraints(dataset, constraints)
     
@@ -142,6 +158,9 @@ def shared_dataset(data_xy, borrow=True):
         is needed (the default behaviour if the data is not in a shared
         variable) would lead to a large decrease in performance.
         """
+        import theano
+        from theano.tensor import cast
+        
         data_x, data_y = data_xy
         shared_x = theano.shared(np.asarray(data_x,
                                                dtype=theano.config.floatX),
@@ -157,4 +176,4 @@ def shared_dataset(data_xy, borrow=True):
         # floats it doesn't make sense) therefore instead of returning
         # ``shared_y`` we will have to cast it to int. This little hack
         # lets ous get around this issue
-        return shared_x, T.cast(shared_y, 'int32')
+        return shared_x, cast(shared_y, 'int32')
