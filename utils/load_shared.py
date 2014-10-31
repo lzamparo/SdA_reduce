@@ -6,8 +6,9 @@ import numpy as np
 from sklearn.preprocessing import scale
 
 import pickle as pkl
+import contextlib
 
-@contextmanager
+@contextlib.contextmanager
 def opened_w_error(filename, mode="r"):
     try:
         f = open(filename, mode)
