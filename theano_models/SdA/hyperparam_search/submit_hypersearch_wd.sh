@@ -16,7 +16,7 @@
 
 # To make substitutions from a higher up script: -w $WEIGHTDECAY -o $OFFSET
 cd $PBS_O_WORKDIR
-python hyperparam_multiproc.py -d "${SCRATCH}/gpu_models/gb_hybrid_cm/hyperparam_search" -w $WEIGHTDECAY -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET -t weight_decay
+python ../hyperparam_multiproc.py -d "${SCRATCH}/gpu_models/gb_hybrid_cm/hyperparam_search" -w $WEIGHTDECAY -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET -t weight_decay
 
 
 
