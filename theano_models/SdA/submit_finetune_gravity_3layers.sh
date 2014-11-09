@@ -8,15 +8,14 @@
 #PBS -N FineTuneStackedAutoencoder
 #PBS -q gravity
 
-# Load theano modules
-#cd ~/jobscripts
-#sh load_theano_modules.sh
+# Load modules
+source ~/.bashrc_python2
 
 # Run the job
 
 # To make substitutions from a higher up script: -p $FIRSTMODEL -q $SECONDMODEL -o $OFFSET
 cd $PBS_O_WORKDIR
-python finetune_SdA_multiproc.py -d "${SCRATCH}/gpu_models/gb_hybrid_cm/3_layers/finetune_output" -e "20" -x "20" -p $FIRSTMODEL -q $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET -n 3.0 -u 100-100-100 -s "adagrad_momentum_wd"
+python finetune_SdA_multiproc.py -d "${SCRATCH}/gpu_models/more_features/3_layers/finetune_output" -e "10" -x "10" -p $FIRSTMODEL -q $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sm_rep1_screen.h5" -o $OFFSET -s "adagrad_momentum_wd"
 
 
 
