@@ -10,9 +10,9 @@
 
 # Run the job
 
-# To make substitutions from a higher up script: -p $FIRSTMODEL -q $SECONDMODEL -o $OFFSET
+# To make substitutions from a higher up script: -p $FIRSTMODEL -q $SECONDMODEL -o $OFFSET -d $DIR -x $DIM
 cd $PBS_O_WORKDIR
-python reduce_SdA_multiproc.py -d "${SCRATCH}/gpu_models/SdA/reduced_data" -x "10" -p $FIRSTMODEL -q $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sample.h5" 
+python reduce_SdA_multiproc.py -d $DIR -x $DIM -p $FIRSTMODEL -q $SECONDMODEL -i "${SCRATCH}/sm_rep1_data/sample.h5" 
 
 
 
