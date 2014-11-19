@@ -1,6 +1,5 @@
 import numpy as np  
 
-import pdb
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
@@ -826,7 +825,6 @@ class SdA(object):
         
         (layers, n_outs, dA_W_list, dA_bhid_list, dA_bvis_list, corruption_levels, layer_types, use_loss, dropout_rates, opt_method) = state
         self.n_layers = layers
-        pdb.set_trace()
         self.n_outs = n_outs
         self.corruption_levels = corruption_levels
         self.layer_types = layer_types
