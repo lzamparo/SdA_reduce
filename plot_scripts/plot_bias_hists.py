@@ -5,15 +5,15 @@ from collections import OrderedDict
 
 import matplotlib as mpl
 mpl.use('pdf')
-import seaborn
+import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 
-#import theano.sandbox.cuda
-#theano.sandbox.cuda.use('gpu0')
-#import theano
-#import theano.tensor as T
-#from SdA import SdA
+import theano.sandbox.cuda
+theano.sandbox.cuda.use('gpu0')
+import theano
+import theano.tensor as T
+from SdA import SdA
 
 
 # pass the directory with models, number of layers
@@ -46,6 +46,9 @@ for pkl in pkl_files:
         b_hid[i].append(bhid.get_value(borrow=True))
                 
 ### Plot the visible, hidden layer histograms ###
+sns.set_palette("deep", desat=.6)
+sns.set_context(rc={"figure.figsize": (12, 8)})
+
 b_fig = plt.figure()
     
 for key in b_hid:
