@@ -13,8 +13,11 @@ import theano.sandbox.cuda
 theano.sandbox.cuda.use('gpu0')
 import theano
 import theano.tensor as T
-from SdA import SdA
+from theano.tensor.shared_randomstreams import RandomStreams
+from theano import shared
 
+from SdA import SdA
+from dA.AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder, ReluAutoEncoder
 
 # pass the directory with models, number of layers
 try:
@@ -36,6 +39,7 @@ b_hid = OrderedDict((k, []) for k in xrange(num_layers))
 
 ### Grab the data from each pickled model ###
 for pkl in pkl_files:
+    print "processing pkl ..."
     f = file(os.path.join(pkl_dir,pkl_files[0]),'rb')
     sda = cPickle.load(f)
     f.close()
@@ -44,7 +48,8 @@ for pkl in pkl_files:
         W,bhid,bvis = layer.get_params()
         b_vis[i].append(bvis.get_value(borrow=True))
         b_hid[i].append(bhid.get_value(borrow=True))
-                
+    print "done "
+            
 ### Plot the visible, hidden layer histograms ###
 sns.set_palette("deep", desat=.6)
 sns.set_context(rc={"figure.figsize": (12, 8)})
