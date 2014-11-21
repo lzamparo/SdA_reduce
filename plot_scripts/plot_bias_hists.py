@@ -1,6 +1,6 @@
 # coding: utf-8
 import os, sys, re
-import cPickle
+import pickle
 from collections import OrderedDict
 
 import matplotlib as mpl
@@ -41,16 +41,23 @@ b_hid = OrderedDict((k, []) for k in xrange(num_layers))
 for pkl in pkl_files:
     path = os.path.join(pkl_dir,pkl)
     print "processing " + pkl + " ..."
-    f = file(path,'rb')
-    sda = cPickle.load(f)
-    f.close()
-    
-    for i,layer in enumerate(sda.dA_layers):
-        W,bhid,bvis = layer.get_params()
-        b_vis[i].append(bvis.get_value(borrow=True))
-        b_hid[i].append(bhid.get_value(borrow=True))
+    try:
+        f = file(path,'rb')
+        sda = pickle.load(f)
+        f.close()
+        
+        for i,layer in enumerate(sda.dA_layers):
+            W,bhid,bvis = layer.get_params()
+            b_vis[i].append(bvis.get_value(borrow=True))
+            b_hid[i].append(bhid.get_value(borrow=True))
+    except UnpicklingError:
+        print "Caught UnpicklingError trying to unpickle from " + path
     print "done "
-            
+
+# bail if I could not unpickle *any* models
+num_items = np.asarray([len(b_vis[k]) for k in b_vis.keys()])
+assert num_items.sum() > 0            
+
 ### Plot the visible, hidden layer histograms ###
 sns.set_palette("deep", desat=.6)
 sns.set_context(rc={"figure.figsize": (12, 8)})
