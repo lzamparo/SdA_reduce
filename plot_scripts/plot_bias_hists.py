@@ -43,10 +43,10 @@ for pkl in pkl_files:
     print "processing " + pkl + " ..."
     try:
         f = file(path,'rb')
-        sda = pickle.load(f)
+        sda_model = pickle.load(f)
         f.close()
         
-        for i,layer in enumerate(sda.dA_layers):
+        for i,layer in enumerate(sda_model.dA_layers):
             W,bhid,bvis = layer.get_params()
             b_vis[i].append(bvis.get_value(borrow=True))
             b_hid[i].append(bhid.get_value(borrow=True))
