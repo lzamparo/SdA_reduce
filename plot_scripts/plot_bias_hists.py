@@ -39,8 +39,9 @@ b_hid = OrderedDict((k, []) for k in xrange(num_layers))
 
 ### Grab the data from each pickled model ###
 for pkl in pkl_files:
-    print "processing pkl ..."
-    f = file(os.path.join(pkl_dir,pkl_files[0]),'rb')
+    path = os.path.join(pkl_dir,pkl)
+    print "processing " + pkl + " ..."
+    f = file(path,'rb')
     sda = cPickle.load(f)
     f.close()
     
