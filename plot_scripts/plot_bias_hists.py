@@ -1,6 +1,7 @@
 # coding: utf-8
 import os, sys, re
 import pickle
+from pickle import UnpicklingError
 from collections import OrderedDict
 
 import matplotlib as mpl
