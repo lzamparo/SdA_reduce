@@ -41,7 +41,7 @@ def finetune_SdA(shared_args, private_args):
     import theano
     import theano.tensor as T
     
-    from SdA import SdA    
+    from sda import SdA    
     
     shared_args_dict = shared_args[0]
     

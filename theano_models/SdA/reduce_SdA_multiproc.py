@@ -43,7 +43,7 @@ def feedforward_SdA(shared_args,private_args):
     import theano.tensor as T
     from theano.tensor.shared_randomstreams import RandomStreams
     
-    from SdA import SdA    
+    from sda import SdA    
     
     shared_args_dict = shared_args[0]
     

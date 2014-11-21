@@ -31,7 +31,7 @@ from extract_datasets import extract_unlabeled_chunkrange
 from load_shared import load_data_unlabeled
 from tables import openFile
 
-from SdA import SdA
+from sda import SdA
 
 from datetime import datetime
 from optparse import OptionParser

@@ -17,7 +17,7 @@ import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 from theano import shared
 
-from SdA import SdA
+from sda import SdA
 from dA.AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder, ReluAutoEncoder
 
 # pass the directory with models, number of layers
