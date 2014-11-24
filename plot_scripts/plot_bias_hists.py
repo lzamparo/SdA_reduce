@@ -21,8 +21,8 @@ def make_bias_hist(pkl_dir,pkl_files):
     from theano.tensor.shared_randomstreams import RandomStreams
     from theano import shared
     
-    from SdA.sda import SdA
-    from dA.AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder, ReluAutoEncoder
+    from SdA import SdA
+    from AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder, ReluAutoEncoder
     
     ### Grab the data from each pickled model ###
     for pkl in pkl_files:

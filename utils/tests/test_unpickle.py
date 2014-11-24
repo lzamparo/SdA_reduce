@@ -59,7 +59,7 @@ def test_gradient_SdA(private_args,finetune_lr=0.01, momentum=0.3, weight_decay 
     
     print >> output_file, 'Unpickling the model from %s ...' % (private_args['restore'])        
     f = file(private_args['restore'], 'rb')
-    sda = cPickle.load(f)
+    sda_model = cPickle.load(f)
     f.close() 
     
     print >> output_file, "sucessfully unpickled the model."

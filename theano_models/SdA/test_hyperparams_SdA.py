@@ -6,7 +6,7 @@ import theano.tensor as T
 from mlp.logistic_sgd import LogisticRegression
 from mlp.hidden_layer import HiddenLayer
 from dA.AutoEncoder import AutoEncoder
-from sda import SdA
+from SdA import SdA
 
 from theano.tensor.shared_randomstreams import RandomStreams
 

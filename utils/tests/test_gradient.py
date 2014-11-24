@@ -62,7 +62,7 @@ def test_gradient_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, w
     
     print >> output_file, 'Unpickling the model from %s ...' % (private_args['restore'])        
     f = file(private_args['restore'], 'rb')
-    sda = cPickle.load(f)
+    sda_model = cPickle.load(f)
     f.close()        
     
     ########################
@@ -72,7 +72,7 @@ def test_gradient_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, w
     # get the training, validation function for the model
     datasets = (train_set_x,valid_set_x)    
     
-    train_fn, validate_model = sda.build_finetune_functions_reconstruction(
+    train_fn, validate_model = sda_model.build_finetune_functions_reconstruction(
                     datasets=datasets, batch_size=batch_size,
                     learning_rate=finetune_lr)    
     
@@ -100,7 +100,7 @@ def test_gradient_SdA(shared_args,private_args,finetune_lr=0.01, momentum=0.3, w
     
                     # DEBUG: test the gradient at some batch value
                     # Arbitrarily picking the first 100 points in the validation set.
-                    eval_grad = sda.test_gradient(valid_set_x)
+                    eval_grad = sda_model.test_gradient(valid_set_x)
                     grad_vals = [eval_grad(i) for i in xrange(100)]        
                     grad_vals_frob = [norm(A) for A in grad_vals]    
                     grad_vald_one = [norm(A, ord='1') for A in grad_vals]

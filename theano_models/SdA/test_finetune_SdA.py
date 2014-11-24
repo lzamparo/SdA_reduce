@@ -44,7 +44,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
     import theano.tensor as T
     from theano.tensor.shared_randomstreams import RandomStreams
 
-    from sda import SdA    
+    from SdA import SdA    
 
     shared_args_dict = shared_args[0]
 

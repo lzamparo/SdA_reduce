@@ -17,7 +17,7 @@ import numpy
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
-from sda import SdA
+from SdA import SdA
 
 from extract_datasets import extract_unlabeled_chunkrange, store_unlabeled_byarray
 from load_shared import load_data_unlabeled

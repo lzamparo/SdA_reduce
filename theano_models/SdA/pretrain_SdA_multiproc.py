@@ -39,7 +39,7 @@ def pretrain(shared_args,private_args):
     import theano
     import theano.tensor as T
     from theano.tensor.shared_randomstreams import RandomStreams
-    from sda import SdA    
+    from SdA import SdA    
     
     shared_args_dict = shared_args[0]
     
