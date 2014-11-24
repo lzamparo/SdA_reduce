@@ -63,14 +63,14 @@ def feedforward_SdA(output_dir,input_file,arch,restore_file):
     
     print 'Unpickling the model from %s ...' % (restore_file)        
     f = file(restore_file, 'rb')
-    sda = cPickle.load(f)
+    sda_model = cPickle.load(f)
     f.close()    
     
     datafile = extract_unlabeled_chunkrange(data_set_file, num_files=len(arrays_list))
     this_x = load_data_unlabeled(datafile)    
     
     print '... getting the encoding function'
-    encode_fn = sda.build_encoding_functions(dataset=this_x)    
+    encode_fn = sda_model.build_encoding_functions(dataset=this_x)    
     
     start_time = time.clock()
     # Go through each chunk in the data_set_file, feed through the SdA, write the output to h5file

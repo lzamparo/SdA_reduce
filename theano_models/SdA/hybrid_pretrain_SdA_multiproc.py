@@ -96,13 +96,13 @@ def pretrain(shared_args, private_args):
         current_dir = os.getcwd()    
         os.chdir(shared_args_dict['dir'])         
         f = file(private_args['restore'], 'rb')
-        sda = cPickle.load(f)
+        sda_model = cPickle.load(f)
         f.close()        
         os.chdir(current_dir)
     else:
         print '... building the model'  
         
-        sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
+        sda_model = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=arch_list,
               corruption_levels = corruption_list,
               layer_types=layer_types,
@@ -116,13 +116,13 @@ def pretrain(shared_args, private_args):
     #########################    
     
     print '... getting the pretraining functions'
-    pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
+    pretraining_fns = sda_model.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=shared_args_dict['batch_size'],
                                                 learning_rate=learning_rate,
                                                 method='cm')
 
     print '... getting the hybrid training functions'
-    hybrid_pretraining_fns = sda.build_finetune_limited_reconstruction(train_set_x=train_set_x, 
+    hybrid_pretraining_fns = sda_model.build_finetune_limited_reconstruction(train_set_x=train_set_x, 
                                                                       batch_size=shared_args_dict['batch_size'], 
                                                                       learning_rate=learning_rate,
                                                                       method='cm')
@@ -132,14 +132,14 @@ def pretrain(shared_args, private_args):
     datasets = (train_set_x,valid_set_x)
         
     print '... getting the finetuning functions'
-    finetune_train_fn, validate_model = sda.build_finetune_full_reconstruction(
+    finetune_train_fn, validate_model = sda_model.build_finetune_full_reconstruction(
                 datasets=datasets, batch_size=shared_args_dict['batch_size'],
                 learning_rate=learning_rate,
                 method='cm')    
 
     
     # DEBUG: should only have n_layers - 2 hybrid pretraining functions
-    assert len(hybrid_pretraining_fns) == sda.n_layers - 2
+    assert len(hybrid_pretraining_fns) == sda_model.n_layers - 2
     
     print '... writing meta-data to output file'
     metadict = {'n_train_batches': n_train_batches}
@@ -150,7 +150,7 @@ def pretrain(shared_args, private_args):
     start_time = time.clock()
     
     # Get corruption levels from the SdA.  
-    corruption_levels = sda.corruption_levels
+    corruption_levels = sda_model.corruption_levels
     
     # Function to decrease the learning rate
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
@@ -162,9 +162,9 @@ def pretrain(shared_args, private_args):
                 updates={learning_rate: lr_val})
     
     # Set up functions for max norm regularization
-    apply_max_norm_regularization = sda.max_norm_regularization()  
+    apply_max_norm_regularization = sda_model.max_norm_regularization()  
     
-    for i in xrange(sda.n_layers):       
+    for i in xrange(sda_model.n_layers):       
                 
         for epoch in xrange(shared_args_dict['pretraining_epochs']):
             # go through the training set
@@ -180,7 +180,7 @@ def pretrain(shared_args, private_args):
             apply_max_norm_regularization(norm_limit=shared_args_dict['maxnorm'])
         
         # Do hybrid pretraining only on the middle layer(s)
-        if i > 0 and i < sda.n_layers - 1:
+        if i > 0 and i < sda_model.n_layers - 1:
             for h_epoch in xrange(20):
                 hybrid_c = []
                 for batch_index in xrange(n_train_batches):
@@ -196,7 +196,7 @@ def pretrain(shared_args, private_args):
             current_dir = os.getcwd()    
             os.chdir(shared_args_dict['dir'])            
             f = file(private_args['save'], 'wb')
-            cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
+            cPickle.dump(sda_model, f, protocol=cPickle.HIGHEST_PROTOCOL)
             f.close()
             os.chdir(current_dir)
 
@@ -224,7 +224,7 @@ def pretrain(shared_args, private_args):
             current_dir = os.getcwd()    
             os.chdir(shared_args_dict['dir'])            
             f = file(private_args['save'], 'wb')
-            cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
+            cPickle.dump(sda_model, f, protocol=cPickle.HIGHEST_PROTOCOL)
             f.close()
             os.chdir(current_dir)
             

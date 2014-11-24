@@ -88,13 +88,13 @@ def pretrain(shared_args,private_args):
         current_dir = os.getcwd()    
         os.chdir(shared_args_dict['dir'])         
         f = file(private_args['restore'], 'rb')
-        sda = cPickle.load(f)
+        sda_model = cPickle.load(f)
         f.close()        
         os.chdir(current_dir)
     else:
         print '... building the model'  
         
-        sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
+        sda_model = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=arch_list,
               corruption_levels = corruption_list,
               layer_types=layer_types,
@@ -108,14 +108,14 @@ def pretrain(shared_args,private_args):
     #########################    
     
     print '... getting the pretraining functions'
-    pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
+    pretraining_fns = sda_model.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=shared_args_dict['batch_size'],
                                                 learning_rate=learning_rate,
                                                 method='cm')
 
     
     # Get corruption levels from the SdA.  
-    corruption_levels = sda.corruption_levels
+    corruption_levels = sda_model.corruption_levels
     
     # Function to decrease the learning rate
     decay_learning_rate = theano.function(inputs=[], outputs=learning_rate,
@@ -137,7 +137,7 @@ def pretrain(shared_args,private_args):
     print '... pre-training the model'
     start_time = time.clock()    
     
-    for i in xrange(sda.n_layers):       
+    for i in xrange(sda_model.n_layers):       
                 
         for epoch in xrange(shared_args_dict['pretraining_epochs']):
             # go through the training set
@@ -160,7 +160,7 @@ def pretrain(shared_args,private_args):
             current_dir = os.getcwd()    
             os.chdir(shared_args_dict['dir'])            
             f = file(private_args['save'], 'wb')
-            cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
+            cPickle.dump(sda_model, f, protocol=cPickle.HIGHEST_PROTOCOL)
             f.close()
             os.chdir(current_dir)
 

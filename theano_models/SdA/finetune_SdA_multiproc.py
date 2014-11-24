@@ -75,7 +75,7 @@ def finetune_SdA(shared_args, private_args):
     
     print >> output_file, 'Unpickling the model from %s ...' % (private_args['restore'])        
     f = file(private_args['restore'], 'rb')
-    sda = cPickle.load(f)
+    sda_model = cPickle.load(f)
     f.close()        
     
     print '... writing meta-data to output file'
@@ -91,7 +91,7 @@ def finetune_SdA(shared_args, private_args):
     datasets = (train_set_x,valid_set_x)
     
     print '... getting the finetuning functions'
-    train_fn, validate_model = sda.build_finetune_full_reconstruction(
+    train_fn, validate_model = sda_model.build_finetune_full_reconstruction(
                 datasets=datasets, batch_size=shared_args_dict['batch_size'],
                 learning_rate=shared_args_dict['finetune_lr'],
                 method=shared_args_dict['sgd'])
@@ -168,7 +168,7 @@ def finetune_SdA(shared_args, private_args):
                     # save best model that achieved this best loss    
                     print >> output_file, 'Pickling the model...'          
                     f = file(private_args['save'], 'wb')
-                    cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
+                    cPickle.dump(sda_model, f, protocol=cPickle.HIGHEST_PROTOCOL)
                     f.close()                    
                     
             if patience <= t:

@@ -87,7 +87,7 @@ def finetune_SdA(model_file, finetune_lr=0.01, momentum=0.3, weight_decay = 0.00
         
     # TODO: error checking here using 'with'?    
     f = file(options.model, 'rb')
-    sda = cPickle.load(f)
+    sda_model = cPickle.load(f)
     f.close()   
     
     
@@ -113,7 +113,7 @@ def finetune_SdA(model_file, finetune_lr=0.01, momentum=0.3, weight_decay = 0.00
     # get the training, validation function for the model
     datasets = (train_set_x,valid_set_x)
     print '... getting the finetuning functions'
-    train_fn, validate_model = sda.build_finetune_functions_reconstruction(
+    train_fn, validate_model = sda_model.build_finetune_functions_reconstruction(
                 datasets=datasets, batch_size=batch_size,
                 learning_rate=finetune_lr)
 
