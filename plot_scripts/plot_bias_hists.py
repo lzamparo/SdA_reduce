@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def make_bias_hist(pkl_dir,pkl_files):
+def make_bias_hist(pkl_dir,pkl_files,num_layers):
     """ Grab all the visible & hidden biases from the SdA models in pkl_dir, plot histograms. """
     
     import theano.sandbox.cuda
@@ -53,7 +53,7 @@ def make_bias_hist(pkl_dir,pkl_files):
         
     for key in b_hid:
         data = np.concatenate(b_hid[key])
-        sp = b_fig.add_subplot(3,2,key+1)
+        sp = b_fig.add_subplot(num_layers,2,key+1)
         sp.hist(data,normed=True, color="#6495ED", alpha=.5)
         title = "Hidden layer bias values: layer " + str(key)
         sp.set_title(title)
@@ -81,7 +81,8 @@ def make_bias_hist(pkl_dir,pkl_files):
         #sp.set_title(title)
      
     b_fig.tight_layout()
-    b_fig.savefig("bias_hist.pdf")
+    filename = "bias_hist_" + str(num_layers) +"_layers.pdf"
+    b_fig.savefig(filename)
 
 if __name__ == "__main__":
     # pass the directory with models, number of layers
@@ -102,6 +103,6 @@ if __name__ == "__main__":
     b_vis = OrderedDict((k, []) for k in xrange(num_layers))
     b_hid = OrderedDict((k, []) for k in xrange(num_layers))
     
-    make_bias_hist(pkl_dir, pkl_files)
+    make_bias_hist(pkl_dir, pkl_files,num_layers)
 
     
