@@ -71,7 +71,7 @@ def test_loss_SdA(num_epochs=100, pretrain_lr=0.0001, lr_decay = 0.98, batch_siz
                     updates={learning_rate: learning_rate * lr_decay})    
  
 
-    sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
+    sda_model = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=[1000, 600, 50],
               corruption_levels = [0.25, 0.0, 0.0],
               layer_types=layer_types,
@@ -81,7 +81,7 @@ def test_loss_SdA(num_epochs=100, pretrain_lr=0.0001, lr_decay = 0.98, batch_siz
     # PRETRAINING THE MODEL #
     #########################
     print '... getting the pretraining functions'
-    pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
+    pretraining_fns = sda_model.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size,
                                                 learning_rate=learning_rate)
 
@@ -94,7 +94,7 @@ def test_loss_SdA(num_epochs=100, pretrain_lr=0.0001, lr_decay = 0.98, batch_siz
     start_time = time.clock()
     ## Pre-train layer-wise
     corruption_levels = [float(options.corruption), float(options.corruption)]
-    for i in xrange(sda.n_layers):
+    for i in xrange(sda_model.n_layers):
         
         for epoch in xrange(num_epochs / 2):
             # go through the training set
@@ -117,7 +117,7 @@ def test_loss_SdA(num_epochs=100, pretrain_lr=0.0001, lr_decay = 0.98, batch_siz
     # Pickle the SdA
     print >> output_file, 'Pickling the model...'
     f = file(options.savefile, 'wb')
-    cPickle.dump(sda, f, protocol=cPickle.HIGHEST_PROTOCOL)
+    cPickle.dump(sda_model, f, protocol=cPickle.HIGHEST_PROTOCOL)
     f.close()    
     
     # Unpickle the SdA
@@ -131,7 +131,7 @@ def test_loss_SdA(num_epochs=100, pretrain_lr=0.0001, lr_decay = 0.98, batch_siz
     # and biases freshly unpickled
     for i in xrange(pickled_sda.n_layers):
         pickled_dA_params = pickled_sda.dA_layers[i].get_params()
-        fresh_dA_params = sda.dA_layers[i].get_params()
+        fresh_dA_params = sda_model.dA_layers[i].get_params()
         if not numpy.allclose(pickled_dA_params[0].get_value(), fresh_dA_params[0].get_value()):
             print >> output_file, ("numpy says that Ws in layer %i are not close" % (i))
             print >> output_file, "Norm for pickled dA " + pickled_dA_params[0].name  + ": " 

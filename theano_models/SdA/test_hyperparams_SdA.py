@@ -72,7 +72,7 @@ def test_mom_wd(filename, num_epochs=10, momentum=0., weight_decay=0., pretrain_
     numpy_rng = numpy.random.RandomState(89677)
     print '... building the model'
 
-    sda = SdA(numpy_rng=numpy_rng, n_ins=n_features,
+    sda_model = SdA(numpy_rng=numpy_rng, n_ins=n_features,
               hidden_layers_sizes=[700, 700, 300, 50],
               corruption_levels = [0.2,0.2,0.2,0.2],
               n_outs=3, dA_losses=['squared','xent','xent','xent'])
@@ -81,14 +81,14 @@ def test_mom_wd(filename, num_epochs=10, momentum=0., weight_decay=0., pretrain_
     # PRETRAINING THE MODEL #
     #########################
     print '... getting the pretraining functions'
-    pretraining_fns = sda.pretraining_functions(train_set_x=train_set_x,
+    pretraining_fns = sda_model.pretraining_functions(train_set_x=train_set_x,
                                                 batch_size=batch_size)
 
     print '... pre-training the model'
     start_time = time.clock()
     ## Pre-train layer-wise
     corruption_levels = [float(options.corruption), float(options.corruption), float(options.corruption), float(options.corruption)]
-    for i in xrange(sda.n_layers):
+    for i in xrange(sda_model.n_layers):
         
         for epoch in xrange(num_epochs):
             # go through the training set

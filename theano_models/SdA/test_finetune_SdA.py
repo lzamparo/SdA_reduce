@@ -75,7 +75,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
 
     print >> output_file, 'Unpickling the model from %s ...' % (private_args['restore'])        
     f = file(private_args['restore'], 'rb')
-    sda = cPickle.load(f)
+    sda_model = cPickle.load(f)
     f.close()        
 
     ########################
@@ -94,13 +94,13 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
                                           updates={learning_rate: learning_rate * lr_decay})     
 
     # Set up NAG parameter based updates if specified in the SdA
-    if sda.opt_method == 'NAG':
+    if sda_model.opt_method == 'NAG':
         do_NAG = True
-        apply_last_update = sda.nag_param_update()
+        apply_last_update = sda_model.nag_param_update()
 
 
     print '... getting the finetuning functions'
-    train_fn, validate_model = sda.build_finetune_functions_reconstruction(
+    train_fn, validate_model = sda_model.build_finetune_functions_reconstruction(
         datasets=datasets, batch_size=batch_size,
         learning_rate=learning_rate)
 
@@ -126,7 +126,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
     epoch = 0   
 
     # Set up functions for max norm regularization
-    max_norm_regularization_fns = sda.max_norm_regularization()
+    max_norm_regularization_fns = sda_model.max_norm_regularization()
 
     while (epoch < num_epochs) and (not done_looping):
         epoch = epoch + 1
@@ -136,7 +136,7 @@ def test_finetune_SdA(shared_args, private_args, num_epochs=10, finetune_lr=0.00
             iter = (epoch - 1) * n_train_batches + minibatch_index
 
             # apply max-norm regularization
-            for i in xrange(sda.n_layers):
+            for i in xrange(sda_model.n_layers):
                 scale = max_norm_regularization_fns[i](norm_limit=shared_args_dict['maxnorm'])
                 if scale > 1.0:
                     print >> output_file, "Re-scaling took place w scale value ", str(scale)
