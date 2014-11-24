@@ -6,8 +6,8 @@ from theano.tensor.shared_randomstreams import RandomStreams
 from theano import shared
 
 from collections import OrderedDict
-from mlp.logistic_sgd import LogisticRegression
-from dA.AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder, ReluAutoEncoder
+from logistic_sgd import LogisticRegression
+from AutoEncoder import AutoEncoder, BernoulliAutoEncoder, GaussianAutoEncoder, ReluAutoEncoder
 
 
 class SdA(object):
