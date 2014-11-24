@@ -55,7 +55,7 @@ def make_bias_hist(pkl_dir,pkl_files):
         data = np.concatenate(b_hid[key])
         sp = b_fig.add_subplot(3,2,key+1)
         sp.hist(data,normed=True, color="#6495ED", alpha=.5)
-        title = "Hidden layer bias values: layer " + key
+        title = "Hidden layer bias values: layer " + str(key)
         sp.set_title(title)
     
     for key in b_vis:
@@ -63,7 +63,7 @@ def make_bias_hist(pkl_dir,pkl_files):
         offset = key + len(b_hid.keys()) + 1
         sp = b_fig.add_subplot(3,2,offset)
         sp.hist(data,normed=True, color="#F08080", alpha=.5)
-        title = "Visible layer bias values: layer " + key
+        title = "Visible layer bias values: layer " + str(key)
         sp.set_title(title)
     
     # All on one figure
