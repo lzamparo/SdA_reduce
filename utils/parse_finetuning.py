@@ -65,8 +65,8 @@ for f in model_files:
         if not line.startswith("epoch"):
             continue
         cost = extract_cost(get_error,line)
-        if cost < results[f_model]:
-            results[f_model] = cost        
+        if float(cost) < results[f_model]:
+            results[f_model] = float(cost)        
     infile.close()
     
 print "...Done"
