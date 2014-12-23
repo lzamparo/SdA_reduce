@@ -20,14 +20,16 @@ def extract_model_name(regex,filename):
         return match.groups()[0]
 
 # Extract the layer and cost from a line
-def extract_cost(line):
+def extract_cost(regex,line):
     parts = line.split(" ")
-    cost = 9999.
     try:
-        cost = float(parts[-2])
+        match = regex.match(line)
+        if match is not None:
+            return match.groups()[0]
+        else:
+            return 9999.
     except:
-        print "Value error in casting " + str(parts[-2]) + " to float"
-    return cost
+        print "Value error in trying to match: " + line
 
 # get the directory from sys.argv[1]
 input_dir = sys.argv[1]
@@ -38,6 +40,7 @@ model_files = os.listdir(".")
 
 # compile a regex to extract the model from a given filename
 model_name = re.compile(".*?sda_([\d_]+)\.*")
+get_error = re.compile("validation error ([\d\.]+)")
 
 # Store the results of the model search in this dictionary
 # keys are model name, values are validation scores
@@ -53,6 +56,7 @@ for f in model_files:
     
     # read the file, populate this file's entry in the three dicts
     f_model = extract_model_name(model_name, f)
+    results[f_model] = 9999.
     if f_model is None:
         continue
     
@@ -60,8 +64,9 @@ for f in model_files:
     for line in infile:
         if not line.startswith("epoch"):
             continue
-        cost = extract_cost(line)
-        results[f_model] = cost        
+        cost = extract_cost(get_error,line)
+        if cost < results[f_model]:
+            results[f_model] = cost        
     infile.close()
     
 print "...Done"
@@ -73,7 +78,7 @@ print "...Finding top 10 scoring results"
 print "Top ten archs: " 
 
 sorted_layer_results = sorted(results.items(), key=lambda t: t[1])
-for i in range(0,20):
+for i in range(0,10):
     model, score = sorted_layer_results[i]
     print str(i) + ": " + model + " , " + str(score)
     
