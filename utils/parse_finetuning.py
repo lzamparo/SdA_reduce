@@ -40,7 +40,7 @@ model_files = os.listdir(".")
 
 # compile a regex to extract the model from a given filename
 model_name = re.compile(".*?sda_([\d_]+)\.*")
-get_error = re.compile("validation score of ([\d\.]+)")
+get_error = re.compile("[\w\s]+ validation score of ([\d\.]+)")
 
 # Store the results of the model search in this dictionary
 # keys are model name, values are validation scores
