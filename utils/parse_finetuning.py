@@ -40,7 +40,7 @@ model_files = os.listdir(".")
 
 # compile a regex to extract the model from a given filename
 model_name = re.compile(".*?sda_([\d_]+)\.*")
-get_error = re.compile("validation error ([\d\.]+)")
+get_error = re.compile("validation score of ([\d\.]+)")
 
 # Store the results of the model search in this dictionary
 # keys are model name, values are validation scores
@@ -62,11 +62,10 @@ for f in model_files:
     
     infile = open(f, 'r')
     for line in infile:
-        if not line.startswith("epoch"):
+        if not line.startswith("Optimization"):
             continue
         cost = extract_cost(get_error,line)
-        if float(cost) < results[f_model]:
-            results[f_model] = float(cost)        
+        results[f_model] = float(cost)        
     infile.close()
     
 print "...Done"
