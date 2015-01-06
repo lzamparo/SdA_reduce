@@ -152,13 +152,15 @@ def store_labeled_byarray(data_set_file, arrays_group, labels_group, zlib_filter
         :type my_data: numpy array
         :param my_data: The numpy array to write to the hdf5 file
         
-        :type my_labels: numpy array
-        :param my_labels: The numpy array (of labels) to write to the hdf5 file
+        :type my_labels: CArray
+        :param my_labels: The CArray directly from the labels hdf5 file
     """ 
     data_atom = Atom.from_dtype(my_data.dtype)
-    labels_atom = Atom.from_dtype(my_labels.dtype)
+    labels_np = np.empty(my_labels.shape)
+    labels_np[:] = my_labels.read()
+    labels_atom = Atom.from_dtype(labels_np.dtype)
     ds = data_set_file.createCArray(where=arrays_group, name=data_range, atom=data_atom, shape=my_data.shape, filters=zlib_filters)
     ls = data_set_file.createCArray(where=labels_group, name=data_range, atom=labels_atom, shape=my_labels.shape, filters=zlib_filters)
     ds[:] = my_data
-    ls[:] = my_labels
+    ls[:] = labels_np
     data_set_file.flush()    
