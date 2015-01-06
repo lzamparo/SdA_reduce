@@ -14,7 +14,7 @@ import time
 
 import numpy
 
-from extract_datasets import extract_unlabeled_chunkrange, store_unlabeled_byarray
+from extract_datasets import extract_unlabeled_chunkrange, store_unlabeled_byarray, store_labeled_byarray
 from common_utils import extract_arch
 from load_shared import load_data_unlabeled
 from tables import openFile, Filters 
@@ -60,12 +60,17 @@ def feedforward_SdA(shared_args,private_args):
     print "Run on " + str(datetime.now())    
     
     # Create a new group under "/" (root)
+    save_labels = shared_args_dict['labels']
     arrays_group = h5file.createGroup("/", 'recarrays', 'The lower dimensional data arrays')
+    if save_labels:
+        labels_group = h5file.createGroup("/", 'labels', 'The label arrays')
     zlib_filters = Filters(complib='zlib', complevel=5)    
     
     # Get the data to be fed through the SdA from the input file
     data_set_file = openFile(str(shared_args_dict['input']), mode = 'r') 
     arrays_list = data_set_file.listNodes("/recarrays", classname='Array')
+    if save_labels:
+        labels_list = data_set_file.listNodes("/labels", classname='Array')
     chunk_names, offsets = calculate_offsets(arrays_list)
     
     print 'Unpickling the model from %s ...' % (private_args['restore'])        
@@ -73,7 +78,10 @@ def feedforward_SdA(shared_args,private_args):
     sda_model = cPickle.load(f)
     f.close()    
     
-    datafile = extract_unlabeled_chunkrange(data_set_file, num_files=len(arrays_list))
+    if save_labels:
+        datafile, labelfile = extract_labeled_chunkrange(data_set_file, num_files=len(arrays_list))
+    else:
+        datafile = extract_unlabeled_chunkrange(data_set_file, num_files=len(arrays_list))
     this_x = load_data_unlabeled(datafile)  
     
     print '... getting the encoding function'
@@ -84,7 +92,10 @@ def feedforward_SdA(shared_args,private_args):
     for i in xrange(len(arrays_list)):
         start,end = offsets[i]
         reduced_data = encode_fn(start=start,end=end)
-        store_unlabeled_byarray(h5file, arrays_group, zlib_filters, chunk_names[i], reduced_data)
+        if save_labels:
+            store_labeled_byarray(h5file, arrays_group, labels_group, zlib_filters, chunk_names[i], reduced_data, labels_list[i])
+        else:
+            store_unlabeled_byarray(h5file, arrays_group, zlib_filters, chunk_names[i], reduced_data)
         
     # tidy up    
     end_time = time.clock()
@@ -117,6 +128,7 @@ if __name__ == '__main__':
     parser.add_option("-p","--firstrestorefile",dest = "pr_file", help = "Restore the first model from this pickle file", default=None)
     parser.add_option("-q","--secondrestorefile",dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
+    parser.add_option("-l", "--labels", dest="labels", action='store_true', default=False, help="use labels?")
     (options, args) = parser.parse_args()    
     
     # Construct a dict of shared arguments that should be read by both processes
@@ -127,6 +139,7 @@ if __name__ == '__main__':
     shared_args = args[0]
     shared_args['dir'] = os.path.join(options.dir,options.extension)
     shared_args['input'] = options.inputfile
+    shared_args['labels'] = options.labels
     args[0] = shared_args
     
     # Construct the specific args for each of the two processes

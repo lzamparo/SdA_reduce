@@ -130,3 +130,35 @@ def store_unlabeled_byarray(data_set_file, arrays_group, zlib_filters, data_rang
     ds = data_set_file.createCArray(where=arrays_group, name=data_range, atom=atom, shape=my_data.shape, filters=zlib_filters)
     ds[:] = my_data
     data_set_file.flush()
+    
+def store_labeled_byarray(data_set_file, arrays_group, labels_group, zlib_filters, data_range, my_data, my_labels):
+    """ Take a reference to an open hdf5 pytables file, and a numpy array, store the numpy array in the specified file. 
+            
+        :type data_set_file: pytables file reference
+        :param data_set_file: an open hdf5 file
+    
+        :type arrays_group: string
+        :param arrays_group: the group under which to write the data chunk
+        
+        :type labels_group: string
+        :param labels_group: the group under which to write the labels chunk
+        
+        :type zlib_filters: Filter
+        :param zlib_filters: The pytables filter to apply
+        
+        :type data_range: string
+        :param data_range: The name of this data chunk, and labels chunk.
+        
+        :type my_data: numpy array
+        :param my_data: The numpy array to write to the hdf5 file
+        
+        :type my_labels: numpy array
+        :param my_labels: The numpy array (of labels) to write to the hdf5 file
+    """ 
+    data_atom = Atom.from_dtype(my_data.dtype)
+    labels_atom = Atom.from_dtype(my_labels.dtype)
+    ds = data_set_file.createCArray(where=arrays_group, name=data_range, atom=data_atom, shape=my_data.shape, filters=zlib_filters)
+    ls = data_set_file.createCArray(where=labels_group, name=data_range, atom=labels_atom, shape=my_labels.shape, filters=zlib_filters)
+    ds[:] = my_data
+    ls[:] = my_labels
+    data_set_file.flush()    
