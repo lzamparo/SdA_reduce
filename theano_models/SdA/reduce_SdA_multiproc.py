@@ -14,7 +14,8 @@ import time
 
 import numpy
 
-from extract_datasets import extract_unlabeled_chunkrange, store_unlabeled_byarray, store_labeled_byarray
+from extract_datasets import extract_unlabeled_chunkrange, extract_labeled_chunkrange
+from extract_datasets import store_unlabeled_byarray, store_labeled_byarray
 from common_utils import extract_arch
 from load_shared import load_data_unlabeled
 from tables import openFile, Filters 
