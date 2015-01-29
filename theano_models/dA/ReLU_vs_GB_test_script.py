@@ -43,19 +43,19 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the hdf5 filename as an absolute pathname")
     (options, args) = parser.parse_args()    
 
-    current_dir = os.getcwd()    
+    #current_dir = os.getcwd()    
 
-    os.chdir(options.dir)
-    today = datetime.today()
-    day = str(today.date())
-    hour = str(today.time())
-    corruptn = str(options.corruption)
-    output_filename = "gb_da." + "corruption_" + corruptn + "_" + day + "." + hour
-    output_file = open(output_filename,'w')
+    #os.chdir(options.dir)
+    #today = datetime.today()
+    #day = str(today.date())
+    #hour = str(today.time())
+    #corruptn = str(options.corruption)
+    #output_filename = "gb_da." + "corruption_" + corruptn + "_" + day + "." + hour
+    #output_file = open(output_filename,'w')
     
-    print >> output_file, "Run on " + str(datetime.now())    
+    #print >> output_file, "Run on " + str(datetime.now())    
     
-    os.chdir(current_dir)
+    #os.chdir(current_dir)
     
     data_set_file = openFile(str(options.inputfile), mode = 'r')
     datafiles, labels = extract_labeled_chunkrange(data_set_file, num_files = 10)
@@ -75,43 +75,43 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     # Build the GaussianBernoulli dA #
     ##################################
 
-    rng = numpy.random.RandomState(2345)
-    theano_rng = RandomStreams(rng.randint(2 ** 30))
+    #rng = numpy.random.RandomState(2345)
+    #theano_rng = RandomStreams(rng.randint(2 ** 30))
 
-    da = GaussianAutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
-            n_visible=n_cols, n_hidden=800)
+    #da = GaussianAutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
+            #n_visible=n_cols, n_hidden=800)
 
-    cost, updates = da.get_cost_updates(corruption_level=options.corruption,
-                                        learning_rate=learning_rate)
+    #cost, updates = da.get_cost_updates(corruption_level=options.corruption,
+                                        #learning_rate=learning_rate)
 
-    train_da = theano.function([index], cost, updates=updates,
-         givens={x: train_set_x[index * batch_size:
-                                (index + 1) * batch_size]})
+    #train_da = theano.function([index], cost, updates=updates,
+         #givens={x: train_set_x[index * batch_size:
+                                #(index + 1) * batch_size]})
 
-    start_time = time.clock()
+    #start_time = time.clock()
 
-    ############
-    # TRAINING #
-    ############
+    #############
+    ## TRAINING #
+    #############
 
-    # go through training epochs
-    for epoch in xrange(training_epochs):
-        # go through training set
-        c = []
-        for batch_index in xrange(n_train_batches):
-            c.append(train_da(batch_index))
+    ## go through training epochs
+    #for epoch in xrange(training_epochs):
+        ## go through training set
+        #c = []
+        #for batch_index in xrange(n_train_batches):
+            #c.append(train_da(batch_index))
 
-        print >> output_file, 'Training epoch %d, cost ' % epoch, numpy.mean(c)
+        #print >> output_file, 'Training epoch %d, cost ' % epoch, numpy.mean(c)
 
-    end_time = time.clock()
+    #end_time = time.clock()
 
-    training_time = (end_time - start_time)
+    #training_time = (end_time - start_time)
 
-    print >> output_file, ('The ' + str(options.corruption) + ' corruption code for file ' +
-                          os.path.split(__file__)[1] +
-                          ' ran for %.2fm' % ((training_time) / 60.))    
+    #print >> output_file, ('The ' + str(options.corruption) + ' corruption code for file ' +
+                          #os.path.split(__file__)[1] +
+                          #' ran for %.2fm' % ((training_time) / 60.))    
     
-    output_file.close()      
+    #output_file.close()      
     
     ##########
     # Build the ReLU dA
@@ -133,9 +133,22 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     cost, updates = da.get_cost_updates(corruption_level=float(options.corruption),
                                         learning_rate=learning_rate)
 
+    # monitor for NaN here
+    def detect_nan(i, node, fn):
+        for output in fn.outputs:
+            if numpy.isnan(output[0]).any():
+                print '*** NaN detected ***'
+                theano.printing.debugprint(node)
+                print 'Inputs : %s' % [input[0] for input in fn.inputs]
+                print 'Outputs: %s' % [output[0] for output in fn.outputs]
+                break
+    
+    x = theano.tensor.dscalar('x')
     train_da = theano.function([index], cost, updates=updates,
-         givens={x: train_set_x[index * batch_size:
-                                (index + 1) * batch_size]})
+                               givens={x: train_set_x[index * batch_size:
+                                                               (index + 1) * batch_size]},                          
+                               mode=theano.compile.MonitorMode(
+                                   post_func=detect_nan))
 
     start_time = time.clock()
     
