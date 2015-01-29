@@ -133,6 +133,7 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     cost, updates = da.get_cost_updates(corruption_level=float(options.corruption),
                                         learning_rate=learning_rate)
 
+
     # monitor for NaN here
     def detect_nan(i, node, fn):
         for output in fn.outputs:
@@ -143,12 +144,16 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
                 print 'Outputs: %s' % [output[0] for output in fn.outputs]
                 break
     
-    x = theano.tensor.dscalar('x')
+    nyaargh = theano.tensor.dscalar('nyaargh')
+    f = theano.function([nyaargh], [theano.tensor.log(nyaargh) * nyaargh],
+                            mode=theano.compile.MonitorMode(
+                                post_func=detect_nan))
+    f(0)  # log(0) * 0 = -inf * 0 = NaN    
+            
     train_da = theano.function([index], cost, updates=updates,
                                givens={x: train_set_x[index * batch_size:
                                                                (index + 1) * batch_size]},                          
-                               mode=theano.compile.MonitorMode(
-                                   post_func=detect_nan))
+                               mode=theano.compile.MonitorMode(post_func=detect_nan))
 
     start_time = time.clock()
     
