@@ -148,7 +148,14 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     f = theano.function([nyaargh], [theano.tensor.log(nyaargh) * nyaargh],
                             mode=theano.compile.MonitorMode(
                                 post_func=detect_nan))
-    f(0)  # log(0) * 0 = -inf * 0 = NaN    
+    f(0)  # log(0) * 0 = -inf * 0 = NaN 
+    
+    # got: 
+    #*** NaN detected ***
+    #Elemwise{Composite{[mul(log(i0), i0)]}} [@A] ''   
+     #|nyaargh [@B]
+    #Inputs : [array(0.0)]
+    #Outputs: [array(nan)]    
             
     train_da = theano.function([index], cost, updates=updates,
                                givens={x: train_set_x[index * batch_size:
