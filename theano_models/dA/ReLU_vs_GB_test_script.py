@@ -49,7 +49,7 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     #today = datetime.today()
     #day = str(today.date())
     #hour = str(today.time())
-    #corruptn = str(options.corruption)
+    corruptn = str(options.corruption)
     #output_filename = "gb_da." + "corruption_" + corruptn + "_" + day + "." + hour
     #output_file = open(output_filename,'w')
     
