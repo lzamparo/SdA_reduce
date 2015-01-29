@@ -630,7 +630,7 @@ class ReluAutoEncoder(AutoEncoder):
             
         return (cost, updates)
     
-    def get_cost_updates_safe(self, corruption_level, learning_rate,max_grad=5.0):
+    def get_cost_updates_safe(self, corruption_level, learning_rate, mb_size, max_grad=15.0):
         """ Compute the reconstruction error over the mini-batched input
        taking into account a certain level of corruption of the input.  This SGD is called safe
        because the gradient updates are shunted between min_grad, max_grad to try and prevent 
@@ -651,7 +651,7 @@ class ReluAutoEncoder(AutoEncoder):
         # compute list of weights updates
         updates = []
         for param, gparam in zip(self.params, gparams):
-            UD = param - gparam * learning_rate
+            UD = param - gparam * learning_rate / mb_size
             col_norms = UD.norm(2, axis=0)
             desired_norms = T.clip(col_norms, 0, max_grad)
             updates.append((param , UD * (desired_norms / (1e-6 + col_norms))))

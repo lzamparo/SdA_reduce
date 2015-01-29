@@ -21,8 +21,8 @@ from datetime import datetime
 from optparse import OptionParser
 
 
-def drive_dA(learning_rate=0.001, training_epochs=50,
-             batch_size=20):
+def drive_dA(learning_rate=0.1, training_epochs=50,
+             batch_size=64):
     """
         This dA is driven with foci data
     
@@ -131,7 +131,7 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
                 n_visible=n_cols, n_hidden=800)    
 
     cost, updates = da.get_cost_updates_safe(corruption_level=float(options.corruption),
-                                        learning_rate=learning_rate)
+                                        learning_rate=learning_rate,mb_size=batch_size)
     
     train_da = theano.function([index], cost, updates=updates,
                                givens={x: train_set_x[index * batch_size:
