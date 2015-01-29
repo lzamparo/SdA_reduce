@@ -130,37 +130,12 @@ def drive_dA(learning_rate=0.001, training_epochs=50,
     da = ReluAutoEncoder(numpy_rng=rng, theano_rng=theano_rng, input=x,
                 n_visible=n_cols, n_hidden=800)    
 
-    cost, updates = da.get_cost_updates(corruption_level=float(options.corruption),
+    cost, updates = da.get_cost_updates_safe(corruption_level=float(options.corruption),
                                         learning_rate=learning_rate)
-
-
-    # monitor for NaN here
-    def detect_nan(i, node, fn):
-        for output in fn.outputs:
-            if numpy.isnan(output[0]).any():
-                print '*** NaN detected ***'
-                theano.printing.debugprint(node)
-                print 'Inputs : %s' % [input[0] for input in fn.inputs]
-                print 'Outputs: %s' % [output[0] for output in fn.outputs]
-                break
     
-    nyaargh = theano.tensor.dscalar('nyaargh')
-    f = theano.function([nyaargh], [theano.tensor.log(nyaargh) * nyaargh],
-                            mode=theano.compile.MonitorMode(
-                                post_func=detect_nan))
-    f(0)  # log(0) * 0 = -inf * 0 = NaN 
-    
-    # got: 
-    #*** NaN detected ***
-    #Elemwise{Composite{[mul(log(i0), i0)]}} [@A] ''   
-     #|nyaargh [@B]
-    #Inputs : [array(0.0)]
-    #Outputs: [array(nan)]    
-            
     train_da = theano.function([index], cost, updates=updates,
                                givens={x: train_set_x[index * batch_size:
-                                                               (index + 1) * batch_size]},                          
-                               mode=theano.compile.MonitorMode(post_func=detect_nan))
+                                                               (index + 1) * batch_size]})
 
     start_time = time.clock()
     

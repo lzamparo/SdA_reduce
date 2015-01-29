@@ -630,6 +630,34 @@ class ReluAutoEncoder(AutoEncoder):
             
         return (cost, updates)
     
+    def get_cost_updates_safe(self, corruption_level, learning_rate,max_grad=5.0):
+        """ Compute the reconstruction error over the mini-batched input
+       taking into account a certain level of corruption of the input.  This SGD is called safe
+       because the gradient updates are shunted between min_grad, max_grad to try and prevent 
+       exploding gradients. """
+        x_corrupted = super(ReluAutoEncoder,self).get_corrupted_input(self.x, corruption_level)
+        y = self.get_hidden_values(x_corrupted)
+        z = self.get_reconstructed_input(y)
+        
+        # Take the sum over columns
+        # Use the squared error loss function
+        L = T.sum((self.x - z) **2, axis = 1)
+            
+        cost = T.mean(L)
+        
+        # compute the gradients of the cost of the dA w.r.t the params
+        gparams = T.grad(cost, self.params)
+            
+        # compute list of weights updates
+        updates = []
+        for param, gparam in zip(self.params, gparams):
+            UD = param - gparam * learning_rate
+            col_norms = UD.norm(2, axis=0)
+            desired_norms = T.clip(col_norms, 0, max_grad)
+            updates.append((param , UD * (desired_norms / (1e-6 + col_norms))))
+                      
+        return (cost, updates)        
+    
     def get_cost_updates_debug(self, corruption_level, learning_rate):
         """ Compute the reconstruction error over the mini-batched input
            taking into account a certain level of corruption of the input, return intermediate results """
