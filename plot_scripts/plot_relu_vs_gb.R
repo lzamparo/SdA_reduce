@@ -21,6 +21,6 @@ full_p <- full_p + theme(axis.title.y = element_text(size = 13, face = "bold"))
 full_p <- full_p + theme(legend.text = element_text(size = 13))
 full_p <- full_p + theme(legend.title = element_text(size = 13))
 full_p <- full_p + labs(colour = "Units")
-full_p <- full_p + ggtitle("Validation score vs epoch: ReLU units vs Gassian+Bernoulli units")
+full_p <- full_p + ggtitle("Validation score vs epoch: ReLU units vs Gaussian-Bernoulli units")
 full_p <- full_p + theme(plot.title = element_text(size=15, face = "bold"))
 full_p
