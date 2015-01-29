@@ -3,11 +3,10 @@
 import os, sys
 import re
 from numpy import log
-import matplotlib.pyplot as plt
+import pandas as pd
 
 # cd into the tld
 tld = '/data/dA_results'
-#'sys.argv[1]
 currdir = os.listdir('.')
 
 # ignore the current directory ('.')
@@ -21,10 +20,12 @@ def parse_file(filename, dirname):
     with open(os.path.join(dirname,filename), mode='r', buffering=1) as f:
         unit,corruption = strip_corruption(filename, corruption_re)
         lines = f.readlines()
-        line = lines[-2]
-        parts = line.split()
-        score = parts[-1]
-    return unit, float(score), float(corruption)
+        score = []
+        for line in lines[1:-1]:
+            line = line.strip()
+            parts = line.split()
+            score.append(float(parts[-1]))     
+    return unit, score, corruption
 
 
 # parse the filenames for recovering corruption parameters
@@ -37,7 +38,7 @@ def strip_corruption(filename,regex):
             return None 
 
 # set up initial results dict
-results = {'gb': [], 'relu': []}
+results = {'gb': {}, 'relu': {}}
 
 # for dirname, dirlist, filenames in os.walk('.'):
 print "....parsing the results: "
@@ -46,22 +47,20 @@ for dirpath, dirnames, filenames in os.walk(tld):
         continue
     for infile in filenames:
         unit, score, corruption = parse_file(infile,dirpath)
-        results[unit].append((corruption, score))
+        results[unit][corruption] = score
 
-# plot the tuples
-print "....plotting the results: "
-colours = ['r--','b--']
-plot_objs = [None,None]
-labels = [0,0]
-for i,unit in enumerate(results.keys()):
-    ordered_data = sorted(results[unit], key=lambda t: t[0])
-    x_vals = [item[0] for item in ordered_data]
-    y_vals = [log(item[1]) for item in ordered_data]
-    labels[i] = unit
-    plt.plot(x_vals,y_vals,colours[i])
-               
-plt.xlabel('Corruption')
-plt.ylabel('Reconstruction Error (log scale)')
-plt.title('ReLU unit vs Gaussian-Bernoulli unit dAs')    
-plt.legend(tuple(labels), 'lower right', shadow=True, fancybox=True)
-plt.savefig("relu_vs_gb.pdf", dpi=100, format="pdf")
+# transform dicts into DFs
+print "....transforming nested dict into DFs: "
+
+df_list = []
+for unit in results.keys():
+    for corruption_val in results[unit].keys():
+        this_df = pd.DataFrame(data={'Activation': [unit for i in results[unit][corruption_val]], 
+                                     'Corruption': [corruption_val for i in results[unit][corruption_val]],
+                                     'Value': results[unit][corruption_val],
+                                     'Epoch': range(0,50)}, index=None, columns=None, dtype=None, copy=False)
+        df_list.append(this_df)
+
+# concatenate dfs together, write out to file
+result = pd.concat(df_list)
+result.to_csv(os.path.join(tld,"noise_df.csv"),index=False)
