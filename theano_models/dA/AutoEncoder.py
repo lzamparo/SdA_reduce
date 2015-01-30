@@ -570,7 +570,9 @@ class ReluAutoEncoder(AutoEncoder):
                         
         
         super(ReluAutoEncoder,self).__init__(numpy_rng, theano_rng, input, n_visible, n_hidden, W, bhid, bvis, W_name, bvis_name, bhid_name,sparse_init)
-        self.output = T.maximum(T.dot(input, self.W) + self.b, 0.0)
+        self.pre_activation = T.dot(input, self.W) + self.b
+        self.output = (self.pre_activation + abs(self.pre_activation)) / 2.  
+        
         
     @classmethod
     def class_from_values(cls, *args, **kwargs):
@@ -604,7 +606,7 @@ class ReluAutoEncoder(AutoEncoder):
     
     def get_hidden_values(self, input):
         """ Apply ReLu elementwise to the transformed input """
-        return T.maximum(T.dot(input, self.W) + self.b, 0.0)
+        return (T.dot(input, self.W) + self.b + abs(T.dot(input, self.W) + self.b)) / 2.0
     
     
     def get_cost_updates(self, corruption_level, learning_rate):
