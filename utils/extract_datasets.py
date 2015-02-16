@@ -4,10 +4,10 @@ import numpy as np
 
 def draw_reference_population(data_set_file,proportion=0.03,root='/plates',ignore_fewer_than=50):
     """ Walk the tree of plates/<plate>/<well>, drawing a proportionate sample from each well """ 
-    sample_pop = np.empty()
+    
     # do I have to declare data = np.empty()?; data[:] = datanode.read()?
     empty = True
-    for node in data_set_file.walk_nodes(root, classname='EArray'):
+    for node in data_set_file.walk_nodes(root, classname='Array'):
         try:
             data = node.read()
             if data.shape[0] < ignore_fewer_than:
