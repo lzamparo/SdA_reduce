@@ -20,7 +20,7 @@ np.random.seed(options.seed)
 infile = tables.open_file(options.infile, 'r')
 
 # open the outfile
-group_name = "reference_seed_" + str(options.seed)
+group_name = "reference_double_sized_seed_" + str(options.seed)
 node_name = "reference_pop"
 group_title = "The %d reference population sample" % (options.seed)
 outfile = tables.open_file(options.outfile, 'a')

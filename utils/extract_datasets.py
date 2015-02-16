@@ -2,7 +2,7 @@
 from tables import *
 import numpy as np
 
-def draw_reference_population(data_set_file,proportion=0.03,root='/plates',ignore_fewer_than=50):
+def draw_reference_population(data_set_file,proportion=0.06,root='/plates',ignore_fewer_than=50):
     """ Walk the tree of plates/<plate>/<well>, drawing a proportionate sample from each well """ 
     
     # do I have to declare data = np.empty()?; data[:] = datanode.read()?
