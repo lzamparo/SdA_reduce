@@ -3,23 +3,24 @@ from tables import *
 import numpy as np
 
 def draw_reference_population(data_set_file,proportion=0.03,root='/plates',ignore_fewer_than=50):
-    """ Walk the tree of plates/<plate>/<well>, drawing a proportionate sample from each well """
-    try 
+    """ Walk the tree of plates/<plate>/<well>, drawing a proportionate sample from each well """ 
     sample_pop = np.empty()
     # do I have to declare data = np.empty()?; data[:] = datanode.read()?
     empty = True
     for node in data_set_file.walk_nodes(root, classname='EArray'):
-        data = node.read()
-        if data.shape[0] < ignore_fewer_than:
-            continue
-        up_to = int(np.ceil(data.shape[0] *  proportion))
-        data_sample = data[np.random.permutation(data.shape[0])[:up_to],:]
-        if empty:
-            sample_pop = data_sample
-            empty = False
-        else:
-            sample_pop = np.vstack((sample_pop,data_sample))
-                
+        try:
+            data = node.read()
+            if data.shape[0] < ignore_fewer_than:
+                continue
+            up_to = int(np.ceil(data.shape[0] *  proportion))
+            data_sample = data[np.random.permutation(data.shape[0])[:up_to],:]
+            if empty:
+                sample_pop = data_sample
+                empty = False
+            else:
+                sample_pop = np.vstack((sample_pop,data_sample))
+        except:
+            print "Encountered a problem at this node: " + node._v_name
     return sample_pop        
         
 
