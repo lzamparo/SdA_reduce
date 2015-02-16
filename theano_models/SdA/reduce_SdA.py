@@ -3,88 +3,78 @@ layer dA output (i.e lowest dimensional representation) of that data to an outpu
 
 
 # These imports will not trigger any theano GPU binding, so are safe to sit here.
-from multiprocessing import Process, Manager
 from optparse import OptionParser
 import os, re
 
 import cPickle
 import gzip
-import sys
 import time
 
 import numpy
+import tables
     
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
 from SdA import SdA
 
-from extract_datasets import extract_unlabeled_chunkrange, store_unlabeled_byarray
+from extract_datasets import store_unlabeled_byarray
 from load_shared import load_data_unlabeled
-from tables import openFile, Filters
-
-
 
 from datetime import datetime
 
-def feedforward_SdA(output_dir,input_file,arch,restore_file): 
-    """ Feed the data through the SdA 
+def feedforward_SdA(output_file,input_file,arch,restore_file): 
+    """ Walk through the input_file, feed each array through the SdA,
+    save to a similar group/node structure in the output file.
     
-    :type shared_args: list
-    :param shared_args: list contaning a dict of shared arguments 
-    provided from the parent process
+    :type output_file: string
+    :param output_file: write the h5 output here 
 
-    :type private_args: dict
-    :param private_args: dict containing the arguments unique to 
-    this child process
+    :type input_file: string
+    :param input_file: read the h5 input from here
+    
+    :type arch: string
+    :param arch: string representing the architecture of the SdA used to reduce the data
+    
+    :type restore_file: string
+    :param restore_file: location on disk of the pickled SdA model
     
     """
     
-    # Open and set up the output hdf5 file
-    current_dir = os.getcwd()    
-    os.chdir(output_dir)
-    today = datetime.today()
-    day = str(today.date())
-    hour = str(today.time())   
-    output_filename = "reduce_SdA." + arch + "." + day + "." + hour + ".h5"
-    h5file = openFile(output_filename, mode = "w", title = "Data File")    
-    os.chdir(current_dir)  
-    
-    print "Run on " + str(datetime.now())    
+    # Open and set up the input, output hdf5 files     
+    outfile_h5 = tables.openFile(output_file, mode = 'w', title = "Reduced Data File")    
+    root = outfile_h5.createGroup('/')
+    input_h5 = tables.openFile(input_file, mode = 'r') 
+    print "Run on ", str(datetime.now())    
+    print "Reduced with ", arch
     
     # Create a new group under "/" (root)
-    arrays_group = h5file.createGroup("/", 'recarrays', 'The lower dimensional data arrays')
-    zlib_filters = Filters(complib='zlib', complevel=5)    
-    
-    # Get the data to be fed through the SdA from the input file
-    data_set_file = openFile(input_file, mode = 'r') 
-    arrays_list = data_set_file.listNodes("/recarrays", classname='Array')
-    chunk_names, offsets = calculate_offsets(arrays_list)
-    
+    zlib_filters = Filters(complib='zlib', complevel=5)   
+
     print 'Unpickling the model from %s ...' % (restore_file)        
     f = file(restore_file, 'rb')
     sda_model = cPickle.load(f)
     f.close()    
-    
-    datafile = extract_unlabeled_chunkrange(data_set_file, num_files=len(arrays_list))
-    this_x = load_data_unlabeled(datafile)    
-    
-    print '... getting the encoding function'
-    encode_fn = sda_model.build_encoding_functions(dataset=this_x)    
-    
-    start_time = time.clock()
-    # Go through each chunk in the data_set_file, feed through the SdA, write the output to h5file
-    for i in xrange(len(arrays_list)):
-        start,end = offsets[i]
-        reduced_data = encode_fn(start=start,end=end)
-        store_unlabeled_byarray(h5file, arrays_group, zlib_filters, chunk_names[i], reduced_data)
-        
-    # tidy up    
-    end_time = time.clock()
-    data_set_file.close()
-    h5file.close()       
-    
-
+     
+    # walk the node structure of the input, reduce, save to output
+    for node in input_h5.walkNodes('/',classname='Array'):
+        name = node._v_name
+        try:
+            data = node.read()
+        except:
+            print "Encountered a problem at this node: ", name
+            continue
+        # load the node data into theano.shared memory on the GPU
+        this_x = load_data_unlabeled(data)   
+        # get the encoding function, encode the data
+        encode_fn = sda_model.build_encoding_functions(dataset=this_x)   
+        start, end = 0, data.shape[0]
+        reduced_data = encode_fn(start=start,end=end)     
+        # write the encoded data back to the file
+        store_unlabeled_byarray(outfile_h5, root, zlib_filters, name, reduced_data)
+               
+    h5file.close()
+           
 def extract_arch(filename, model_regex):
     ''' Return the model architecture of this filename
     Modle filenames look like SdA_1000_500_100_50.pkl'''
@@ -112,21 +102,17 @@ if __name__ == '__main__':
         
     # Parse command line args
     parser = OptionParser()
-    parser.add_option("-d", "--dir", dest="dir", help="base output directory")
-    parser.add_option("-x", "--output_extension", dest="extension", help="output directory name below the base, named for this finetuning experiment")
+    parser.add_option("-d","--sda_dir",dest="model_dir",help="directory containing the SdA model file(s)")
     parser.add_option("-r","--restorefile",dest = "pr_file", help = "Restore the first model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
+    parser.add_option("-o", "--outputfile", dest="outputfile", help="the output hdf5 file")
     (options, args) = parser.parse_args()    
-    
-    parts = os.path.split(options.dir)
-    output_dir = os.path.join(options.dir,options.extension)
-    input_file = options.inputfile
     
     model_name = re.compile(".*?_([\d_]+).pkl")    
     arch = extract_arch(options.pr_file,model_name)
     
-    restore_file = os.path.join(parts[0],'finetune_pkl_files',options.extension,options.pr_file)
+    restore_file = os.path.join(options.model_dir,options.pr_file)
     
-    feedforward_SdA(output_dir, input_file, arch, restore_file)
+    feedforward_SdA(options.outputfile, options.inputfile, arch, restore_file)
 
     
