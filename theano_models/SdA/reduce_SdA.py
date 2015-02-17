@@ -75,7 +75,7 @@ def feedforward_SdA(output_file,input_file,arch,restore_file):
         data_group = outfile_h5.createGroup(root,parent_name,'whatever, man.')
         store_unlabeled_byarray(outfile_h5, data_group, zlib_filters, name, reduced_data)
                
-    h5file.close()
+    input_h5.close()
     outfile_h5.close()
            
 def extract_arch(filename, model_regex):

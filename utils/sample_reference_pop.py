@@ -10,6 +10,7 @@ from extract_datasets import draw_reference_population
 parser = OptionParser()
 parser.add_option("-i", "--input", dest="infile", help="read input h5 from here")
 parser.add_option("-s", "--seed", dest="seed", type=int, help="use this random seed")
+parser.add_option("-p", "--prop", dest="prop", type=float, default=0.10, help="sample this proportion of cells from each well")
 parser.add_option("-o", "--outfile", dest="outfile", help="specify the .h5 file that will contain the sampled data files")
 (options, args) = parser.parse_args()
 
@@ -20,14 +21,14 @@ np.random.seed(options.seed)
 infile = tables.open_file(options.infile, 'r')
 
 # open the outfile
-group_name = "reference_double_sized_seed_" + str(options.seed)
+group_name = "reference_pop_seed_%d_prop_%f" % (options.seed, options.prop)
 node_name = "reference_pop"
 group_title = "The %d reference population sample" % (options.seed)
 outfile = tables.open_file(options.outfile, 'a')
 group = outfile.create_group('/', group_name, title=group_title)
 
 # sample from the pop, with default params
-reference_sample = draw_reference_population(infile)
+reference_sample = draw_reference_population(infile,proportion=options.prop)
 zlib_filters = tables.Filters(complib='zlib', complevel=5)
 atom = tables.Atom.from_dtype(reference_sample.dtype)
 
