@@ -59,6 +59,7 @@ def feedforward_SdA(output_file,input_file,arch,restore_file):
     # walk the node structure of the input, reduce, save to output
     for node in input_h5.walkNodes('/',classname='Array'):
         name = node._v_name
+        parent_name = (node._v_parent)._v_name
         try:
             data = node.read()
         except:
@@ -70,8 +71,9 @@ def feedforward_SdA(output_file,input_file,arch,restore_file):
         encode_fn = sda_model.build_encoding_functions(dataset=this_x)   
         start, end = 0, data.shape[0]
         reduced_data = encode_fn(start=start,end=end)     
-        # write the encoded data back to the file
-        store_unlabeled_byarray(outfile_h5, root, zlib_filters, name, reduced_data)
+        # write the encoded data to the output file
+        data_group = outfile_h5.createGroup(root,parent_name,'whatever, man.')
+        store_unlabeled_byarray(outfile_h5, data_group, zlib_filters, name, reduced_data)
                
     h5file.close()
     outfile_h5.close()
