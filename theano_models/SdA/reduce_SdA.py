@@ -43,7 +43,7 @@ def feedforward_SdA(output_file,input_file,arch,restore_file):
     
     # Open and set up the input, output hdf5 files     
     outfile_h5 = tables.openFile(output_file, mode = 'w', title = "Reduced Data File")    
-    root = outfile_h5.createGroup('/')
+    root = outfile_h5.createGroup('/','reduced_samples','reduced data from reference samples')
     input_h5 = tables.openFile(input_file, mode = 'r') 
     print "Run on ", str(datetime.now())    
     print "Reduced with ", arch
@@ -74,6 +74,7 @@ def feedforward_SdA(output_file,input_file,arch,restore_file):
         store_unlabeled_byarray(outfile_h5, root, zlib_filters, name, reduced_data)
                
     h5file.close()
+    outfile_h5.close()
            
 def extract_arch(filename, model_regex):
     ''' Return the model architecture of this filename
