@@ -49,7 +49,7 @@ def feedforward_SdA(output_file,input_file,arch,restore_file):
     print "Reduced with ", arch
     
     # Create a new group under "/" (root)
-    zlib_filters = Filters(complib='zlib', complevel=5)   
+    zlib_filters = tables.Filters(complib='zlib', complevel=5)   
 
     print 'Unpickling the model from %s ...' % (restore_file)        
     f = file(restore_file, 'rb')
