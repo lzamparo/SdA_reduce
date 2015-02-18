@@ -13,6 +13,9 @@ import time
 import numpy
 import tables
     
+import theano.sandbox.cuda
+theano.sandbox.cuda.use('gpu0')    
+    
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
