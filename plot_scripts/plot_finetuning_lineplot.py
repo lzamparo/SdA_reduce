@@ -1,7 +1,16 @@
 """ Process all the model finetuning output files in the given directory
 and produce a lineplot of the top 10 models based on reconstruction error.
 
-Files names look like this: finetune_sda_900_500_100_50.2013-06-16.02:25:26.981658
+hybrid pre-training filenames look like:
+hybrid_pretraining_sda_gaussian_bernoulli_bernoulli1000-100-10.2014-07-08.01\:56\:47.785216
+
+Hybrid-pretraining files look like this:
+
+Pre-training layer 1, epoch 49, cost  22.3084878571
+0.000371602072846
+Hybrid pre-training on layers 1 and below, epoch 0, cost 174.218771626
+
+Fine-tuning file names look like this: finetune_sda_900_500_100_50.2013-06-16.02:25:26.981658
 
 The average training error for each layer of each model is reported:
 
