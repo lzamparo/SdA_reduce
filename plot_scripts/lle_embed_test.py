@@ -60,7 +60,7 @@ datafile.close()
 cells = opts.high / opts.step
 lle_gmm_results = np.zeros((cells,opts.iters))
 
-D = scale(X[:,0:612])
+D = scale(X)
 
 n_samples, n_features = D.shape
 # chosen by hyperparam search in a separate test.

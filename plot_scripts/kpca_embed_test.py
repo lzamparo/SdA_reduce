@@ -59,7 +59,7 @@ datafile.close()
 cells = opts.high / opts.step
 kpca_gmm_results = np.zeros((cells,opts.iters))
 
-D = scale(X[:,0:612])
+D = scale(X)
 
 # For the specified number of principal components, do the clustering
 dimension_list = range(opts.low, opts.high + 1, opts.step)

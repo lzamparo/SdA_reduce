@@ -60,7 +60,7 @@ cells = opts.high / opts.step
 pca_gmm_results = np.zeros((cells,opts.iters))
 
 pca = PCA(n_components=opts.high)
-D = scale(X[:,0:612])
+D = scale(X)
 pca.fit(D)
 X_pca = pca.transform(D)
 
