@@ -2,19 +2,18 @@ library(ggplot2)
 
 # Load the data
 setwd("/data/sda_output_data/homogeneity")
-isomap_df <- read.csv("isomap_df.csv")
-kpca_df <- read.csv('kpca_df.csv')
-pca_df <- read.csv('pca_df.csv')
-lle_df <- read.csv('lle_df.csv')
-master_df <- rbind(isomap_df,kpca_df,pca_df,lle_df)
-levels(master_df$method) <- c("Isomap","k-PCA","PCA","LLE")
-colnames(master_df) <- c("Homogeneity","Dimension","Method")
+all_comparators <- read.csv("all_comparator_models.csv")
+
 
 # Plot the data
-homog <- ggplot(master_df, aes(Dimension,Homogeneity, colour = Method))
+homog <- ggplot(all_comparators, aes(Dimension,Homogeneity, colour = Model))
+
+# Set the colour palette
+homog <- homog + scale_colour_brewer(palette="Set1")
+
 homog <- homog + geom_point(alpha = 1/5)
-homog <- homog + stat_smooth()
-homog <- homog + scale_x_reverse()
+homog <- homog + stat_smooth(size=1.5,alpha=1/2)
+# homog <- homog + scale_x_reverse()
 homog <- homog + labs(colour = "Method")
 homog <- homog + ggtitle("Average Homogeneity vs Dimension")
 homog <- homog + theme(plot.title = element_text(size=15, face = "bold"))
