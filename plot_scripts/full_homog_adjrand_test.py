@@ -29,7 +29,6 @@ gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=10
 t0 = time()
 gaussmix.fit(D)
 print "[Worker %d] GMM fit, took %.2fs" % (os.getpid(), time() - t0)
-time_stats.append(time() - t0)
 gaussmix_labels = gaussmix.predict(D)
 print "[Worker %d] Homogeneity %0.3f" % (os.getpid(), metrics.homogeneity_score(labels[:,0], gaussmix_labels))
 print "[Worker %d] Adjusted Rand Index %0.3f" % (os.getpid(), metrics.adjusted_rand_score(labels[:,0],gaussmix_labels))
