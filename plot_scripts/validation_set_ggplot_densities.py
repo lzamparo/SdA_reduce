@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib
 import matplotlib.pylab as pylab
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 
 from scipy.stats import gaussian_kde
 from common_density_plot_utils import *
@@ -72,16 +73,22 @@ for n,key in enumerate(thresholds.keys()):
         data = labeled_data[labeled_data['labels'] == label][key]
         kde = make_kde(data)
         rfill_between(sp, x_vals, kde(x_vals),label)
-    sp.set_title(key)
+    sp.set_title(key,fontsize=15)
     sp.axvline(lower,ls='--',color='k')
     sp.axvline(upper,ls='--',color='k')
     rstyle(sp)
 
 # Put a legend below current axis
-sp.legend(loc='upper center', bbox_to_anchor=(-0.25, -0.15),
+
+legend_font_props = FontProperties()
+legend_font_props.set_size('large')
+sp.legend(loc='upper center', bbox_to_anchor=(-0.15, -0.25),prop=legend_font_props,
           fancybox=True, shadow=True, ncol=4)
 
 # Put a title on the main figure
-fig.suptitle("Area and Shape Parameter Density Plots by Label (with 2 x std WT dashed)",fontsize=20)
-fig.subplots_adjust(hspace=0.35)
+#fig.suptitle("Area and Shape Parameter Density Plots by Label (with 2 x std WT dashed)",fontsize=20)
+fig.subplots_adjust(hspace=0.50,wspace=0.2)
+
+# Save the figure
+#fig.savefig("cells_area_shape_density_threshold_plots", format="pdf", pad_inches=0)
 plt.show()     

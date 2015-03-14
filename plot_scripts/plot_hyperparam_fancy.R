@@ -24,6 +24,10 @@ full_p <- full_p + scale_y_continuous(limits = c(50,300))
 full_p <- full_p + facet_grid(model ~ param)
 full_p <- full_p + stat_smooth()
 full_p <- full_p + theme(strip.text.x = element_text(size = 13, face = "bold"))
+full_p <- full_p + theme(axis.title.x = element_text(size = 15))
+full_p <- full_p + theme(axis.title.y = element_text(size = 15))
+full_p <- full_p + theme(legend.text = element_text(size = 13))
+full_p <- full_p + theme(legend.title= element_text(size = 13))
 full_p
 
 # Faceted 3-param plot for 3-layer model

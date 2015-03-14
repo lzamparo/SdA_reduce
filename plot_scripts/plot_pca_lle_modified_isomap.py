@@ -56,7 +56,7 @@ fig = plt.figure(figsize=(16,6),dpi=100)
 
 #----------------------------------------------------------------------
 # Scale and visualize the embedding vectors in 2D
-def plot_embedding(X, tile, rescale=None, legend_loc="lower left", title=None):
+def plot_embedding(X, tile, rescale=None, legend_loc=None, title=None):
     
     if rescale is not None:
         x_min, x_max = np.min(X, 0), np.max(X, 0)
@@ -71,15 +71,17 @@ def plot_embedding(X, tile, rescale=None, legend_loc="lower left", title=None):
     sub.plot(X[:wt_samplesize, 0], X[:wt_samplesize, 1], "ro")
     sub.plot(X[wt_samplesize:foci_upper_index, 0], X[wt_samplesize:foci_upper_index, 1], "bo")
     sub.plot(X[foci_upper_index:, 0], X[foci_upper_index:, 1], "go")
-          
-    legend_font_props = FontProperties()
-    legend_font_props.set_size('small')
-    sub.legend( ('Wild Type', 'Foci', 'Non-round Nuclei'), loc=legend_loc, numpoints=1,prop=legend_font_props)
-    rstyle(sub)
+    
+    if legend_loc is not None:      
+        legend_font_props = FontProperties()
+        legend_font_props.set_size('large')
+        sub.legend( ('Wild Type', 'Foci', 'Non-round Nuclei'), loc=legend_loc, numpoints=1,prop=legend_font_props)
     
     if title is not None:
-        sub.set_title(title,fontsize=15)
+            sub.set_title(title,fontsize=18)    
 
+    rstyle(sub)
+    
 
 ###############################################################################
 # Load a training set from the given .h5 file
@@ -152,9 +154,9 @@ D_kpca = kpca.fit_transform(D_scaled)
 print "Done in time %.2fs " % (time() - t0)
 
 plot_embedding(D_pca, 1, rescale="yes", title="PCA projection", legend_loc="upper right")
-plot_embedding(D_iso, 2, rescale="yes", title="Isomap projection", legend_loc="upper right")
+plot_embedding(D_iso, 2, rescale="yes", title="Isomap projection")
 plot_embedding(D_lle, 3, rescale="yes", title="LLE projection", legend_loc="upper right")
-plot_embedding(D_kpca, 4, rescale="yes", title="kPCA projection", legend_loc="upper right")
+plot_embedding(D_kpca, 4, rescale="yes", title="kPCA projection")
 
 #fig.tight_layout()
 fig.subplots_adjust(hspace=0.45)

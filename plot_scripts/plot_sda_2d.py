@@ -70,7 +70,7 @@ def plot_embedding(X, tile, sizes, title=None):
     #sub.legend( ('Wild Type', 'Foci', 'Non-round Nuclei'), loc="lower left", numpoints=1,prop=legend_font_props)
     
     if title is not None:
-        sub.set_title(title,fontsize=15)
+        sub.set_title(title,fontsize=17)
         
     return sub
 
@@ -137,12 +137,12 @@ for tile,f in enumerate(files):
 
 # Put a legend below current axis
 legend_font_props = FontProperties()
-#legend_font_props.set_size('small')
+legend_font_props.set_size('large')
 sub.legend( ('Wild Type', 'Foci', 'Non-round Nuclei'), loc="lower left", numpoints=1,prop=legend_font_props, bbox_to_anchor=(-1.85, -0.20),
               fancybox=True, shadow=True, ncol=3)
 
 # Put a title on the main figure
-fig.suptitle("2D projections of 10 different SdA models",fontsize=20)
+#fig.suptitle("2D projections of 10 different SdA models",fontsize=20)
 fig.subplots_adjust(hspace=0.25)
 
 # Save the figure
