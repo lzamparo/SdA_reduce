@@ -9,6 +9,7 @@ import sys
 from time import time
 
 import numpy as np
+import pandas as pd
 from tables import *
 from extract_datasets import extract_labeled_chunkrange
 
@@ -63,6 +64,7 @@ D = scale(X)
 
 # For the specified number of principal components, do the clustering
 dimension_list = range(opts.low, opts.high + 1, opts.step)
+data_files = []
 for i in dimension_list:
     index = (i / opts.step) - 1    
     kpca = KernelPCA(n_components=i, kernel="rbf", gamma=0.0028942661247167516)
@@ -72,9 +74,18 @@ for i in dimension_list:
         gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=1000)       
         gaussmix.fit(D_kpca[:,0:(i-1)])
         gaussmix_labels = gaussmix.predict(D_kpca[:,0:(i-1)])
-        print "Gaussian mixture homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], gaussmix_labels)
-        kpca_gmm_results[index,j] = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
+        homog = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
+        print "Gaussian mixture homogeneity: %0.3f" % homog
+        test_result = {"Model": 'kPCA', "Dimension": i, "Homogeneity": homog}
+        data_files.append(pd.DataFrame(data=test_result))
         
                
 # Save the data to a file:
-np.save(opts.outputfile + "_gmm", kpca_gmm_results)
+print "...Done"
+print "...rbinding DataFrames"
+master_df = data_files[0]
+for i in xrange(1,len(data_files)):
+    master_df = master_df.append(data_files[i])
+print "...Done"    
+outfilename = opts.outputfile+".csv"
+master_df.to_csv(path_or_buf=outfilename,index=False)

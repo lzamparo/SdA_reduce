@@ -68,6 +68,7 @@ n_neighbors = 10
 
 # For the specified number of principal components, do the clustering
 dimension_list = range(opts.low, opts.high + 1, opts.step)
+data_files = []
 for i in dimension_list:
     index = (i / opts.step) - 1 
     isomap = Isomap(n_neighbors, n_components=i)
@@ -77,21 +78,16 @@ for i in dimension_list:
         gaussmix = GMM(n_components=true_k, covariance_type='tied', n_init=10, n_iter=1000)
         gaussmix.fit(X_iso)
         gaussmix_labels = gaussmix.predict(X_iso)
-               
-        print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels[:,0], gaussmix_labels)
-        isomap_gmm_results[index,j] = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
+        homog = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
+        print "Homogeneity: %0.3f" % homog
+        test_result = {"Model": 'Isomap', "Dimension": i, "Homogeneity": homog}
+        data_files.append(pd.DataFrame(data=test_result))
         
-
-# Save the data to a file:
-np.save(opts.outputfile+ "_gmm",isomap_gmm_results)
-
-# Save the data to a DataFrame
-#data = isomap_gmm_results.ravel()
-#dims = ['10' for i in xrange(opts.iters)]
-#dims.extend(['20' for i in xrange(opts.iters)])
-#dims.extend(['30' for i in xrange(opts.iters)])
-#dims.extend(['40' for i in xrange(opts.iters)])
-#dims.extend(['50' for i in xrange(opts.iters)])
-#method = ['isomap' for i in xrange(len(dimension_list) * int(opts.iters))]
-#results_df = pd.DataFrame({"data": data, "dimension": dims, "method": method})
-#results_df.to_csv(opts.outputfile+"_df.csv", index=False)
+print "...Done"
+print "...rbinding DataFrames"
+master_df = data_files[0]
+for i in xrange(1,len(data_files)):
+    master_df = master_df.append(data_files[i])
+print "...Done"    
+outfilename = opts.outputfile+".csv"
+master_df.to_csv(path_or_buf=outfilename,index=False)
