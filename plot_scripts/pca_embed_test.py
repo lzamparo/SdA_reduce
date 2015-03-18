@@ -79,7 +79,8 @@ for i in dimension_list:
         homog = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
         print "Gaussian mixture homogeneity: %0.3f" % homog
         test_result = {"Model": "PCA", "Dimension": i, "Homogeneity": homog}
-        data_files.append(pd.DataFrame(data=test_result))
+        index = pd.Index([0], name='rows')
+        data_files.append(pd.DataFrame(data=test_result,index=index))        
          
 # Save the data to a file:
 

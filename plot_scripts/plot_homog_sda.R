@@ -20,8 +20,6 @@ levels(four_layers_homog$Model) <- rep("SdA 4 layers", length(levels(four_layers
 
 master_df <- rbind(comparators_df,three_layers_homog,four_layers_homog)
 
-
-
 # Plot the data
 homog <- ggplot(master_df, aes(Dimension,Homogeneity, colour = Model))
 
@@ -38,18 +36,14 @@ homog <- homog + scale_colour_brewer(palette="Set1")
 # Plot the points, trend-line, error-ribbons
 homog <- homog + geom_point(alpha = 1/4)
 homog <- homog + stat_smooth(size=1.5,alpha=1/2)
-
-# Don't reverse the x axis
-#homog <- homog + scale_x_reverse()
-
 homog <- homog + labs(colour = "Model")
-homog <- homog + ggtitle("Average Homogeneity vs Dimension")
-homog <- homog + theme(plot.title = element_text(size=15, face = "bold"))
+#homog <- homog + ggtitle("Average Homogeneity vs Dimension")
+#homog <- homog + theme(plot.title = element_text(size=15, face = "bold"))
 homog <- homog + theme(strip.text.x = element_text(size = 13))
 homog <- homog + theme(legend.title = element_text(size = 13))
 homog <- homog + theme(legend.text = element_text(size = 13))
-#homog <- homog + theme(axis.title.y = element_text(size = 13, face = "bold"))
-#homog <- homog + theme(axis.text.y = element_text(size = 13, face = "bold"))
-#homog <- homog + theme(axis.title.x = element_text(size = 13, face = "bold"))
-#homog <- homog + theme(axis.text.x = element_text(size = 13, face = "bold"))
+homog <- homog + theme(axis.title.y = element_text(size = 15))
+homog <- homog + theme(axis.text.y = element_text(size = 13))
+homog <- homog + theme(axis.title.x = element_text(size = 15))
+homog <- homog + theme(axis.text.x = element_text(size = 13))
 homog
