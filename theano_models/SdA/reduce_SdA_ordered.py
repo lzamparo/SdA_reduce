@@ -62,25 +62,36 @@ def feedforward_SdA(shared_args,private_args):
     f = file(private_args['restore'], 'rb')
     sda_model = cPickle.load(f)
     f.close()    
-     
+    
+    out_root = outfile_h5.root 
     # walk the node structure of the input, reduce, save to output
-    for node in input_h5.walkNodes('/',classname='Array'):
-        name = node._v_name
-        parent_name = (node._v_parent)._v_name
-        try:
-            data = node.read()
-        except:
-            print "Encountered a problem at this node: ", name
-            continue
-        # load the node data into theano.shared memory on the GPU
-        this_x = load_data_unlabeled(data)   
-        # get the encoding function, encode the data
-        encode_fn = sda_model.build_encoding_functions(dataset=this_x)   
-        start, end = 0, data.shape[0]
-        reduced_data = encode_fn(start=start,end=end)     
-        # write the encoded data to the output file
-        data_group = outfile_h5.createGroup(root,parent_name,'whatever, man.')
-        store_unlabeled_byarray(outfile_h5, data_group, zlib_filters, name, reduced_data)
+    for in_plate in input_h5.listNodes('/plates',classname="Group"):
+        out_plate_name = in_plate._v_name
+        out_plate_desc = in_plate._v_title
+        # create this plate group in the output file
+        out_plate = outfile_h5.createGroup(out_plates,out_plate_name,out_plate_desc)
+        wells = in_plate._f_list_nodes(classname='Array')
+        for well in wells:
+            name = well._v_name
+            parent_name = (well._v_parent)._v_name
+            try:
+                data = well.read()
+                if data.shape[0] > 0:
+                    # load the node data into theano.shared memory on the GPU
+                    this_x = load_data_unlabeled(data)   
+                    # get the encoding function, encode the data
+                    encode_fn = sda_model.build_encoding_functions(dataset=this_x)   
+                    start, end = 0, data.shape[0]
+                    reduced_data = encode_fn(start=start,end=end)     
+                else:
+                    reduced_data = data[:,:10]
+                store_unlabeled_byarray(outfile_h5, data_group, zlib_filters, name, reduced_data)                
+                
+            except:
+                print "Encountered a problem at this node: ", name
+                continue            
+            # write reduced data to same place in outfile
+            store_unlabeled_byarray(outfile_h5, out_plate, zlib_filters, name, reduced_data)                
                
     input_h5.close()
     outfile_h5.close()
