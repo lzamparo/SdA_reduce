@@ -123,8 +123,8 @@ if __name__ == '__main__':
     
     # Parse command line args
     parser = OptionParser()
-    parser.add_option("--p_dir",dest="model_dir",help="directory containing the first SdA model file")
-    parser.add_option("--q_dir",dest="model_dir",help="directory containing the second SdA model file")
+    parser.add_option("--p_dir",dest="p_model_dir",help="directory containing the first SdA model file")
+    parser.add_option("--q_dir",dest="q_model_dir",help="directory containing the second SdA model file")
     parser.add_option("-p","--restorep",dest = "pr_file", help = "Restore the first model from this pickle file", default=None)
     parser.add_option("-q","--restoreq",dest = "qr_file", help = "Restore the second model from this pickle file", default=None)
     parser.add_option("-i", "--inputfile", dest="inputfile", help="the data (hdf5 file) prepended with an absolute path")
@@ -153,8 +153,8 @@ if __name__ == '__main__':
     p_args['arch'] = extract_arch(options.pr_file,model_name)
     q_args['arch'] = extract_arch(options.qr_file,model_name)
         
-    p_args['restore'] = os.path.join(options.model_dir,options.pr_file)
-    q_args['restore'] = os.path.join(options.model_dir,options.qr_file)
+    p_args['restore'] = os.path.join(options.p_model_dir,options.pr_file)
+    q_args['restore'] = os.path.join(options.q_model_dir,options.qr_file)
 
     p_args['output'] = options.p_outputfile
     q_args['output'] = options.q_outputfile
