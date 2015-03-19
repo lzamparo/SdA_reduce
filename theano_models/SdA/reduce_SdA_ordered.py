@@ -71,7 +71,7 @@ def feedforward_SdA(shared_args,private_args):
         out_plate_desc = in_plate._v_title
         # create this plate group in the output file
         out_plate = outfile_h5.createGroup(out_plates,out_plate_name,out_plate_desc)
-        wells = in_plate._f_list_nodes(classname='Array')
+        wells = in_plate._f_listNodes(classname='Array')
         for well in wells:
             name = well._v_name
             parent_name = (well._v_parent)._v_name
