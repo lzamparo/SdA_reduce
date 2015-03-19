@@ -64,6 +64,7 @@ def feedforward_SdA(shared_args,private_args):
     f.close()    
     
     out_root = outfile_h5.root 
+    out_plates = outfile_h5.createGroup('/','plates','plate data')
     # walk the node structure of the input, reduce, save to output
     for in_plate in input_h5.listNodes('/plates',classname="Group"):
         out_plate_name = in_plate._v_name
