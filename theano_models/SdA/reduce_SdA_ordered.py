@@ -86,13 +86,13 @@ def feedforward_SdA(shared_args,private_args):
                     reduced_data = encode_fn(start=start,end=end)     
                 else:
                     reduced_data = data[:,:10]
-                store_unlabeled_byarray(outfile_h5, data_group, zlib_filters, name, reduced_data)                
+                    
+                # write reduced data to same place in outfile
+                store_unlabeled_byarray(outfile_h5, out_plate, zlib_filters, name, reduced_data)                
                 
             except:
                 print "Encountered a problem at this node: ", name
-                continue            
-            # write reduced data to same place in outfile
-            store_unlabeled_byarray(outfile_h5, out_plate, zlib_filters, name, reduced_data)                
+                continue                            
                
     input_h5.close()
     outfile_h5.close()
