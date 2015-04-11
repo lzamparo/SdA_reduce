@@ -4,7 +4,7 @@ curr_dir <- getwd()
 setwd('/data/sda_output_data/relu_vs_gb')
 both_layers <- read.csv('both_models.csv')
 
-levels(both_layers$group) <- c("3 layers", "5 layers")
+levels(both_layers$group) <- c("3 layers", "4 layers")
 
 # Faceted plot, 3-params 2 models
 full_p <- ggplot(both_layers, aes(epoch,score, colour = layer))
