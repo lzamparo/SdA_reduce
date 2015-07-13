@@ -149,8 +149,11 @@ def store_unlabeled_byarray(data_set_file, arrays_group, zlib_filters, data_rang
         :param my_data: The numpy array to write to the hdf5 file
     """    
     atom = Atom.from_dtype(my_data.dtype)
-    ds = data_set_file.createCArray(where=arrays_group, name=data_range, atom=atom, shape=my_data.shape, filters=zlib_filters)
-    ds[:] = my_data
+    if my_data.shape[0] > 0:
+        ds = data_set_file.createCArray(where=arrays_group, name=data_range, atom=atom, shape=my_data.shape, filters=zlib_filters)
+        ds[:] = my_data
+    else:
+        ds = data_set_file.createEArray(where=arrays_group, name=data_range, atom=atom, shape=(0,my_data.shape[1]), filters=zlib_filters)
     data_set_file.flush()
     
 def store_labeled_byarray(data_set_file, arrays_group, labels_group, zlib_filters, data_range, my_data, my_labels):

@@ -80,8 +80,9 @@ for i in dimension_list:
         gaussmix_labels = gaussmix.predict(X_iso)
         homog = metrics.homogeneity_score(labels[:,0], gaussmix_labels)
         print "Homogeneity: %0.3f" % homog
-        test_result = {"Model": 'Isomap', "Dimension": i, "Homogeneity": homog}
-        data_files.append(pd.DataFrame(data=test_result))
+        test_result = {"Model": 'Isomap', "Dimension": i, "Homogeneity": homog, "Trial": j}
+        index = pd.Index([0], name='rows')
+        data_files.append(pd.DataFrame(data=test_result,index=index))
         
 print "...Done"
 print "...rbinding DataFrames"

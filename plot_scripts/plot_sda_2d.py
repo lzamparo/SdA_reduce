@@ -130,10 +130,17 @@ files = [f for f in os.listdir('.') if f.endswith('.h5')]
 name_pattern = re.compile('reduce_SdA\.([\d_]+)\.[\d]+')
 sampling_tuple = None
 
+# use the top 10 by homogeneity test ranking
+top_10 = [open(filename,'r').readlines() for filename in os.listdir('.') if filename.endswith('homog.txt')]
+top_10 = [name.strip() for name in top_10[0]]
+top_10_files = [f for f in files if extract_name(f, name_pattern) in top_10]
+
 fig = plt.figure(figsize=(20,10),dpi=100)
-for tile,f in enumerate(files):
+for tile,f in enumerate(top_10_files):
     data, sampling_tuple, sizes = sample_from(f, opts, sampling_tuple)
-    sub = plot_embedding(data, tile, sizes, extract_name(f, name_pattern))
+    model_name = extract_name(f, name_pattern)
+    if model_name in top_10:
+        sub = plot_embedding(data, tile, sizes, extract_name(f, name_pattern))
 
 # Put a legend below current axis
 legend_font_props = FontProperties()
