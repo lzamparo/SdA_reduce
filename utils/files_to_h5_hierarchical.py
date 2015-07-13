@@ -75,7 +75,7 @@ for i,f in enumerate(files):
             try:
                 plate, well = img_to_pw[img_num]
             except KeyError as e:
-                print "image number not found in image to well map: " + img_num
+                print "image number not found in image to well map: " + str(img_num)
                 continue
             objs = my_data[my_data[:,0] == img_num]
             well_group = "/plates/" + str(plate)
