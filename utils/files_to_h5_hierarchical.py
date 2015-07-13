@@ -60,31 +60,36 @@ try:
     os.chdir(input_dir)
 except:
     print "Could not read files from " + input_dir
-else:
-    zlib_filters = Filters(complib='zlib', complevel=5)
-    for i,f in enumerate(files):
-        if i % 10 == 0:
-            print "processing %s, %d files done of %d total" % (f,i,len(files))
-        if f.endswith(suffix):
-            my_data = np.genfromtxt(f, delimiter=',', autostrip = True)
-            atom = Atom.from_dtype(my_data.dtype)
-            # slice this data file by grouped image numbers
-            min_img, max_img = int(min(my_data[:,0])), int(max(my_data[:,0]))
-            for img_num in xrange(min_img,max_img+1):
-                objs = my_data[my_data[:,0] == img_num]
+
+# Read all the files, process 'em.
+zlib_filters = Filters(complib='zlib', complevel=5)
+for i,f in enumerate(files):
+    if i % 10 == 0:
+        print "processing %s, %d files done of %d total" % (f,i,len(files))
+    if f.endswith(suffix):
+        my_data = np.genfromtxt(f, delimiter=',', autostrip = True)
+        atom = Atom.from_dtype(my_data.dtype)
+        # slice this data file by grouped image numbers
+        min_img, max_img = int(min(my_data[:,0])), int(max(my_data[:,0]))
+        for img_num in xrange(min_img,max_img+1):
+            try:
                 plate, well = img_to_pw[img_num]
-                well_group = "/plates/" + str(plate)
-                well_node = "/plates/" + str(plate) + "/" + str(well)
-                if h5file.__contains__(well_node):
-                    # some data for this well exists in an EArray already, append this data to it.
-                    ds = h5file.get_node(where=well_node)
-                    ds.append(objs)				
-                else:
-                    # no data from images belonging to this well have yet been dumped into an EArray.
-                    ds = h5file.create_earray(where=well_group, name=str(well), atom=atom, shape=(0,my_data.shape[1]), filters=zlib_filters)
-                    ds.append(objs)				
-                h5file.flush()
-    os.chdir(cur_dir)
+            except KeyError e:
+                print "image number not found in image to well map: " + img_num
+                continue
+            objs = my_data[my_data[:,0] == img_num]
+            well_group = "/plates/" + str(plate)
+            well_node = "/plates/" + str(plate) + "/" + str(well)
+            if h5file.__contains__(well_node):
+                # some data for this well exists in an EArray already, append this data to it.
+                ds = h5file.get_node(where=well_node)
+                ds.append(objs)				
+            else:
+                # no data from images belonging to this well have yet been dumped into an EArray.
+                ds = h5file.create_earray(where=well_group, name=str(well), atom=atom, shape=(0,my_data.shape[1]), filters=zlib_filters)
+                ds.append(objs)				
+            h5file.flush()
+os.chdir(cur_dir)
 print "done!"
 h5file.close()
 
