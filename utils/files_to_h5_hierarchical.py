@@ -74,7 +74,7 @@ for i,f in enumerate(files):
         for img_num in xrange(min_img,max_img+1):
             try:
                 plate, well = img_to_pw[img_num]
-            except KeyError e:
+            except KeyError as e:
                 print "image number not found in image to well map: " + img_num
                 continue
             objs = my_data[my_data[:,0] == img_num]
