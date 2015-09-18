@@ -80,7 +80,7 @@ def plot_embedding(X, tile, rescale=None, legend_loc=None, title=None):
     if title is not None:
             sub.set_title(title,fontsize=18)    
 
-    rstyle(sub)
+    rstyle(sub, remove_border=False, remove_ticks=False)
     
 
 ###############################################################################
@@ -153,13 +153,13 @@ t0 = time()
 D_kpca = kpca.fit_transform(D_scaled)
 print "Done in time %.2fs " % (time() - t0)
 
-plot_embedding(D_pca, 1, rescale="yes", title="PCA projection", legend_loc="upper right")
-plot_embedding(D_iso, 2, rescale="yes", title="Isomap projection")
-plot_embedding(D_lle, 3, rescale="yes", title="LLE projection", legend_loc="upper right")
-plot_embedding(D_kpca, 4, rescale="yes", title="kPCA projection")
+plot_embedding(D_pca, 1, rescale=None, title="PCA projection")
+plot_embedding(D_iso, 2, rescale=None, title="Isomap projection")
+plot_embedding(D_lle, 3, rescale=None, title="LLE projection", legend_loc="lower right")
+plot_embedding(D_kpca, 4, rescale=None, title="kPCA projection")
 
-#fig.tight_layout()
-fig.subplots_adjust(hspace=0.45)
+fig.subplots_adjust(hspace=0.10, wspace=0.18,left=0.03, right=0.98, top=0.9, bottom=0.1)
+#fig.show()
 fig.savefig(opts.outputfile,format="pdf", orientation='landscape', pad_inches=0) 
 
 

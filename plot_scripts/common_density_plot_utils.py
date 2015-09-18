@@ -16,7 +16,7 @@ def husl_gen():
     husl_light = husl.husl_to_hex(hue, saturation, lightness)
     return husl_dark, husl_light
 
-def rstyle(ax): 
+def rstyle(ax, remove_border = True, remove_ticks = True): 
     '''Styles x,y axes to appear like ggplot2
     Must be called after all plot and axis manipulation operations have been 
     carried out (needs to know final tick spacing)
@@ -34,21 +34,23 @@ def rstyle(ax):
                                 -plt.yticks()[0][0]) / 2.0 )))
     
     #Remove axis border
-    for child in ax.get_children():
-        if isinstance(child, matplotlib.spines.Spine):
-            child.set_alpha(0)
-       
+    if remove_border:
+        for child in ax.get_children():
+            if isinstance(child, matplotlib.spines.Spine):
+                child.set_alpha(0)
+           
     #Restyle the tick lines
     for line in ax.get_xticklines() + ax.get_yticklines():
         line.set_markersize(5)
         line.set_color("gray")
         line.set_markeredgewidth(1.4)
     
-    #Remove the minor tick lines    
-    for line in (ax.xaxis.get_ticklines(minor=True) + 
-                 ax.yaxis.get_ticklines(minor=True)):
-        line.set_markersize(0)
-    
+    #Remove the minor tick lines
+    if remove_ticks:
+        for line in (ax.xaxis.get_ticklines(minor=True) + 
+                     ax.yaxis.get_ticklines(minor=True)):
+            line.set_markersize(0)
+        
     #Only show bottom left ticks, pointing out of axis
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
